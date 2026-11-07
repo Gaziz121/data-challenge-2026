@@ -4,6 +4,42 @@ Authority: organizer appendix *«Как сдать результаты»* (`CQA
 3 pages, local original in the owner's Downloads; not committed). This runbook applies it
 to the code in `src/cqa_results/`. Where this file and the appendix disagree, the appendix wins.
 
+## 0. FROZEN production configuration and final command sequence (use this; older sections are background)
+
+Owner decision 2026-11-07: checklist **v7** (`src/cqa/checklists/official-v7.json`, sha256 `02e1f9e9…fafd0`) +
+prompt **atomic-v5** + **opt-in review evidence gate** + `gpt-5.4-mini-2026-03-17`, bounded one-call repair,
+`normalize_formatting` quotes, 8000 output tokens, 90 s timeout, 3 workers — all in `tools/production.env`,
+pinned by tests and re-checked by the script before every paid step. v7 FAILED pre-registered C01 criterion 1
+(one wrong-language false Yes shared with v6) and was selected because it improved over v6 without observed
+regressions on the paired sample (2 fixes, 0 regressions, n = 17). Prompt and checklist are frozen: no v8.
+
+All steps go through `tools/final_submission.sh` (paid steps refuse without `CQA_PAID_OK=yes`; official
+`results/` files are written only from runs made with the frozen configuration and a real team name):
+
+```sh
+sh tools/final_submission.sh check
+# DEV (needs approval; 60 synthetic chats sent, the 5 real calls stay honest errors without a grant)
+CQA_PAID_OK=yes ENV_FILE=/path/to/ignored/.env sh tools/final_submission.sh dev-batch
+CQA_PAID_OK=yes ENV_FILE=... sh tools/final_submission.sh resume dev outputs/submission/dev-final-<stamp>   # optional, once
+sh tools/final_submission.sh export dev outputs/submission/dev-final-<stamp>                      # validation copy
+TEAM_NAME='<registered name>' sh tools/final_submission.sh export dev outputs/submission/dev-final-<stamp>
+# PROD (final hour)
+read -rs CONTROL_URL; export CONTROL_URL; sh tools/final_submission.sh prod-fetch
+sh tools/final_submission.sh prod-check
+PERMISSION_REF='<organizer rule reference>' sh tools/final_submission.sh prod-grants
+CQA_PAID_OK=yes ENV_FILE=... sh tools/final_submission.sh prod-batch
+CQA_PAID_OK=yes ENV_FILE=... sh tools/final_submission.sh resume prod outputs/submission/prod-final-<stamp>  # once, if time
+TEAM_NAME='<registered name>' sh tools/final_submission.sh export prod outputs/submission/prod-final-<stamp>
+#   out of time: add UNATTEMPTED_REASON='Not evaluated before code stop: <cause>' to the export
+# Publish (on a checkout of the submission branch itself; refuses divergence, staging extras, force)
+TEAM_NAME=... SUBMIT_REPO=Gaziz121/data-challenge-2026 SUBMIT_REF=<branch> sh tools/final_submission.sh submit
+SUBMIT_REPO=... SUBMIT_REF=... sh tools/final_submission.sh verify dev
+SUBMIT_REPO=... SUBMIT_REF=... sh tools/final_submission.sh verify prod
+```
+
+Previous runs (`dev-run1`, `gate-v6`, `c01-compare/*`) are never overwritten: each batch gets a new timestamped
+directory. Expected DEV outcome from the measured gate: roughly 40–45 of 60 chats scored, the rest honest errors.
+
 ## 1. What the organizers require (appendix pp. 1-3)
 
 | Requirement | Source | Enforced by |

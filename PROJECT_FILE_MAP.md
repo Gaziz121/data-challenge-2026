@@ -69,6 +69,7 @@ machine. Inspect the filesystem including ignored paths before declaring absence
 | `.github/workflows/offline-tests.yml` | CI / tracked | Offline tests, dry run and rehearsal; no secrets or paid calls |
 | `outputs/app/appeals/`, `outputs/rehearsal/`, `outputs/submission-wiring/`, `restricted/demo-approvals.json` | GENERATED / LOCAL ONLY | Appeal records, rehearsal and wiring runs, fictional demo approvals; never staged |
 | `src/cqa/checklists/official-v7.json`, `tests/test_c01_v7.py`, `tools/c01_compare.py`, `tools/c01_live_comparison.sh`, `docs/demo/c01_variants_fictional.json`, `tests/fixtures/c01_fictional_expectations.json` | EXPERIMENTAL / tracked | C01 wording candidate (not default), invented C01 Yes/No cases with constructed expectations, offline comparison tool and guarded paid comparison script |
+| `tools/production.env`, `tools/final_submission.sh` | SUBMISSION / tracked, no secrets | Frozen production configuration with checklist/prompt hashes; guarded DEV/PROD batch, export, submit and public verification steps |
 | `ANALYSIS.md` | GIT TRACKED | Reverse engineering, deep analysis, evidence and final-file checks |
 | `src/`, `notebooks/` | GIT TRACKED files only after review | Development files available on disk may be uncommitted; inspect local paths and Git status |
 | `data/processed/`, other `data/`, `outputs/`, `deliverables/`, `tmp/`, caches | GENERATED / LOCAL ONLY by default | Derived evidence, artifacts and temporary review files; may still be sensitive; inspect filenames before contents |

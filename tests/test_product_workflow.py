@@ -390,3 +390,38 @@ class EvidenceGateTests(unittest.TestCase):
         for raw in (bad_quote, unknown, coverage):
             with self.assertRaises(EvaluationRejected):
                 self.run_gate(raw, "review")
+
+
+class FrozenProductionConfigTests(unittest.TestCase):
+    def setUp(self):
+        self.env = dict(line.split("=", 1) for line in (ROOT / "tools/production.env").read_text().splitlines()
+                        if line and not line.startswith("#"))
+
+    def test_checklist_and_prompt_bytes_are_frozen(self):
+        import hashlib
+        from cqa.prompt import build_request
+        path = ROOT / self.env["CQA_CHECKLIST"]
+        self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), self.env["CQA_CHECKLIST_SHA256"])
+        _, sha = build_request(load_conversation(SHARED, "p1-ru-001"), load_checklist(path),
+                               prompt_version=self.env["CQA_PROMPT_VERSION"])
+        self.assertEqual(sha, self.env["CQA_PROMPT_SHA256_P1_RU_001"])
+        self.assertEqual((self.env["CQA_EVIDENCE_GATE"], self.env["CQA_MODEL"]), ("review", "gpt-5.4-mini-2026-03-17"))
+        check_checklist(load_checklist(path))
+
+    def test_rehearsal_uses_the_frozen_configuration(self):
+        from cqa_results import rehearsal
+        self.assertEqual(rehearsal.PRODUCTION_CHECKLIST, ROOT / self.env["CQA_CHECKLIST"])
+        self.assertEqual((rehearsal.PRODUCTION_PROMPT, rehearsal.PRODUCTION_GATE),
+                         (self.env["CQA_PROMPT_VERSION"], self.env["CQA_EVIDENCE_GATE"]))
+
+    def test_submission_validation_refuses_placeholder_team_names(self):
+        from cqa_results.validate import load_dataset_index, validate_submission
+        index, _ = load_dataset_index(SHARED)
+        base = {"schema_version": "1.0", "model": {"mode": "external_api", "name": "gpt-5.4-mini-2026-03-17"},
+                "results": [{"conversation_id": cid, "status": "error", "criteria": [], "score": None,
+                             "error": "fixture"} for cid in index]}
+        for name in ("TEAM_NAME_PENDING", "Placeholder", "<team>", "DRY-RUN TEAM", "REHEARSAL TEAM (not a submission)"):
+            errors = validate_submission(dict(base, team_name=name), index, "dev", submission=True)["errors"]
+            self.assertTrue(any("team_name" in e for e in errors), name)
+        errors = validate_submission(dict(base, team_name="Freedom Analysts"), index, "dev", submission=True)["errors"]
+        self.assertFalse(any("team_name" in e for e in errors))

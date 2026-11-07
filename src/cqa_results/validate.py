@@ -105,6 +105,8 @@ def validate_submission(value, dataset_index, set_name, *, submission=False, exp
         err("$.team_name", "must be the actual nonempty team name, not a placeholder")
     elif expected_team is not None and team != expected_team:
         err("$.team_name", "does not equal the expected team name")
+    elif submission and re.search(r"(?i)pending|placeholder|\btbd\b|\btodo\b|dry.?run|rehearsal|wiring|not a submission|[<>]", team):
+        err("$.team_name", "looks like a placeholder or dry-run name; submissions need the registered team name")
     model = value.get("model")
     if not isinstance(model, dict) or set(model) != {"mode", "name"}:
         err("$.model", 'must be an object with exactly "mode" and "name"')

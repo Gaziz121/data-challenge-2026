@@ -18,7 +18,7 @@ Python 3.9+ with `pydantic>=2.11,<3` (`python3 -m pip install "pydantic==2.13.5"
 git clone https://github.com/Gaziz121/data-challenge-2026.git && cd data-challenge-2026
 git checkout integration/final-submission
 CQA_REVIEWER_KEY=demo-reviewer-key PYTHONPATH=src python3 -m cqa.web --port 8765 \
-  --checklist src/cqa/checklists/official-v6.json --live-call-limit 0
+  --checklist src/cqa/checklists/official-v7.json --live-call-limit 0
 ```
 
 Open http://127.0.0.1:8765/ and follow the [five-minute demo](docs/DEMO.md). The fastest
@@ -54,8 +54,9 @@ Rationale: [docs/ARCHITECTURE_DECISIONS.md](docs/ARCHITECTURE_DECISIONS.md), rel
 
 ## Evaluator, model and cost — what is and is not established
 
-- Production candidate: checklist `official-v6.json` + prompt `atomic-v5` + OpenAI `gpt-5.4-mini-2026-03-17`
-  (Responses API, strict structured output). v6 differs from v5 only in clarified C07 wording.
+- FROZEN provisional production configuration (`tools/production.env`): checklist `official-v7.json` + prompt
+  `atomic-v5` + opt-in review evidence gate + OpenAI `gpt-5.4-mini-2026-03-17` (Responses API, strict structured
+  output). v6 clarified C07 wording; v7 additionally clarifies C01 (see the runbook §0 for the selection record).
 - Live evidence: 7 genuine single calls, all on synthetic `p1-ru-001`. Only the atomic-v5 + v5 reply is a
   trustworthy structural acceptance (total 100.00); an earlier atomic-v3 acceptance had a grammar-forced
   C06 and is not trusted. That reply credits a farewell as an offer of help under C07; the official text

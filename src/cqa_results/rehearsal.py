@@ -4,7 +4,7 @@
 
 Exercises the exact production path on 10 invented control chats (IDs SIM-PROD-0nn):
   intake/envelope check -> owner grants + authorization check -> normalize -> evaluate with
-  the PRODUCTION pair (checklist official-v6 + prompt atomic-v5, real engine validation,
+  the FROZEN production configuration (checklist official-v7 + prompt atomic-v5 + review evidence gate,
   coverage and exact scoring) -> official export -> independent strict validation ->
   commit-preparation safety checks -> printed public-URL verification procedure.
 
@@ -32,8 +32,9 @@ from .export import build_submission, check_checklist, write_submission
 from .grants import build_manifest
 from .validate import validate_file
 
-PRODUCTION_CHECKLIST = ROOT / "src/cqa/checklists/official-v6.json"
+PRODUCTION_CHECKLIST = ROOT / "src/cqa/checklists/official-v7.json"
 PRODUCTION_PROMPT = "atomic-v5"
+PRODUCTION_GATE = "review"  # Must equal tools/production.env (tested).
 OFFICIAL = {"dev": ROOT / "results/dev/results.json", "prod": ROOT / "results/prod/results.json"}
 
 
@@ -86,7 +87,8 @@ def run_rehearsal(out, log=print):
     # 3. Evaluate with the explicit production checklist + prompt (no defaults).
     checklist = load_checklist(PRODUCTION_CHECKLIST)
     check_checklist(checklist)
-    config = EvaluationConfig(prompt_version=PRODUCTION_PROMPT, quote_policy="normalize_formatting")
+    config = EvaluationConfig(prompt_version=PRODUCTION_PROMPT, quote_policy="normalize_formatting",
+                              evidence_gate=PRODUCTION_GATE)
     counts = run_batch(data_path, out / "prod-run", fixture_provider(), checklist=checklist, config=config,
                        expect_count=10, workers=2, log=lambda *_: None)
     resumed = run_batch(data_path, out / "prod-run", fixture_provider(), checklist=checklist, config=config,

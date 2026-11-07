@@ -33,7 +33,10 @@ Updated November 7, 2026, Asia/Almaty. Start with
   RU/KZ/EN Yes/No cases, comparison tool and guarded paired live-check script; offline tests pass.
 - C01 paired live check (34 calls, ~USD 0.53): v7 fixes 2, regresses 0, shares 1 residual false Yes
   (wrong-language greeting); fails pre-registered criterion 1, so not auto-adopted. Owner decision pending.
-- Not done: no PROD-10 results; no committed results/dev; gate adoption and v7 live check need owner decisions;
+- FROZEN provisional production configuration (owner decision): v7 + atomic-v5 + review gate + gpt-5.4-mini,
+  bounded repair (`tools/production.env`); v7 failed pre-registered criterion 1 but improved over v6 with no
+  observed regressions. Final steps scripted in `tools/final_submission.sh` (paid steps and pushes guarded).
+- Not done: final DEV run with the frozen configuration (needs approval); team name; submission branch; PROD;
   semantic accuracy unmeasured; team name and submission URL/branch unconfirmed; control API unknown.
 
 ## Earlier collaboration checkpoint

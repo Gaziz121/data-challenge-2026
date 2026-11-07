@@ -9,7 +9,7 @@ PYTHONPATH=src python3 -B -m cqa_results.grants --data docs/demo/fictional_new_c
   --data-class synthetic_test --reference demo-fictional-conversations \
   --expires 2030-01-01T00:00:00Z --output restricted/demo-approvals.json
 CQA_REVIEWER_KEY=demo-reviewer-key PYTHONPATH=src python3 -m cqa.web --port 8765 \
-  --checklist src/cqa/checklists/official-v6.json --live-call-limit 0 \
+  --checklist src/cqa/checklists/official-v7.json --live-call-limit 0 \
   --authorization-manifest restricted/demo-approvals.json
 ```
 

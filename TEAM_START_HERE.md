@@ -19,7 +19,7 @@ PYTHONPATH=src python -B -m unittest discover -t . -s tests      # expect OK (2 
 PYTHONPATH=src python -B -m unittest discover -t . -s qa
 node tests/test_web_ui.cjs && node tests/test_dev_review.cjs
 CQA_REVIEWER_KEY=demo-reviewer-key PYTHONPATH=src python -m cqa.web --port 8765 \
-  --checklist src/cqa/checklists/official-v6.json --live-call-limit 0
+  --checklist src/cqa/checklists/official-v7.json --live-call-limit 0
 ```
 
 Then follow [docs/DEMO.md](docs/DEMO.md). Submission: [docs/RESULTS_SUBMISSION_RUNBOOK.md](docs/RESULTS_SUBMISSION_RUNBOOK.md).

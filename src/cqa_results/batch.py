@@ -217,7 +217,7 @@ def main(argv=None):
             if args.checklist is None or args.prompt_version is None:
                 # A real run must never fall back silently to the legacy default checklist/prompt.
                 raise ValueError("Specify --checklist and --prompt-version explicitly for a real provider "
-                                 "(production pair: src/cqa/checklists/official-v6.json + atomic-v5)")
+                                 "(frozen production configuration: tools/production.env)")
             from cqa.web import load_env_file
             key = (load_env_file(args.env_file) if args.env_file else {}).get("OPENAI_API_KEY") \
                 or os.environ.get("OPENAI_API_KEY", "")
