@@ -1,6 +1,6 @@
 # Modular evaluation baseline and contract v1
 
-Current core note: engine 0.6.0 compatibility mode defaults to `official-v3.json` / rubric
+Current core note: engine 0.6.1 compatibility mode defaults to `official-v3.json` / rubric
 `2026-11-07.v3`, prompt `baseline-v4` and active model-output schema `1.1`.
 Atomic checks precede the response in the actual serialized provider schema;
 applicability questions precede other questions in the model input. Legacy
@@ -190,7 +190,7 @@ pricing claim, product-policy knowledge base or accuracy benchmark is invented.
 
 ## Explicit atomic-first decision path
 
-Rubric official-v4.json selects atomic-v1 / wire schema1.2. The existing evaluate
+Rubric official-v4.json selects atomic-v2 / wire schema1.2. The existing evaluate
 pipeline validates typed observations and fact evidence before materializing
 unambiguous decisions; the original provider output is separately retained.
 `atomic.py` is this input stage, using the existing validators, scope proof and

@@ -92,7 +92,7 @@ class AtomicPathTests(AtomicHelpers):
         self.assertEqual(responses, {"01": "yes", "02": "N/A", "03": "N/A", "04": 20, "05": "yes", "06": 10, "07": "yes", "08": "no"})
         self.assertEqual(result.score.total_score, "100.00")
         self.assertEqual(result.score.applicable_weight, 65)
-        self.assertEqual(result.run.configuration.prompt_version, "atomic-v1")
+        self.assertEqual(result.run.configuration.prompt_version, "atomic-v2")
         self.assertEqual(result.decision_path, "atomic_first")
         self.assertEqual(result.decision_rule_checks, [])  # No tautological model/derived comparison.
         self.assertTrue(all(r.state.startswith("accepted_") for r in result.criterion_reviews))
@@ -152,6 +152,20 @@ class AtomicPathTests(AtomicHelpers):
             self.assertLess(list(branch["properties"]).index("atomic_checks"), list(branch["properties"]).index("judgment"))
         self.assertNotIn("na_reason", request["schema"]["$defs"]["ApplicableJudgment"]["properties"])
         self.assertEqual(request["schema"]["properties"]["schema_version"]["const"], "1.2")
+
+    def test_compiled_output_plan_exposes_defaults_and_required_scopes(self):
+        before=digest(self.checklist.model_dump(mode="json"))
+        request,_=build_request(self.conv,self.checklist);payload=json.loads(request["input"])
+        for c in payload["checklist"]["criteria"]:
+            self.assertIn(c["output_source"],("model","atomic"))
+        plans={p["criterion_id"]:p for p in payload["output_plan"]}
+        self.assertTrue(plans["07"]["judgment_required_when_applicable"])
+        self.assertFalse(plans["03"]["judgment_required_when_applicable"])
+        for cid,qid in (("03","03.q1"),("05","05.q3")):
+            policy=next(r for r in plans[cid]["full_scope_requirements"] if r["question_id"]==qid)
+            self.assertIn("no",policy["when_answer"])
+            self.assertEqual(policy["required_evidence"],scope(self.conv) | {"explanation":"Full source dialogue inspected; explain the specific fact being checked."})
+        self.assertEqual(before,digest(self.checklist.model_dump(mode="json")))
 
     def test_unseen_languages_and_new_configured_criterion(self):
         from tests.test_control_backend import supplied
@@ -266,3 +280,17 @@ class ThreeLiveReplayTests(unittest.TestCase):
             self.assertNotIn("score",caught.exception.diagnostic)
             with self.assertRaises(EvaluationRejected):
                 evaluate(conv,atomic_checklist(),Scripted(raw))  # No silent migration into accepted atomic facts.
+
+    def test_paid_atomic_response_retains_precise_fact_and_missing_judgment_failures(self):
+        raw=json.loads((Path(__file__).parent/"fixtures/live_atomic_5d256ac.json").read_text())["original_model_output"]
+        with self.assertRaises(EvaluationRejected) as caught:
+            evaluate(load_conversation(SHARED,"p1-ru-001"),atomic_checklist(),Scripted(raw))
+        d=caught.exception.diagnostic
+        self.assertEqual({i["criterion_id"] for i in d["issues"]},{"03","05","07"})
+        self.assertEqual(d["original_model_output"],raw)
+        reviews={r["criterion_id"]:r for r in d["criterion_reviews"]}
+        self.assertEqual(reviews["03"]["atomic_answers"]["03.q1"],"no")
+        self.assertEqual(reviews["07"]["original_judgment"],None)
+        self.assertEqual(len(d["validated_criteria"]),5)
+        self.assertTrue(all(p["complete"] for p in d["coverage_proofs"]))
+        self.assertNotIn("score",d)

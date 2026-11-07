@@ -290,7 +290,7 @@ manual-label workflow remains separate. Appeals/revision fields are reserved
 contracts; no accepted-override workflow is implemented.
 
 
-## Atomic-first contract (engine0.6.0; explicit rubric v4)
+## Atomic-first contract (engine0.6.1; explicit rubric v4)
 
 The compatibility default remains v3. Select the registered `2026-11-07.v4` in
 `POST /api/evaluations` using the same checklist reference shape:
@@ -329,3 +329,11 @@ no partial/redistributed/provisional total is manufactured. No automatic retry.
 Old schemas, exports, strict evidence gates and checklist versions remain intact.
 Event classification and factual advice still need semantic calibration; exact
 citations/order/coverage do not independently establish their truth.
+
+
+The atomic-v2 compiler explicitly emits output_source=model instead of omitting
+that storage default, and includes a per-question output plan with exact scope
+templates for mandatory full-dialogue evidence. Legacy checklist hashes remain
+unchanged. The one authorized atomic-v1 live run at5d256ac was rejected for missing
+C03/C05 negative scopes and C07's applicable model judgment. V2's compiler changes
+are offline-verified only; the original rejected response is never repaired.

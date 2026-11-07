@@ -225,6 +225,29 @@ future work.
 - Exactly one subsequent paid evaluation was explicitly authorized by the owner
   after offline checks. Its actual outcome is recorded separately in local evidence.
 
+## One genuine atomic-path run and offline compiler correction
+
+- One owner-authorized call ran only after the offline suite passed, at5d256ac:
+  engine0.6.0/atomic-v1/rubricv4/schema1.2, exact-approved syntheticp1-ru-001.
+  Modelgpt-5.4-mini-2026-03-17; provider9.507s; input5980/output2668/total8648;
+  approximateUSD0.016491. No retries, batches, source relaxation or frontend edits.
+- Rejected without score: C03 need=no and C05 dissatisfaction=no lacked required
+  whole-dialogue scope; applicable C07 omitted its model judgment. C01yes/C02N-A/
+  C04=20/C06=10/C08no were individually validated. All original wire facts,
+  judgments, scopes, review states and C08 proofs remain local and unmodified.
+- Former redundant final-answer contradictions did not recur in the new wire
+  contract. This is structural evidence, not semantic accuracy or an accepted run.
+- Offline inspection found a compiler omission: default model output_source was
+  absent from input. Engine0.6.1/atomic-v2 now emits every source explicitly plus
+  a machine-readable per-question output/whole-scope plan. Review records retain
+  raw answer context even for invalid facts. No second model call was made.
+- Final offline127 run/126pass/one expected original local-file skip; original56
+  QA and full81-test peer QA discovery pass unchanged; both JS suites pass. New19
+  tests include the exact failed atomic response; no accepted score is fabricated.
+- Compatibility defaultv3 remains; atomicv4 explicitly selectable. There is still
+  no accepted genuine quality total. Scope citations and event chronology validate
+  locators, not truth; complaint/identity/product semantics need reviewed labels.
+
 ## Private synchronization policy
 
 Use live Git preflight/fetch and history comparison, not this snapshot, to verify

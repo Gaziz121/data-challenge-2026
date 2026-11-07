@@ -15,6 +15,7 @@ from .prompt import build_request, PROMPT_VERSION
 from .evidence import normalize_evidence
 from .coverage import assess_output
 from .atomic import AtomicReviewRequired, process_atomic_output
+from .atomic_prompt import PROMPT_VERSION as ATOMIC_PROMPT_VERSION
 from .schemas import (Checklist, Conversation, EvaluationConfig, EvaluationResult,
                       ModelEvaluation, RunMetadata, CheckInput, CheckOutcome, AuditEvent)
 from .scoring import score_evaluation
@@ -72,7 +73,7 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
     config = EvaluationConfig.model_validate((config or EvaluationConfig()).model_dump())
     atomic_path = checklist.decision_path == "atomic_first"
     if atomic_path:
-        config = config.model_copy(update={"prompt_version": "atomic-v1"})
+        config = config.model_copy(update={"prompt_version": ATOMIC_PROMPT_VERSION})
     elif config.prompt_version != PROMPT_VERSION:
         raise ValueError("Requested prompt version is not the active implementation")
     conversation = Conversation.model_validate(conversation.model_dump())

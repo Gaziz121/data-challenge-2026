@@ -9,8 +9,8 @@ and [scoring specification](case/CQA_SCORING_SPEC.md).
 Validation repairs, the 41/41 independent QA result and the exact single-call
 OpenAI outcome are documented in [the repair report](docs/VALIDATION_REPAIR_REPORT.md).
 
-The current core is engine 0.6.0. Compatibility mode retains baseline-v4/schema1.1.
-Select rubric `2026-11-07.v4` for atomic-v1/schema1.2: the model supplies facts and
+The current core is engine 0.6.1. Compatibility mode retains baseline-v4/schema1.1.
+Select rubric `2026-11-07.v4` for atomic-v2/schema1.2: the model supplies facts and
 the backend derives unambiguous decisions after validating their evidence.
 C04/C06 remain discretionary; N/A is backend-derived for every criterion. See the
 [readiness audit](docs/CORE_READINESS_AUDIT.md) and

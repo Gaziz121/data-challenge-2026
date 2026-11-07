@@ -215,6 +215,15 @@ def process_atomic_output(raw, conversation, checklist):
                                                     if origin == "derived" and criterion.decision_rule else
                                                     "Configured critical category mapping" if origin == "derived" else "Official discretionary scale"),
                                        atomic_answers={a.question_id: a.answer for a in parsed.atomic_checks}))
+    # Retain valid raw answer fields even when evidence/schema validation failed.
+    # This is diagnostic context only; it is never passed to the scorer.
+    for i, review in enumerate(reviews):
+        entries = by_id.get(review.criterion_id, [])
+        raw_checks = entries[0].get("atomic_checks", []) if len(entries) == 1 else []
+        raw_checks = raw_checks if isinstance(raw_checks, list) else []
+        answers = {a["question_id"]: a["answer"] for a in raw_checks if isinstance(a, dict)
+                   and isinstance(a.get("question_id"), str) and a.get("answer") in ("yes", "no", "unknown", "not_applicable")}
+        reviews[i] = review.model_copy(update={"atomic_answers": answers})
     issues.extend({"criterion_id": r.criterion_id, "message": message} for r in reviews for message in r.issues)
     if issues or any(not r.state.startswith("accepted_") for r in reviews):
         raise AtomicReviewRequired(reviews, issues, accepted)
