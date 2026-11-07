@@ -3,6 +3,8 @@
 from pydantic import TypeAdapter, ValidationError
 
 from .schemas import Decision, Evidence, ModelEvaluation, decision_metadata_issues
+from .decision_rules import assess_decision
+from .coverage import decision_coverage
 
 _FIELD_ADAPTERS = {name: TypeAdapter(field.rebuild_annotation()) for name, field in Decision.model_fields.items()}
 _EVIDENCE_ADAPTER = TypeAdapter(Evidence)
@@ -110,6 +112,12 @@ def contextual_issues(values, criterion, conversation, messages):
         if any(a.get("answer") == "unknown" for a in atomics) and values.get("needs_review") is False:
             add("Unknown atomic answers require explicit review", ("needs_review",))
     response = values.get("response")
+    assessment = assess_decision(criterion, values)
+    if assessment:
+        for issue in assessment.issues:
+            add(issue, ("atomic_checks",))
+        if assessment.status == "disagreed":
+            add("Official response contradicts the configured deterministic decision rule", ("response",))
     if "response" in values:
         for rule in criterion.consistency_rules:
             if answers.get(rule.question_id) == rule.when_answer and response not in rule.permitted_responses:
@@ -142,10 +150,10 @@ def contextual_issues(values, criterion, conversation, messages):
         if categories is not None and "response" in values and (response == "yes") != bool(categories):
             add("Critical yes requires categories; no forbids categories", ("violation_categories",))
         if evidence is not None:
-            if response == "no" and not any(
-                    e["kind"] == "scope" and e["start_message_id"] == conversation.messages[0].message_id
-                    and e["end_message_id"] == conversation.messages[-1].message_id for e in evidence):
-                add("No critical violation requires the full inspected scope", ("evidence",))
+            for proof in decision_coverage(conversation, criterion, values):
+                if not proof.complete:
+                    add("No critical violation requires the full inspected scope; source-ID coverage is incomplete or invalid",
+                        tuple(proof.evidence_path))
             if response == "yes" and not any(
                     e["kind"] == "quote" and e["message_id"] in messages
                     and messages[e["message_id"]].role == "agent" for e in evidence):

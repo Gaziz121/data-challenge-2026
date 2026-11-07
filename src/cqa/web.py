@@ -82,7 +82,9 @@ class Application:
         if (ROOT / "outputs").resolve() not in self.output_dir.resolve().parents:
             raise ValueError("Application output must remain under ignored outputs/")
         self.input_policy = InputPolicy.from_path(authorization_manifest, allow_external=allow_external_authorized)
-        self.checklists = ChecklistRegistry(self.checklist, self.output_dir / "checklists")
+        # Keep explicit selection of the previous default working after upgrade.
+        previous = load_checklist(Path(__file__).parent / "checklists/official-v2.json")
+        self.checklists = ChecklistRegistry(self.checklist, self.output_dir / "checklists", additional=[previous])
         self.lock = threading.Lock()
         data, _ = read_dataset(SHARED)
         self.records = data["records"]

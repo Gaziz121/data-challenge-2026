@@ -52,6 +52,7 @@ class PipelineTests(unittest.TestCase):
         stages = [a.stage for a in result.audit]
         self.assertEqual(stages, ["normalized_input", "facts_and_applicability_constraints",
                                  "pre_evaluation:agent-presence", "primary_atomic_evaluation",
+                                 "decision_rules_and_source_coverage",
                                  "schema_evidence_consistency_validation", "official_deterministic_scoring"])
         self.assertEqual(result.status, "mock_only")
         self.assertTrue(result.run.is_mock)

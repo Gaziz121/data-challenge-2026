@@ -191,7 +191,7 @@ class ControlBackendTests(unittest.TestCase):
         self.assertEqual(status, 201)
         self.assertEqual(ref["sha256"], digest(changed))
         self.assertEqual(self.request("/api/checklists/" + ref["sha256"]), (200, changed))
-        self.assertEqual(len(self.request("/api/checklists")[1]), 2)
+        self.assertEqual(len(self.request("/api/checklists")[1]), 3)
         body = {"conversation": self.values[2]}
         first_status, first = self.request("/api/evaluations", body)
         body["checklist"] = {"checklist_id": ref["checklist_id"], "version": ref["version"]}
@@ -203,7 +203,7 @@ class ControlBackendTests(unittest.TestCase):
         self.assertNotEqual(first["evaluation_id"], second["evaluation_id"])
         self.assertEqual(json.loads((self.app.output_dir / (first["evaluation_id"] + ".json")).read_text()), first)
         reopened = Application(api_key="", output_dir=self.app.output_dir)
-        self.assertEqual(len(reopened.checklists.list()), 2)
+        self.assertEqual(len(reopened.checklists.list()), 3)
         self.assertEqual(reopened.checklists.by_hash(ref["sha256"]).model_dump(mode="json"), changed)
         # ID-based DEV compatibility also supports the explicitly saved version.
         status, result = self.request("/api/evaluations", {"conversation_id": "p1-ru-001", "checklist": body["checklist"]})

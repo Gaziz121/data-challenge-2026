@@ -186,6 +186,24 @@ future work.
   unverified. The manifest records owner-reviewed permission; it does not certify
   organizer consent. See docs/BACKEND_CONTRACT.md for internal JSON/setup.
 
+## C05/C08 conditional decision and source-coverage repair
+
+- Engine0.5.0 / baseline-v4 / active rubric2026-11-07.v3, model output1.1.
+  C05 now separates complaint presence from the obligation to respond. An explicit
+  configurable conditional rule records derived answers/disagreements and blocks
+  contradictions; it never replaces a model answer or silently alters scoring.
+- C08 negative evidence is checked as source-ID interval union over the complete
+  dialogue, including each negative category atomic in v3. Proofs retain hashes,
+  evidence paths and missing IDs. This proves locator coverage, not semantic truth.
+- Exact second live response replay retains both failures; no guessed atomic
+  migration or retroactive score. Historical v1/v2 JSON and v2 digest are preserved;
+  v2 remains selectable. No hardcoded QA C01/C07 rule maps copied into production.
+- Application108 run/107 pass/one expected original local-file skip; new11 tests pass;
+  all56 independent QA tests unchanged and passing without skips; Node2 suites pass.
+  No paid/model/auth calls, key loading, frontend work or main merge in this pass.
+- See docs/VALIDATION_REPAIR_REPORT.md. Real-model compliance with the new conditional
+  atoms and scope instructions is not yet verified; semantic accuracy remains open.
+
 ## Private synchronization policy
 
 Use live Git preflight/fetch and history comparison, not this snapshot, to verify

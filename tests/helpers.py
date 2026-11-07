@@ -52,6 +52,16 @@ def set_response(raw, checklist, criterion_id, response):
     criterion = next(c for c in checklist.criteria if c.criterion_id == criterion_id)
     decision["response"] = response
     decision["na_reason"] = criterion.na_condition if response == "N/A" else None
+    if criterion.decision_rule and response in ("yes", "no"):
+        # Scoring fixtures must also respect the explicitly configured rule.
+        rule = criterion.decision_rule
+        answers = {a["question_id"]: a for a in decision["atomic_checks"]}
+        for qid in rule.all_of:
+            answers[qid]["answer"] = response
+        if rule.conditional:
+            conditional = rule.conditional
+            answers[conditional.trigger_question_id]["answer"] = conditional.required_when
+            answers[conditional.requirement_question_id]["answer"] = "yes"
     if criterion.applicability_rule:
         rule = criterion.applicability_rule
         next(a for a in decision["atomic_checks"] if a["question_id"] == rule.question_id)["answer"] = (

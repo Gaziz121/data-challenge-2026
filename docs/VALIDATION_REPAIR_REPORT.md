@@ -184,3 +184,66 @@ design/organizer decisions for arbitrary replacements. Detailed verification/
 disclosure ordering and semantic evidence meaning still require model/human
 judgment. Appeals/accepted overrides and independent verification remain future
 work; no filter silently changes an official score.
+
+## C05/C08 root-cause repair after the second genuine response
+
+Base `c379231`; no further API calls or credentials loaded. The exact second
+model output is replayed offline from `tests/fixtures/live_c379231.json`, matched
+to the unchanged approved synthetic source hash. Original smoke artifacts remain
+unchanged. New source: engine0.5.0, prompt baseline-v4, rubric2026-11-07.v3;
+model-output remains1.1. Historical v1/v2 configurations and v2's canonical digest
+remain unchanged and v2 remains explicitly selectable through the backend.
+
+**C05:** original checklist page1 says polite AND, if the client expressed
+unhappiness/inconvenience, responded to that specific problem. The old conditional
+05.q2 conflated absence of a complaint with failure to respond: the actual model
+answered no while explaining that there was no complaint, then chose yes overall.
+A yes/no conjunction over those two old answers cannot safely resolve this case.
+New config adds an explicit trigger05.q3 and requires atomic not_applicable for
+05.q2 when the trigger is no. Criterion05 itself is always applicable. The exact
+rule is `polite AND (NOT complaint_present OR issue_addressed)`. No apology phrase,
+sentiment threshold, extra weight or new N/A exception was invented.
+
+`decision_rules.assess_decision` uses explicit configured question references,
+not criterion IDs. It derives only when the required inputs are resolved and
+records model/derived answers plus agreement/undetermined/disagreement. Contradictory
+answers block scoring; no output response or official score is silently changed.
+The old live output is not migrated, supplemented with guessed trigger answers,
+or retroactively accepted. New criteria without a rule get no invented derivation.
+
+Claude's QA checker supplied the sound ideas of non-mutating comparisons,
+configurable rule activation, applicability precedence and conservative unknown
+handling. Its hardcoded C01/C07 maps were not copied. C07 grouping remains an
+acknowledged interpretation (scoring spec A08), and its all-of rule does not
+express C05's conditional obligation. Its not_applicable-as-false behavior is
+inappropriate for an untriggered C05 obligation, so this case is handled explicitly.
+
+**C08:** the actual model cited m0009..m0011, omitting m0000..m0008. The three
+negative atomics made the same restricted-scope claim. Full-dialogue coverage is
+our evidence gate for a global absence claim, not an additional official scoring
+rule. Official C08 still means none of the same three violations was identified,
+with no numerical penalty. `coverage.py` computes set-union coverage of valid
+source-index intervals, rejecting gaps, reverse/unknown boundaries, quote-only
+claims and repeated tiny excerpts. The proof retains exact evidence paths,
+required/covered/missing IDs and hashes of conversation/ordered source messages.
+Multiple scopes may jointly cover the dialogue; none is auto-expanded. V3 requires
+coverage for the decision and every negative category atomic. Prompt input now
+provides exact full-scope templates and IDs, while validation recomputes coverage
+from actual returned evidence rather than trusting a supplied claim/hash.
+
+A coverage proof establishes source locators, not model attention, truth or
+semantic absence. Unknown category judgments still require explicit review.
+No genuine accepted score or semantic accuracy has been established by this pass.
+
+Executed verification: application108 run/107 passed/one expected original
+worktree-local full-DEV skip; the separate ingress test processes all five provided
+voice transcripts locally. Eleven new regression tests pass. All56 independent
+QA tests pass unchanged, with zero skips (41 original +15 replay). Both JavaScript
+suites pass. Existing local tests only update version/audit expectations, coherent
+scoring fixtures, and the registry count now that both bundled versions exist;
+scoring assertions and independent tests are not weakened.
+
+Still to verify, only after new authorization: whether a real model follows the
+new trigger semantics and exhaustive scope requirements. Approved semantic labels
+and policy facts remain necessary; offline structural tests cannot establish
+accuracy. No paid call, frontend change or merge into main occurred here.

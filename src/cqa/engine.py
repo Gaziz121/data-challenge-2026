@@ -13,6 +13,7 @@ from .checks import AgentPresenceCheck
 from .preprocessing import extract_facts
 from .prompt import build_request, PROMPT_VERSION
 from .evidence import normalize_evidence
+from .coverage import assess_output
 from .schemas import (Checklist, Conversation, EvaluationConfig, EvaluationResult,
                       ModelEvaluation, RunMetadata, CheckInput, CheckOutcome, AuditEvent)
 from .scoring import score_evaluation
@@ -123,9 +124,16 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
                            usage=reply.usage or {}, prompt_sha256=prompt_hash,
                            checklist_sha256=digest(checklist.model_dump(mode="json")), configuration=config)
     raw = reply.evaluation
+    rule_checks, coverage_proofs = [], []
     try:
         raw = parse_json(reply.evaluation) if isinstance(reply.evaluation, (str, bytes)) else reply.evaluation
         record("primary_atomic_evaluation", config.prompt_version, raw)
+        rule_checks, coverage_proofs = assess_output(raw, conversation, checklist)
+        record("decision_rules_and_source_coverage", "rules-coverage-v1",
+               {"decision_rule_checks": [c.model_dump(mode="json") for c in rule_checks],
+                "coverage_proofs": [p.model_dump(mode="json") for p in coverage_proofs]},
+               "blocked" if any(c.status == "disagreed" or c.issues for c in rule_checks)
+               or any(not p.complete for p in coverage_proofs) else "passed")
         original = ModelEvaluation.model_validate(raw)
         model_evaluation, repairs = (normalize_evidence(original, conversation)
                                      if config.quote_policy == "normalize_formatting" else (original, []))
@@ -140,6 +148,8 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
                                   "run": run_metadata().model_dump(mode="json"),
                                   "conversation": conversation.model_dump(mode="json"),
                                   "checklist": checklist.model_dump(mode="json"),
+                                  "decision_rule_checks": [c.model_dump(mode="json") for c in rule_checks],
+                                  "coverage_proofs": [p.model_dump(mode="json") for p in coverage_proofs],
                                   "audit": [a.model_dump(mode="json") for a in audit]}) from None
     if repairs:
         record("evidence_formatting_resolution", "formatting-v1", [r.model_dump(mode="json") for r in repairs])
@@ -154,5 +164,6 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
         evaluation_id=str(uuid4()), status=status, conversation=conversation, checklist=checklist,
         model_evaluation=original, validated_evaluation=model_evaluation,
         evidence_repairs=repairs, score=score, revision_history=[],
+        decision_rule_checks=rule_checks, coverage_proofs=coverage_proofs,
         facts=facts, check_outcomes=outcomes, audit=audit,
         run=run_metadata())

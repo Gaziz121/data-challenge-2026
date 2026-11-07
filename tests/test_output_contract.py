@@ -44,7 +44,7 @@ class OutputContractTests(unittest.TestCase):
     def test_new_prompt_and_output_versions_preserve_legacy_reading(self):
         request, _ = build_request(self.conv, self.checklist)
         payload = json.loads(request["input"])
-        self.assertEqual(PROMPT_VERSION, "baseline-v3")
+        self.assertEqual(PROMPT_VERSION, "baseline-v4")
         self.assertEqual(payload["output_schema_version"], "1.1")
         for version in ("1.0", "1.1"):
             raw = deepcopy(self.raw); raw["schema_version"] = version

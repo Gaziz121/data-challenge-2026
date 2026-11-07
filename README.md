@@ -2,14 +2,14 @@
 
 Accuracy, reproducibility and required end-to-end functions take priority over
 cosmetics. This workspace now includes a working modular Python evaluation baseline.
-One genuine OpenAI response has been obtained and rejected by validation; no valid
+Two genuine OpenAI responses have been obtained and rejected by validation; no valid
 live quality total is established. Read the [requirements](case/CQA_REQUIREMENTS.md)
 and [scoring specification](case/CQA_SCORING_SPEC.md).
 
 Validation repairs, the 41/41 independent QA result and the exact single-call
 OpenAI outcome are documented in [the repair report](docs/VALIDATION_REPAIR_REPORT.md).
 
-The current core is engine 0.4.0 / prompt `baseline-v3`, with atomic-first model
+The current core is engine 0.5.0 / prompt `baseline-v4`, with atomic-first model
 output schema 1.1 and historical 1.0 reading. See the
 [readiness audit](docs/CORE_READINESS_AUDIT.md) and
 [implemented backend contract](docs/BACKEND_CONTRACT.md) before frontend work.
@@ -17,7 +17,10 @@ The backend accepts new chat/voice transcripts using owner-provisioned,
 content-bound approvals and explicit provider export permissions. Existing DEV-ID
 requests remain supported. Checklists can be saved as immutable versions and
 selected per evaluation; see the backend contract for exact JSON and safe startup.
-The readiness audit records the earlier `b5702b1` snapshot.
+The active rubric is `2026-11-07.v3`: explicit conditional C05 checks and full
+source-ID coverage for negative critical findings. Original model decisions are
+never replaced by the checker. Older v2 remains selectable. The readiness audit
+records the earlier `b5702b1` snapshot.
 
 ## Run the local browser application
 

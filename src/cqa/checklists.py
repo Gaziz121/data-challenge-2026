@@ -27,11 +27,13 @@ class ChecklistRegistry:
             raise ValueError("Saved checklist content/hash mismatch")
         return checklist
 
-    def __init__(self, default, directory):
+    def __init__(self, default, directory, additional=()):
         self.directory = Path(directory)
         self._lock = threading.RLock()
         self._versions = {}
         self._add(Checklist.model_validate(default.model_dump()))
+        for checklist in additional:
+            self._add(Checklist.model_validate(checklist.model_dump()))
         if self.directory.exists():
             for path in sorted(self.directory.glob("*.json")):
                 checklist = self._read(path)

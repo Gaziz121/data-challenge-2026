@@ -1,7 +1,7 @@
 # Implemented backend contract for the frontend teammate
 
 Source: `src/cqa/web.py`, `schemas.py`, `loader.py`, `engine.py`, `scoring.py`.
-Engine 0.4.0 / prompt `baseline-v3`. This describes implemented source after
+Engine 0.5.0 / prompt `baseline-v4`. This describes implemented source after
 backend restart, not a promised future API. No frontend code changed in this task.
 
 ## Versions and request boundary
@@ -9,7 +9,7 @@ backend restart, not a promised future API. No frontend code changed in this tas
 - Conversation, checklist and evaluation-result wrappers: `schema_version="1.0"`.
 - Active provider output: `schema_version="1.1"`, format name
   `cqa_evaluation_v1_1`; historical output `1.0` still parses.
-- Default checklist ID `freedom-cqa-initial`, version `2026-11-07.v2`.
+- Default checklist ID `freedom-cqa-initial`, version `2026-11-07.v3`; v2 remains selectable.
 - Strict JSON types; extra request/contract fields rejected. Missing, null, numeric
   zero, `"no"` and `"N/A"` have distinct meanings.
 
@@ -178,7 +178,8 @@ Successful HTTP 200 contains these actual keys, all unmodified from the engine:
 
 `schema_version`, `evaluation_id`, `status`, `conversation`, `checklist`,
 `model_evaluation`, `validated_evaluation`, `evidence_repairs`, `score`, `run`,
-`facts`, `check_outcomes`, `audit`, `revision_history`.
+`facts`, `check_outcomes`, `audit`, `revision_history`, `decision_rule_checks`,
+`coverage_proofs` (the last two default to empty when reading older results).
 
 Minimal **excerpt**, not a complete response or schema-valid fixture:
 
@@ -234,6 +235,23 @@ to the audit. Historical/direct-core results may have this optional field null.
 Result status is mock_only, needs_review or structurally_valid. These are not
 accuracy certifications; review results still carry provisional raw decisions
 and a calculated total. A critical flag does not currently auto-escalate status.
+
+The optional binary `decision_rule` specifies `all_of` question IDs and a nullable
+conditional `{trigger_question_id, required_when, requirement_question_id}` plus
+its source. All references must exist and be distinct. There are no rule defaults
+keyed to criterion IDs. Unknown/missing facts do not produce a derived answer.
+An untriggered obligation must be atomic `not_applicable`, never criterion N/A.
+`decision_rule_checks` retain the model response, derived response, status and
+issues. Disagreement blocks scoring; the original reply is never overwritten.
+
+For critical `response=no`, `coverage_proofs` recompute the union of valid cited
+scope intervals over exact source-message IDs. Missing IDs or invalid boundaries
+fail. With `negative_coverage=decision_and_atomic` (v3), each category answered no
+needs full coverage as well. Proofs include ordered required/covered/missing IDs,
+evidence paths and conversation/message hashes. Quotes alone, repeated excerpts,
+or claims in rationale cannot fill gaps. No scope is auto-expanded. These prove
+locator coverage only; semantic absence and actual model attention remain unproven.
+Both records also appear in retained rejection diagnostics, without a score.
 
 ## Re-evaluation and errors
 

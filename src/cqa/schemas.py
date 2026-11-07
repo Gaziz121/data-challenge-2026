@@ -2,7 +2,7 @@
 
 from typing import Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 CONTRACT_VERSION = "1.0"
 MODEL_OUTPUT_SCHEMA_VERSION = "1.1"
@@ -52,6 +52,27 @@ class AtomicQuestion(Contract):
 class EvidencePolicy(Contract):
     positive_roles: list[Literal["agent", "system"]] = Field(default_factory=lambda: ["agent"], min_length=1)
     positive_locator: Literal["any", "first_agent"] = "any"
+    negative_coverage: Literal["decision", "decision_and_atomic"] = "decision"
+
+    @model_serializer(mode="wrap")
+    def preserve_legacy_serialization(self, handler):
+        value = handler(self)
+        if self.negative_coverage == "decision":
+            value.pop("negative_coverage", None)
+        return value
+
+
+class ConditionalRequirement(Contract):
+    trigger_question_id: str = Field(min_length=1)
+    required_when: Literal["yes", "no"]
+    requirement_question_id: str = Field(min_length=1)
+
+
+class BinaryDecisionRule(Contract):
+    """Explicit conjunction, optionally including one conditional obligation."""
+    all_of: list[str] = Field(min_length=1)
+    conditional: Optional[ConditionalRequirement] = None
+    source: str = Field(min_length=1)
 
 
 class ApplicabilityRule(Contract):
@@ -78,11 +99,29 @@ class Criterion(Contract):
     applicability_rule: Optional[ApplicabilityRule]
     consistency_rules: list[ConsistencyRule] = Field(default_factory=list)
     evidence_policy: EvidencePolicy = Field(default_factory=EvidencePolicy)
+    decision_rule: Optional[BinaryDecisionRule] = None
+
+    @model_serializer(mode="wrap")
+    def preserve_legacy_serialization(self, handler):
+        value = handler(self)
+        if self.decision_rule is None:
+            value.pop("decision_rule", None)
+        return value
 
     @model_validator(mode="after")
     def valid_definition(self):
         if len({q.question_id for q in self.questions}) != len(self.questions):
             raise ValueError("Duplicate atomic question IDs")
+        if self.decision_rule:
+            rule = self.decision_rule
+            refs = list(rule.all_of)
+            if rule.conditional:
+                refs += [rule.conditional.trigger_question_id, rule.conditional.requirement_question_id]
+            if (self.kind != "binary" or len(refs) != len(set(refs))
+                    or not set(refs) <= {q.question_id for q in self.questions}):
+                raise ValueError("Binary decision rule requires distinct configured question references")
+        if self.kind != "critical" and self.evidence_policy.negative_coverage != "decision":
+            raise ValueError("Full negative category coverage applies only to critical criteria")
         categories = [q.violation_category for q in self.questions if q.violation_category is not None]
         if categories and (self.kind != "critical" or len(categories) != len(set(categories))
                            or len(categories) != len(self.questions)):
@@ -273,7 +312,7 @@ class OverallScore(Contract):
 
 class EvaluationConfig(Contract):
     strategy: Literal["single_pass"] = "single_pass"
-    prompt_version: Literal["baseline-v1", "baseline-v2", "baseline-v3"] = "baseline-v3"
+    prompt_version: Literal["baseline-v1", "baseline-v2", "baseline-v3", "baseline-v4"] = "baseline-v4"
     max_output_tokens: int = Field(default=8000, ge=256, le=32000)
     timeout_seconds: int = Field(default=90, ge=1, le=300)
     external_synthetic_allowed: bool = False
@@ -331,6 +370,28 @@ class DecisionRevision(Contract):
     state: Literal["proposed", "accepted", "rejected"]
 
 
+class DecisionRuleAssessment(Contract):
+    criterion_id: str
+    rule_source: str
+    model_response: Optional[RawResponse]
+    derived_response: Optional[Literal["yes", "no", "N/A"]]
+    status: Literal["agreed", "disagreed", "undetermined"]
+    issues: list[str]
+
+
+class CoverageProof(Contract):
+    """Locator coverage, not proof of model attention or semantic correctness."""
+    criterion_id: str
+    evidence_path: list[Union[str, int]]
+    conversation_sha256: str
+    messages_sha256: str
+    required_message_ids: list[str]
+    covered_message_ids: list[str]
+    missing_message_ids: list[str]
+    invalid_scope_indices: list[int]
+    complete: bool
+
+
 class EvaluationResult(Contract):
     schema_version: Literal["1.0"] = CONTRACT_VERSION
     evaluation_id: str
@@ -346,3 +407,5 @@ class EvaluationResult(Contract):
     check_outcomes: list[CheckOutcome]
     audit: list[AuditEvent]
     revision_history: list[DecisionRevision]
+    decision_rule_checks: list[DecisionRuleAssessment] = Field(default_factory=list)
+    coverage_proofs: list[CoverageProof] = Field(default_factory=list)

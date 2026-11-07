@@ -1,7 +1,7 @@
 # Modular evaluation baseline and contract v1
 
-Current core note: engine 0.4.0 defaults to `official-v2.json` / rubric
-`2026-11-07.v2`, prompt `baseline-v3` and active model-output schema `1.1`.
+Current core note: engine 0.5.0 defaults to `official-v3.json` / rubric
+`2026-11-07.v3`, prompt `baseline-v4` and active model-output schema `1.1`.
 Atomic checks precede the response in the actual serialized provider schema;
 applicability questions precede other questions in the model input. Legacy
 model-output `1.0` remains readable. Independent field diagnostics report metadata,
@@ -10,6 +10,10 @@ decisions. Configurable evidence policies and
 atomic/category consistency now close the 12 independent QA defects. Successful
 results preserve original `model_evaluation`, `validated_evaluation` and exact-span
 `evidence_repairs`. Rejected replies retain per-criterion diagnostics and no score.
+Configured conditional binary rules now produce explicit agreement/disagreement
+records, without response replacement; source coverage proofs bind all cited
+scope intervals to the original ordered message manifest. Critical negative
+proofs include each negative category atomic check in rubric v3.
 See [current repair/live-call report](VALIDATION_REPAIR_REPORT.md). Historical
 baseline behavior below remains useful context; optional formatting resolution
 does not weaken direct strict validation or change any response/weight.
