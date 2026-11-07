@@ -9,12 +9,19 @@
    until refreshed successfully. An upstream is only a configured comparison ref.
 4. **Actual remote:** what GitHub currently stores; verify with actual network
    operations. Even a successful fetch is an observation at that time, not a lock.
-5. **Local-only files:** data, evidence/status, outputs, and deliverables excluded
+5. **Local-only files:** non-allowlisted data, evidence/status, outputs, and deliverables excluded
    by policy. They may be newer than committed work and need separate approved
    handoff. Ignoring a file does not stop tracking an already-added file.
 
 The authoritative result is the exact version identified in the evidence ledger,
 not automatically the newest file timestamp or newest GitHub commit.
+
+Before Git preflight or a material-dependent task, read `PROJECT_FILE_MAP.md` and
+inspect actual relevant directories including ignored files. Git and default
+ignore-aware searches cannot establish material absence. A fresh clone includes
+team-safe PDFs and the 60-chat subset, not original PDFs, full 65-record DEV,
+real calls, signed API/audio access or local `STATUS.md`. Check disk first, then
+obtain missing LOCAL ONLY inputs through the integration owner's approved handoff.
 
 ## Session preflight
 
@@ -111,13 +118,20 @@ Git transport works. Record what actually succeeded in `STATUS.md`.
 
 ## Data and handoff policy
 
-Raw inputs, derived data, case documents, local status/evidence, and generated
-deliverables stay ignored by default. A private repo is not blanket permission.
+Full raw DEV, original case PDFs, real-call data, local status/evidence and generated
+deliverables stay ignored. Named requirements/specifications, reviewed team-safe
+PDFs and the synthetic-only 60-chat derivative are explicitly allowed for this
+PRIVATE repository. Other material remains excluded; no broad directory exceptions.
+A private repo is not blanket permission.
 Review aggregate tables and charts for disclosure before any sharing. Explicitly
 approved artifacts can be tracked selectively after review; never force-add a
 whole ignored directory. Review already tracked files as well as ignore rules.
 
-Use `STATUS.md` locally as the single integration record. If teammates need it,
-agree on an organizer-permitted shared location and one edit owner. It is not
-silently synchronized by Git. A sanitized reviewed version may be shared only
-with explicit approval; do not create a second competing evidence ledger.
+Use `STATUS.md` locally as the detailed integration/evidence record. Shared
+`TEAM_STATUS.md` is its sanitized snapshot, not a competing evidence ledger; it
+must not contain real-call evidence or signed URLs. Keep `PROJECT_FILE_MAP.md`
+current when file availability/sharing changes. Review exact staged paths/content,
+including decoded PDF objects and dataset membership, before an authorized push.
+The user authorized these reviewed safe materials in the existing private repo;
+do not request the same authorization again. New sensitive scope/publication needs
+a separate decision. Do not copy private history into the future public submission.

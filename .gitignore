@@ -1,10 +1,20 @@
 # Local data and generated artifacts: review confidentiality before tracking.
-data/
+/data/*
+!/data/shared/
+/data/shared/*
+!/data/shared/DEV_synthetic_60.json
 outputs/
 deliverables/
 # Working case notes/evidence can contain confidential facts. Share only after review.
-STATUS.md
-case/
+/STATUS.md
+/case/*
+!/case/CQA_REQUIREMENTS.md
+!/case/CQA_SCORING_SPEC.md
+!/case/shared/
+/case/shared/*
+!/case/shared/CQA_Hackathon_Student_Guide_TEAM_SAFE.pdf
+!/case/shared/CQA_Chat_Quality_Checklist_TEAM_SAFE.pdf
+!/case/shared/Data_2_TEAM_SAFE.pdf
 restricted/
 
 # Data files accidentally placed outside data/.
