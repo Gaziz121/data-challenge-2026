@@ -21,7 +21,12 @@ Updated November 7, 2026, Asia/Almaty. Start with
   errors, validator exit 0); PROD-10 fictional rehearsal passes. Browser flow checked on localhost.
 - v6 gate (3 owner-authorized calls, ~USD 0.06): 2/3 accepted -> v6 + atomic-v5 selected; EN rejected on
   evidence/coverage rules; C07 farewell bias persists on p1-ru-001 despite the clarified wording.
-- Not done: no genuine DEV-65 or PROD-10 results (paid calls need owner authorization); repair not live-tested;
+- DEV batch (owner-authorized, 60 synthetic chats only; 5 real calls refused locally before transport):
+  v6 + atomic-v5 + bounded repair, ~94 calls, ~USD 1.2. 25/60 accepted, 34 rejected, 1 OpenAI HTTP 500.
+  Repair rescued 1/35. Accepted results are skewed (all consultation 20, dialogue 10, no critical): the
+  strict evidence gates reject most conversations with problems. Validated export (65 records, 25 ok)
+  kept in ignored outputs/ until the team name is known. Evaluator acceptance is the main open risk.
+- Not done: no PROD-10 results; no committed results/dev; acceptance rate needs an owner decision;
   semantic accuracy unmeasured; team name and submission URL/branch unconfirmed; control API unknown.
 
 ## Earlier collaboration checkpoint

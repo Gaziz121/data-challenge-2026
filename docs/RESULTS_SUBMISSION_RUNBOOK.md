@@ -103,7 +103,14 @@ Record the choice and run directory in `STATUS.md`.
 (02 quote from an ineligible role, 03 missing full-dialogue coverage, 04 unresolved fact). Decision: **v6 +
 atomic-v5**. Caveat: on p1-ru-001 the model still answers 07.q2 = yes for a farewell, so the C07 bias is not
 fixed by wording. The EN failure type is what the bounded repair targets; using `--repair-authorization` in the
-DEV/PROD batches is recommended but has not yet been exercised live. Never change the pair between DEV and PROD runs without
+DEV/PROD batches is recommended but has not yet been exercised live.
+
+**DEV batch executed 2026-11-07 (owner-authorized, 60 synthetic chats; `outputs/submission/dev-run1`):**
+25/60 accepted, 34 rejected after one repair attempt each (1 rescued), 1 provider HTTP 500, 5 real calls
+refused locally (no export grant). ~USD 1.2. Main rejection causes per conversation: quote-role policy
+(16, mostly C06 = 10 backed only by scope), unused events/categories on criteria that never use them (12),
+quotes not found in the source (7), unresolved facts (5). Accepted results are skewed toward clean
+conversations. Expect a similar error share on PROD unless the evaluator policy changes. Never change the pair between DEV and PROD runs without
 recording why; resume refuses a changed pair. Accepted structure is not semantic accuracy.
 
 Optional `--repair-authorization '<owner reference>'` adds at most ONE bounded criterion-repair call per
