@@ -266,8 +266,20 @@
     result = value; rejected = null;
     if (!current || current.conversation_id !== value.conversation.conversation_id || pasted) showConversation(value.conversation);
     renderResult(value, $("results"), $("run-summary"), jump);
+    for (const card of $("results").querySelectorAll(".result-card")) addAppealShortcut(card);
     $("download").disabled = false;
     loadAppeals();
+  }
+  // Card shortcut to the existing appeal form: switch tab, preselect the criterion, focus the comment.
+  function addAppealShortcut(card) {
+    const button = el("button", "Appeal", "cqa-appeal-shortcut"); button.type = "button";
+    button.setAttribute("aria-label", `Appeal criterion ${card.dataset.criterionId}`);
+    button.onclick = () => {
+      showTab("history-appeals");
+      $("appeal-criterion").value = card.dataset.criterionId; fillRequested();
+      $("appeal-explanation").focus();
+    };
+    card.append(button);
   }
   function showRejected(diagnostic) {
     rejected = diagnostic; result = null;

@@ -751,14 +751,37 @@ body > .cqa-app {
   border-left-color: var(--cqa-critical);
 }
 
-#results > .result-card:not(.rejected-card) {
+.cqa-app #results > .result-card:not(.rejected-card) {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  column-gap: var(--cqa-s3);
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  column-gap: var(--cqa-s2);
   align-items: start;
 }
-#results > .result-card:not(.rejected-card) > * {
+/* Row 1 of a criterion card: title | verdict pill | Appeal shortcut. Everything else spans the card. */
+.cqa-app #results > .result-card:not(.rejected-card) > * {
   grid-column: 1 / -1;
+}
+.cqa-app #results > .result-card:not(.rejected-card) > h3 {
+  grid-column: 1;
+  grid-row: 1;
+}
+.cqa-app #results > .result-card:not(.rejected-card) > .cqa-appeal-shortcut {
+  grid-column: 3;
+  grid-row: 1;
+}
+/* "Appeal" shortcut appended by the browser code to accepted cards. */
+.cqa-app #results > .result-card > .cqa-appeal-shortcut {
+  min-height: 26px;
+  padding: 1px 10px;
+  font-size: var(--cqa-fs-xs);
+  color: var(--cqa-accent);
+  border-color: var(--cqa-accent-line);
+  border-radius: var(--cqa-radius-pill);
+}
+.cqa-app #results > .result-card > .cqa-appeal-shortcut:hover:not(:disabled) {
+  color: var(--cqa-accent-ink);
+  background: var(--cqa-accent);
+  border-color: var(--cqa-accent);
 }
 .cqa-app .result-card > h3 {
   grid-column: 1;
@@ -767,7 +790,7 @@ body > .cqa-app {
   font-size: var(--cqa-fs-md);
 }
 /* Verdict pill: text label from the backend response, colour from data-verdict. */
-#results > .result-card:not(.rejected-card) > .raw {
+.cqa-app #results > .result-card:not(.rejected-card) > .raw {
   grid-column: 2;
   grid-row: 1;
   justify-self: end;
@@ -782,11 +805,11 @@ body > .cqa-app {
   border: 1px solid currentColor;
   border-radius: var(--cqa-radius-pill);
 }
-#results > .result-card[data-verdict="na"] > .raw,
-#results > .result-card:not([data-verdict]) > .raw {
+.cqa-app #results > .result-card[data-verdict="na"] > .raw,
+.cqa-app #results > .result-card:not([data-verdict]) > .raw {
   color: var(--cqa-na);
 }
-#results > .result-card[data-critical="true"] > .raw {
+.cqa-app #results > .result-card[data-critical="true"] > .raw {
   color: var(--cqa-critical-ink);
   background: var(--cqa-critical);
   border-color: var(--cqa-critical);
