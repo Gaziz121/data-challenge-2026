@@ -332,9 +332,35 @@ claims that missing features or deployment are complete.
    public submission is a separate sanitized export/repository after explicit
    authorization, never a visibility change or push of private history.
 
-Public read access is available. Owner plus one collaborator have accepted write
-access; two write invitations remain pending. Each teammate should verify their
-own branch/PR workflow after accepting, with named ownership agreed first.
+Copy-paste cycle for one deliverable (frontend example; adjust branch and paths).
+Run it in your own clone from section 3, never in another owner's checkout:
+
+```sh
+git fetch origin
+git switch -c codex/frontend-checklist-ui origin/codex/local-mvp-integration
+# edit only your owned paths, then run the section 4 checks
+git status --short
+git add web/app.js web/app.css tests/test_web_ui.cjs
+git diff --cached
+git commit -m "Describe one frontend deliverable"
+git push -u origin codex/frontend-checklist-ui
+gh pr create --base codex/local-mvp-integration --title "Frontend: checklist UI" --body "Base SHA, behavior, exact checks run, skips/limitations, contract changes"
+```
+
+Without the GitHub CLI, open the compare link that `git push` prints and set the
+base to `codex/local-mvp-integration` (GitHub preselects default `main`; change it).
+Engine work uses `codex/engine-*`, backend `codex/backend-*`; QA-only work branches
+from `origin/feature/cqa-independent-qa` and targets it. Before merge: one peer
+approval plus the manual checks above. There is **no CI or branch protection**, so
+reviewers rerun the commands themselves and nobody merges their own PR unreviewed.
+
+**Public visibility gives read access only.** Anyone can clone, but pushing a
+branch here requires an accepted collaborator invitation with write permission.
+Owner plus one collaborator have accepted write access; two write invitations
+remain pending — accept via the GitHub email or notification before your first
+push. Until then, fork the repository, push your branch to the fork and open a PR
+from the fork against `codex/local-mvp-integration`. Each teammate should verify
+their own branch/PR workflow after accepting, with named ownership agreed first.
 
 Immediate blockers to the complete competition workflow: semantic reliability
 and factual-policy evidence; human labels/frozen DEV benchmark; organizer control
