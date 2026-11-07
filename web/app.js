@@ -511,24 +511,73 @@
     $("editor-base").replaceChildren(...checklists.map(c => new Option(`${c.checklist_id} · ${c.version}`, c.sha256)));
     if (base) $("editor-base").value = base;
   }
+  function versionExists(version) {return checklists.some(c => c.checklist_id === editing?.checklist_id && c.version === version);}
   async function loadEditor() {
     try {
       editing = await api("/api/checklists/" + $("editor-base").value);
-      $("editor-version").value = editing.version + "-edit";
+      let suggestion = editing.version + "-edit";
+      for (let n = 2; versionExists(suggestion); n++) suggestion = `${editing.version}-edit${n}`;
+      $("editor-version").value = suggestion;
       syncJson(); renderEditor(); $("editor-save").disabled = false; $("editor-feedback").textContent = "";
     } catch (error) {$("editor-feedback").textContent = error.message;}
   }
   function syncJson() {$("editor-json").value = JSON.stringify(editing, null, 2);}
   function field(label, input, wide) {const l = el("label", label); if (wide) l.className = "wide"; l.append(input); return l;}
+  // Structural edits keep the saved checklist valid for the backend validators: rules that only make
+  // sense for the old answer type / N/A setting are removed together with the change.
+  function setKind(criterion, kind) {
+    criterion.kind = kind; criterion.consistency_rules = []; delete criterion.decision_rule;
+    criterion.levels = kind === "discrete" ? [0, 5, 10] : [];
+    criterion.anchors = kind === "discrete" ? {"0": "", "5": "", "10": ""} : {};
+  }
+  function setNa(criterion, allowed) {
+    if (allowed) {
+      const id = `${criterion.criterion_id}.na`;
+      if (!criterion.questions.some(q => q.question_id === id)) criterion.questions.unshift({question_id: id, question: "Does the N/A condition hold for this conversation?"});
+      criterion.applicability_rule = {question_id: id, na_when: "yes"}; criterion.na_condition = "";
+    } else {
+      criterion.na_condition = null; criterion.applicability_rule = null;
+      criterion.consistency_rules = (criterion.consistency_rules || []).map(r => ({...r, permitted_responses: r.permitted_responses.filter(p => p !== "N/A")}))
+        .filter(r => r.permitted_responses.length);
+    }
+  }
+  function addCriterion() {
+    const used = new Set(editing.criteria.map(c => c.criterion_id));
+    let n = editing.criteria.length + 1; while (used.has(String(n).padStart(2, "0"))) n++;
+    const id = String(n).padStart(2, "0");
+    editing.criteria.push({criterion_id: id, title: "", instructions: "", kind: "binary", weight: 10, levels: [], anchors: {},
+      na_condition: null, questions: [{question_id: `${id}.q1`, question: ""}], applicability_rule: null});
+    syncJson(); renderEditor();
+    $("editor-criteria").lastElementChild.querySelector("input")?.focus();
+  }
+  function ruleText(rule) {
+    return `Decision rule: "yes" only if ${rule.all_of.join(", ")} = yes` + (rule.conditional ?
+      `, and ${rule.conditional.requirement_question_id} = yes whenever ${rule.conditional.trigger_question_id} = ${rule.conditional.required_when}` : "") + ".";
+  }
   function renderEditor() {
     const blocks = editing.criteria.map((criterion, index) => {
       const box = el("fieldset", undefined, "criterion");
-      box.append(el("legend", `${criterion.criterion_id} · ${criterion.kind}${criterion.output_source === "atomic" ? " · derived from atomic facts" : ""}`));
-      const title = el("input"); title.value = criterion.title; title.oninput = () => {criterion.title = title.value; syncJson();};
+      const atomicOutput = criterion.output_source === "atomic";
+      box.append(el("legend", `${criterion.criterion_id} · ${criterion.kind}${atomicOutput ? " · derived from atomic facts" : ""}`));
+      const tools = el("div", undefined, "cqa-criterion-tools");
+      const kind = el("select"); kind.disabled = criterion.kind === "critical" || atomicOutput;
+      kind.append(...(criterion.kind === "critical" ? [new Option("Critical flag (yes/no, unweighted)", "critical")] :
+        [new Option("Yes / No", "binary"), new Option("Numeric scale", "discrete")]));
+      kind.value = criterion.kind;
+      kind.onchange = () => {setKind(criterion, kind.value); syncJson(); renderEditor();};
+      const na = el("input"); na.type = "checkbox"; na.checked = criterion.na_condition !== null; na.disabled = criterion.kind === "critical";
+      na.onchange = () => {setNa(criterion, na.checked); syncJson(); renderEditor();};
+      const naLabel = el("label", undefined, "inline"); naLabel.append(na, " N/A allowed");
+      const remove = el("button", "Remove criterion", "cqa-remove"); remove.type = "button";
+      remove.onclick = () => {editing.criteria.splice(index, 1); syncJson(); renderEditor();};
+      tools.append(field("Answer type", kind), naLabel, remove);
+      box.append(tools);
+      const title = el("input"); title.value = criterion.title; title.placeholder = "Criterion title (required)";
+      title.oninput = () => {criterion.title = title.value; syncJson();};
       const weight = el("input"); weight.type = "number"; weight.min = 0; weight.value = criterion.weight;
       weight.disabled = criterion.kind === "critical";
       weight.oninput = () => {criterion.weight = Number(weight.value); syncJson();};
-      const instructions = el("textarea"); instructions.value = criterion.instructions;
+      const instructions = el("textarea"); instructions.value = criterion.instructions; instructions.placeholder = "Wording: when is the answer yes / each level (required)";
       instructions.oninput = () => {criterion.instructions = instructions.value; syncJson();};
       const grid = el("div", undefined, "form-grid");
       grid.append(field("Title", title), field(criterion.kind === "critical" ? "Weight (critical flags are unweighted)" : "Weight", weight),
@@ -549,18 +598,36 @@
         }
       }
       if (criterion.na_condition !== null) {
-        const na = el("textarea"); na.value = criterion.na_condition;
+        const na = el("textarea"); na.value = criterion.na_condition; na.placeholder = "Condition under which N/A is allowed (required)";
         na.oninput = () => {criterion.na_condition = na.value; syncJson();};
         grid.append(field(`N/A allowed only when (applicability question ${criterion.applicability_rule?.question_id})`, na, true));
-      } else grid.append(el("p", "N/A not permitted for this criterion (add an applicability rule in the JSON to allow it).", "notice"));
+      } else grid.append(el("p", criterion.kind === "critical" ? "Critical flags cannot be N/A." : "N/A not permitted for this criterion.", "notice"));
+      if (criterion.decision_rule) {
+        const rule = el("p", ruleText(criterion.decision_rule), "notice cqa-rule");
+        if (!atomicOutput) {
+          const drop = el("button", "Remove rule", "cqa-link-button"); drop.type = "button";
+          drop.onclick = () => {delete criterion.decision_rule; syncJson(); renderEditor();};
+          rule.append(" ", drop);
+        }
+        grid.append(rule);
+      }
       for (const question of criterion.questions) {
-        const q = el("textarea"); q.value = question.question;
+        const q = el("textarea"); q.value = question.question; q.placeholder = "Atomic question the evaluator answers (required)";
         q.oninput = () => {question.question = q.value; syncJson();};
         grid.append(field(`Atomic question ${question.question_id}`, q, true));
       }
       box.append(grid); box.dataset.index = index; return box;
     });
-    $("editor-criteria").replaceChildren(el("p", `${editing.criteria.length} criteria · decision path ${editing.decision_path || "legacy"} · source: ${editing.source}`, "notice"), ...blocks);
+    const add = el("button", "Add criterion", "cqa-add-criterion"); add.type = "button"; add.onclick = addCriterion;
+    const head = el("div", undefined, "cqa-editor-summary");
+    head.append(el("p", `${editing.criteria.length} criteria · decision path ${editing.decision_path || "legacy"} · source: ${editing.source}`, "notice"), add);
+    $("editor-criteria").replaceChildren(head, ...blocks);
+  }
+  // "criteria.4.weight" → "criterion 05 · weight": server field paths in terms the editor shows.
+  function fieldLabel(path) {
+    const [root, index, ...rest] = path.split(".");
+    const id = root === "criteria" ? editing?.criteria?.[index]?.criterion_id : undefined;
+    return id ? `criterion ${id}${rest.length ? " · " + rest.join(".") : ""}` : path;
   }
   $("editor-base").onchange = loadEditor;
   $("editor-apply").onclick = () => {
@@ -571,13 +638,17 @@
     try {
       const body = JSON.parse($("editor-json").value);
       body.version = $("editor-version").value.trim();
+      if (versionExists(body.version)) throw new Error(`version "${body.version}" already exists (saved versions are immutable) — enter a new version name`);
       const saved = await post("/api/checklists", body);
       await loadChecklists(`${saved.checklist_id}\u0000${saved.version}`);
       $("editor-base").value = saved.sha256;
-      $("editor-feedback").textContent = `Saved ${saved.checklist_id} · ${saved.version} (sha256 ${saved.sha256.slice(0, 12)}…). It is now selected for the next evaluation.`;
-      clearResult(); updateMode();
+      $("editor-feedback").textContent = `Saved ${saved.checklist_id} · ${saved.version} (sha256 ${saved.sha256.slice(0, 12)}…). It is now selected in the Checklist selector for the next evaluation. `;
+      const go = el("button", "Evaluate with this version →", "cqa-link-button"); go.type = "button";
+      go.onclick = () => {showTab("evaluation"); $("evaluate").focus();};
+      $("editor-feedback").append(go);
+      clearResult(); updateMode(); go.focus();
     } catch (error) {
-      $("editor-feedback").textContent = `Not saved: ${error.message}${error.details?.fields ? " — fields: " + error.details.fields.join(", ") : ""}`;
+      $("editor-feedback").textContent = `Not saved: ${error.message}${error.details?.fields ? " — check " + error.details.fields.map(fieldLabel).join(", ") : ""}`;
     }
   };
 
