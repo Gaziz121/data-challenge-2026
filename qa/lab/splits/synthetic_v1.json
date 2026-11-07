@@ -1,0 +1,76 @@
+{
+  "split_id": "qa-synthetic-v1",
+  "seed": "cqa-lab-split-v1",
+  "method": "per-stratum SHA256(seed:group_id) ranking; holdout = floor(0.4n + 0.5) groups; counterfactuals grouped by source conversation; metadata only",
+  "strata": {
+    "EN": {
+      "calibration": 5,
+      "holdout": 3
+    },
+    "KZ": {
+      "calibration": 2,
+      "holdout": 2
+    },
+    "RU": {
+      "calibration": 4,
+      "holdout": 3
+    },
+    "counterfactual": {
+      "calibration": 1,
+      "holdout": 1
+    }
+  },
+  "groups": {
+    "qa-en-bot-greeting-only": "holdout",
+    "qa-en-complete-next-step": "calibration",
+    "qa-en-disclosure-before-verification": "holdout",
+    "qa-en-ended-before-request": "calibration",
+    "qa-en-general-tariff-question": "holdout",
+    "qa-en-late-intro": "calibration",
+    "qa-en-private-paid-offer": "calibration",
+    "qa-en-prompt-injection": "calibration",
+    "qa-kz-greeting-wrong-language": "holdout",
+    "qa-kz-insult": "calibration",
+    "qa-kz-positive-control": "calibration",
+    "qa-kz-system-verification-before-disclosure": "holdout",
+    "qa-ru-abrupt-disconnect-before-answer": "holdout",
+    "qa-ru-closure-without-farewell": "calibration",
+    "qa-ru-greeting-no-intro": "calibration",
+    "qa-ru-partial-consultation": "calibration",
+    "qa-ru-phone-callback-no-paid-purpose": "holdout",
+    "qa-ru-system-names-operator": "holdout",
+    "qa-ru-verification-requested-not-confirmed": "calibration",
+    "source:p1-en-009": "calibration",
+    "source:p1-ru-006": "holdout"
+  },
+  "case_split": {
+    "cf-en-009-remove-intro": "calibration",
+    "cf-ru-006-disclose-before-verification": "holdout",
+    "cf-ru-006-remove-farewell": "holdout",
+    "cf-ru-006-remove-name": "holdout",
+    "p1-en-009": "calibration",
+    "p1-ru-006": "holdout",
+    "qa-en-bot-greeting-only": "holdout",
+    "qa-en-complete-next-step": "calibration",
+    "qa-en-disclosure-before-verification": "holdout",
+    "qa-en-ended-before-request": "calibration",
+    "qa-en-general-tariff-question": "holdout",
+    "qa-en-late-intro": "calibration",
+    "qa-en-private-paid-offer": "calibration",
+    "qa-en-prompt-injection": "calibration",
+    "qa-kz-greeting-wrong-language": "holdout",
+    "qa-kz-insult": "calibration",
+    "qa-kz-positive-control": "calibration",
+    "qa-kz-system-verification-before-disclosure": "holdout",
+    "qa-ru-abrupt-disconnect-before-answer": "holdout",
+    "qa-ru-closure-without-farewell": "calibration",
+    "qa-ru-greeting-no-intro": "calibration",
+    "qa-ru-partial-consultation": "calibration",
+    "qa-ru-phone-callback-no-paid-purpose": "holdout",
+    "qa-ru-system-names-operator": "holdout",
+    "qa-ru-verification-requested-not-confirmed": "calibration"
+  },
+  "holdout_label_sha256": "85791ddbe6f4ec55e8cae464af68e3674086f34906e9510d2411a1ba614f23e8",
+  "frozen_at": "2026-11-07",
+  "note": "Synthetic QA fixtures only. Holdout rows are team_qa_synthetic proposals, frozen by hash; the engine owner must not tune on them. DEV benchmark selection is separate (python3 -m qa.lab make-split)."
+}

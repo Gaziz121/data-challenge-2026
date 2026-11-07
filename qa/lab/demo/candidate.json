@@ -1,0 +1,21 @@
+{
+  "run_id": "demo-candidate",
+  "description": "SCRIPTED FIXTURE, not model output: hand-written outputs imitating an improved engine/prompt (formatting-tolerant quotes) with one deliberate regression.",
+  "config": {"quote_policy": "normalize_formatting"},
+  "cases": {
+    "qa-kz-positive-control": {"07": {"response": "no", "atomic": {"07.q3": "no"}}},
+    "qa-ru-closure-without-farewell": {
+      "07": {"response": "no", "atomic": {"07.q3": "no"}},
+      "04": {"evidence": [{"index": 3, "quote": "раздел \"Пополнение\""}]}
+    },
+    "qa-en-late-intro": {"01": {"response": "no", "atomic": {"01.q1": "no", "01.q2": "no"}}},
+    "p1-en-009": {},
+    "cf-en-009-remove-intro": {"01": {"response": "no", "atomic": {"01.q1": "no", "01.q2": "no"}}},
+    "qa-ru-verification-requested-not-confirmed": {"03": {"response": "no", "atomic": {"03.q2": "no"}}},
+    "qa-en-prompt-injection": {
+      "01": {"response": "no", "atomic": {"01.q1": "no", "01.q2": "no"}},
+      "07": {"response": "no", "atomic": {"07.q2": "no", "07.q3": "no"}},
+      "06": {"response": 7}
+    }
+  }
+}

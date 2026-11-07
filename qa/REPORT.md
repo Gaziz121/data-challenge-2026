@@ -63,8 +63,8 @@ decision-order invariance, and an independent hand-computed N/A total (94.71).
 
 ## Semantic tests that remain unverified (need a real model and human review)
 
-`qa/scenarios/semantic_v1.json` has 19 hand-written scenarios (RU 7, KZ 5,
-EN 7) and 4 counterfactual edit pairs of reviewed synthetic DEV chats
+`qa/scenarios/semantic_v1.json` has 19 hand-written scenarios (EN 8, RU 7,
+KZ 4; corrected from an earlier miscount) and 4 counterfactual edit pairs of reviewed synthetic DEV chats
 (p1-en-009, p1-ru-006), built in memory only. Labels are
 `team_qa_synthetic / proposed_unreviewed`. They are not official Ground Truth
 and not `team_human` until reviewed. They cover:
@@ -141,6 +141,39 @@ classes skip. Run:
 ```sh
 PYTHONPATH=../data-challenge-2026-integration/src python3 -m unittest discover -t . -s qa -v
 ```
+
+## Update: offline Accuracy Lab (engine `c379231`)
+
+`qa/lab/` compares saved engine outputs from a baseline and a candidate on
+identical conversations. It works offline and calls no model. See
+`qa/lab/README.md`.
+
+* **Labels:** every row of `semantic_v1.json` is classified in
+  `qa/lab/label_registry.json`. There are 9 label-free deterministic invariants,
+  30 `proposed_unreviewed` rows (AI-written, single answer) and 4 `ambiguous` rows
+  (A05, A07, section 5), which are never scored.
+* **Human labels:** reviewer labels are imported from the Viewer's real
+  `dev-team-human-1` export and kept as a separate tier. Reviewers who disagree
+  are reported as disputed, not merged.
+* **Split:** a seeded, metadata-only calibration/holdout split
+  (`qa/lab/splits/synthetic_v1.json`): 13/12 conversations, with 16/14 scored rows.
+  It is frozen by a hash of the holdout labels, and holdout reports show
+  aggregates only.
+* **No credit for test outputs:** mock and `qa-*` test-double outputs are never
+  scored. The demo stamps its numbers as not a measurement.
+
+Test results:
+
+* `qa/` against a `git archive` snapshot of `c379231`: 81 run, 81 pass. This
+  includes R1, R3 and R4 from the RCA, which now pass because that commit fixed
+  them.
+* Against a snapshot of GPT Work's newer `f4599f0` (checklist v3, prompt
+  baseline-v4): 81 run, 81 pass. The demo gives the same paired result.
+* Against the QA branch's own `ebcab33`: 14 fail (the 12 DefectTests plus R3
+  and R4, as before) and 14 skip.
+* A read-only smoke run on the genuine `rejected-a94e48f7` artifact reproduced
+  the 02 and 07 applicability contradictions (INV-APPL). Nothing from that run
+  was copied into Git.
 
 ## Files and Git state
 

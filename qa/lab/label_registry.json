@@ -1,0 +1,79 @@
+{
+  "registry_version": "2026-11-07.lab-v1",
+  "scenario_set": "cqa-qa-semantic",
+  "scenario_version": "2026-11-07.v1",
+  "scenario_file_sha256": "7f16fe24cb14ccbabdbe3eae6da68af6666933575d2953bfd36f08779873e32c",
+  "note": "Classification of every expected row in qa/scenarios/semantic_v1.json. All labels are team_qa_synthetic proposals written by an AI QA agent from the official checklist and team spec. None is official Ground Truth and none is human-reviewed. Open-item IDs refer to case/CQA_SCORING_SPEC.md section 7.",
+  "tiers": {
+    "deterministic_invariant": "Label-free rules checked on every saved output from the checklist, the source transcript and arithmetic alone (see invariants). They need no semantic judgment and no reviewer.",
+    "proposed_unreviewed": "One expected response proposed by the QA agent from explicit checklist text. Scored for exact match, but only as an unreviewed proposal until a language-competent human confirms it.",
+    "ambiguous": "The official checklist does not establish a unique answer (an open item, or two anchors are defensible). Recorded, never scored."
+  },
+  "invariants": [
+    {"id": "INV-SRC", "statement": "The saved conversation equals the source record: same length, and every message keeps its zero-based index, speaker, timestamp and exact text.", "source": "CQA_SCORING_SPEC 6; G2/G3"},
+    {"id": "INV-RESP", "statement": "Each criterion appears once with a permitted response; N/A only where the criterion defines an N/A condition.", "source": "CQA_SCORING_SPEC 2, 4"},
+    {"id": "INV-APPL", "statement": "The response is N/A exactly when the model's own applicability atomic answer equals the configured na_when.", "source": "checklist applicability_rule"},
+    {"id": "INV-ATOM", "statement": "The response obeys the checklist consistency rules and, for 01 and 07, the all-of rule over the model's own atomic answers (qa/decision_rules.py).", "source": "checklist consistency_rules; C1 01/07"},
+    {"id": "INV-EVID", "statement": "Every quote is an exact substring of the cited message; scope boundaries exist and are ordered. Formatting-only matches are reported separately.", "source": "CQA_SCORING_SPEC 6"},
+    {"id": "INV-POLICY", "statement": "A positive response cites a quote from a configured role; 01 cites the first human operator reply.", "source": "checklist evidence_policy; C1 01"},
+    {"id": "INV-CRIT", "statement": "08=no cites the full conversation scope; 08=yes cites an operator quote and categories equal the yes-answered category questions.", "source": "CQA_SCORING_SPEC 5, 6"},
+    {"id": "INV-TOTAL", "statement": "The recorded total equals an independent exact-fraction recomputation from the responses and weights.", "source": "CQA_SCORING_SPEC 4"},
+    {"id": "INV-CF-MONO", "statement": "A counterfactual edit that removes required operator behavior cannot make the target criterion more favorable than on the unedited base conversation.", "source": "metamorphic relation on the counterfactual pairs; label-free"}
+  ],
+  "rows": {
+    "qa-en-bot-greeting-only": {"01": {"tier": "proposed_unreviewed", "open_items": []}},
+    "qa-ru-greeting-no-intro": {"01": {"tier": "proposed_unreviewed", "open_items": []}},
+    "qa-kz-positive-control": {
+      "01": {"tier": "proposed_unreviewed", "open_items": []},
+      "07": {"tier": "proposed_unreviewed", "open_items": [], "note": "Further-help offer and farewell: Yes under either reading of A08."},
+      "08": {"tier": "proposed_unreviewed", "open_items": []}
+    },
+    "qa-en-late-intro": {"01": {"tier": "proposed_unreviewed", "open_items": []}},
+    "qa-ru-system-names-operator": {"01": {"tier": "proposed_unreviewed", "open_items": []}},
+    "qa-ru-verification-requested-not-confirmed": {
+      "03": {"tier": "proposed_unreviewed", "open_items": [], "note": "C3 gives required-but-unconfirmed verification as an explicit No."},
+      "08": {"tier": "ambiguous", "open_items": ["SPEC-5-confidentiality"], "note": "Section 5: a missing check is not automatically a disclosure; boundary needs policy calibration."}
+    },
+    "qa-en-disclosure-before-verification": {"03": {"tier": "proposed_unreviewed", "open_items": ["A04"]}},
+    "qa-kz-system-verification-before-disclosure": {"03": {"tier": "proposed_unreviewed", "open_items": ["A03"]}},
+    "qa-en-general-tariff-question": {"03": {"tier": "proposed_unreviewed", "open_items": [], "note": "C1 names a general tariff question as not requiring identification."}},
+    "qa-ru-closure-without-farewell": {"07": {"tier": "proposed_unreviewed", "open_items": [], "note": "C3 gives closure without farewell as an explicit No."}},
+    "qa-ru-abrupt-disconnect-before-answer": {
+      "07": {"tier": "proposed_unreviewed", "open_items": ["A05"]},
+      "04": {"tier": "ambiguous", "open_items": ["A07"], "note": "0 and 5 both defensible: no substantive answer yet versus a holding reply."}
+    },
+    "qa-en-ended-before-request": {
+      "04": {"tier": "proposed_unreviewed", "open_items": []},
+      "07": {"tier": "ambiguous", "open_items": ["A05"], "note": "Client left; whether the operator had a closing opportunity is not settled."}
+    },
+    "qa-ru-partial-consultation": {"04": {"tier": "proposed_unreviewed", "open_items": ["A07"]}},
+    "qa-en-complete-next-step": {"04": {"tier": "ambiguous", "open_items": ["A07"], "note": "15 and 20 both defensible; C2 allows full marks for a correct next step."}},
+    "qa-kz-insult": {
+      "08": {"tier": "proposed_unreviewed", "open_items": []},
+      "05": {"tier": "proposed_unreviewed", "open_items": []}
+    },
+    "qa-en-private-paid-offer": {"08": {"tier": "proposed_unreviewed", "open_items": [], "note": "C3 stated example."}},
+    "qa-ru-phone-callback-no-paid-purpose": {"08": {"tier": "proposed_unreviewed", "open_items": []}},
+    "qa-en-prompt-injection": {
+      "01": {"tier": "proposed_unreviewed", "open_items": []},
+      "07": {"tier": "proposed_unreviewed", "open_items": ["A05"]}
+    },
+    "qa-kz-greeting-wrong-language": {"01": {"tier": "proposed_unreviewed", "open_items": ["A09"]}},
+    "cf-en-009-remove-intro": {
+      "base:01": {"tier": "proposed_unreviewed", "open_items": []},
+      "variant:01": {"tier": "proposed_unreviewed", "open_items": []}
+    },
+    "cf-ru-006-remove-name": {
+      "base:01": {"tier": "proposed_unreviewed", "open_items": []},
+      "variant:01": {"tier": "proposed_unreviewed", "open_items": []}
+    },
+    "cf-ru-006-remove-farewell": {
+      "base:07": {"tier": "proposed_unreviewed", "open_items": []},
+      "variant:07": {"tier": "proposed_unreviewed", "open_items": ["A08"], "note": "No under the working reading (summary OR offer) AND farewell; INV-CF-MONO holds under any reading."}
+    },
+    "cf-ru-006-disclose-before-verification": {
+      "base:03": {"tier": "proposed_unreviewed", "open_items": []},
+      "variant:03": {"tier": "proposed_unreviewed", "open_items": ["A04"]}
+    }
+  }
+}
