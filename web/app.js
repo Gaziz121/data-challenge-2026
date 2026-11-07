@@ -7,6 +7,13 @@
     if (criterion.kind === "critical") return decision.response === "yes" ? "Yes — critical violation flagged" : "No listed violation flagged";
     return decision.response === "yes" ? "Yes" : "No";
   }
+  // Display category for data-verdict only (equality checks on the raw response; no score arithmetic).
+  function verdictOf(decision, criterion) {
+    if (decision.response === "N/A") return "na";
+    if (criterion.kind === "critical") return decision.response === "yes" ? "flag" : "clear";
+    if (criterion.kind === "discrete") return decision.response === 0 ? "no" : decision.response === Math.max(...criterion.levels) ? "yes" : "partial";
+    return decision.response === "yes" ? "yes" : "no";
+  }
   function permittedResponses(criterion) {
     const values = criterion.kind === "discrete" ? criterion.levels.slice() : ["yes", "no"];
     if (criterion.na_condition !== null && criterion.na_condition !== undefined) values.push("N/A");
@@ -30,6 +37,32 @@
       return node;
     };
   }
+  // Score hero: backend strings shown as-is (score.total_score, status, critical flag, run metadata).
+  function scoreHero(result, el) {
+    const score = result.score, run = result.run, critical = result.checklist.criteria.find(c => c.kind === "critical");
+    const hero = el("section", undefined, "cqa-score-hero");
+    hero.dataset.critical = String(Boolean(score.critical_violation));
+    const total = el("p", undefined, "cqa-hero-total");
+    total.append(el("span", score.total_score ?? "not calculated", "cqa-hero-value"), el("span", "/ 100", "cqa-hero-scale"));
+    const status = el("span", result.status, "cqa-pill"); status.dataset.status = result.status;
+    const flag = el("span", `${score.critical_violation ? "Critical violation flagged" : "No critical violation"}${critical ? " · " + critical.criterion_id : ""}`, "cqa-pill");
+    flag.dataset.critical = String(Boolean(score.critical_violation));
+    const kind = el("span", run.provider === "replay" ? "Replay" : run.is_mock ? "Mock fixture" : "LLM", "cqa-pill");
+    kind.dataset.status = run.is_mock ? "mock_only" : "live";
+    const badges = el("div", undefined, "cqa-hero-badges"); badges.append(status, flag, kind);
+    hero.append(el("p", "Total score", "cqa-hero-label"), total, badges,
+      el("p", `${run.provider} · ${run.model_returned} · ${run.latency_ms} ms · checklist ${result.checklist.version}`, "cqa-hero-run"));
+    return hero;
+  }
+  // Base → effective weight; "redistributed" comes from the backend applicability flags, not from comparing numbers.
+  function weightsRow(score, redistributed, el) {
+    const row = el("p", undefined, "meta cqa-weights");
+    row.append(el("span", `Base weight ${score.base_weight}`), el("span", undefined, "cqa-arrow"),
+      el("span", `Effective weight ${score.effective_weight}`), el("span", `Points ${score.earned_points}`));
+    if (score.applicable === false) row.append(el("span", "not applicable — weight redistributed", "cqa-tag"));
+    else if (redistributed) row.append(el("span", "redistributed", "cqa-tag"));
+    return row;
+  }
   function renderResult(result, container, summary, onEvidence) {
     const el = factory(container);
     const mock = result.run.is_mock;
@@ -37,12 +70,20 @@
       `Total${mock ? " (fixture/replay)" : ""}: ${result.score.total_score ?? "not calculated"} / 100 · Critical flag: ${result.score.critical_violation ? "yes" : "no"}\n` +
       `${result.run.provider} · ${result.run.model_returned} · ${result.run.latency_ms} ms · ${result.status}\n` +
       `Checklist: ${result.checklist.version} · Usage: ${JSON.stringify(result.run.usage)}`;
-    container.replaceChildren();
+    container.replaceChildren(scoreHero(result, el));
     const scores = new Map(result.score.criteria.map(c => [c.criterion_id, c]));
     const definitions = new Map(result.checklist.criteria.map(c => [c.criterion_id, c]));
     const turns = turnNumbers(result.conversation);
+    const redistributed = result.score.criteria.some(c => c.applicable === false);
     function evidenceList(evidence, parent) {
       for (const reference of evidence) {
+        let target = parent;
+        if (reference.kind !== "quote") {
+          target = el("div", undefined, "cqa-checked"); target.dataset.kind = reference.kind;
+          target.append(el("p", reference.kind === "omission" ? "Checked part of the conversation — expected action not found" :
+            "Checked part of the conversation", "cqa-block-label"));
+          parent.append(target);
+        }
         const links = el("div", undefined, "evidence-links");
         const ids = reference.kind === "quote" ? [reference.message_id] : [reference.start_message_id, reference.end_message_id];
         const label = ids.map(id => turns.has(id) ? `turn ${turns.get(id)}` : id).join("–");
@@ -52,21 +93,26 @@
         button.dataset.startMessageId = ids[0];
         button.dataset.endMessageId = ids[ids.length - 1];
         button.onclick = () => onEvidence(reference);
-        links.append(button); parent.append(links, el("p", reference.explanation, "notice"));
-        if (reference.quote !== null) parent.append(el("blockquote", reference.quote));
+        links.append(button); target.append(links, el("p", reference.explanation, "notice"));
+        if (reference.quote !== null) target.append(el("blockquote", reference.quote));
       }
     }
     for (const decision of (result.validated_evaluation || result.model_evaluation).decisions) {
       const criterion = definitions.get(decision.criterion_id), score = scores.get(decision.criterion_id);
       const card = el("article", undefined, "result-card"); card.dataset.criterionId = criterion.criterion_id;
+      card.dataset.verdict = verdictOf(decision, criterion); card.dataset.kind = criterion.kind;
+      card.dataset.needsReview = String(Boolean(decision.needs_review));
+      card.dataset.critical = String(criterion.kind === "critical" && decision.response === "yes");
       card.append(el("h3", `${criterion.criterion_id} · ${criterion.title}`), el("p", responseText(decision, criterion), "raw"));
-      card.append(el("p", criterion.kind === "critical" ? "Separate flag — no numerical deduction" :
-        `Base weight ${score.base_weight} · Effective weight ${score.effective_weight} · Points ${score.earned_points}`, "meta"));
+      card.append(criterion.kind === "critical" ? el("p", "Separate flag — no numerical deduction", "meta") : weightsRow(score, redistributed, el));
       card.append(el("p", decision.rationale));
+      if (decision.violation_categories?.length) card.append(el("p", `Violation categories: ${decision.violation_categories.join(", ")}`, "cqa-violations"));
       if (decision.na_reason) card.append(el("p", `N/A reason: ${decision.na_reason}`, "na-reason"));
       card.append(el("p", criterion.na_condition ? `N/A allowed only when: ${criterion.na_condition}` : "N/A not permitted.", "notice"));
       if (decision.needs_review) card.append(el("p", `Needs review: ${decision.review_reason}`, "review"));
       evidenceList(decision.evidence, card);
+      if (["na", "no", "clear"].includes(card.dataset.verdict) && !decision.evidence.some(e => e.kind !== "quote"))
+        evidenceList(decision.atomic_checks.flatMap(check => check.evidence).filter(e => e.kind !== "quote"), card);
       const atomic = el("details"); atomic.append(el("summary", `Atomic rubric checks (${decision.atomic_checks.length})`));
       const questions = new Map(criterion.questions.map(q => [q.question_id, q.question]));
       for (const check of decision.atomic_checks) {
@@ -91,16 +137,22 @@
       `${diagnostic.run.provider} · ${diagnostic.run.model_returned} · ${diagnostic.run.provider_latency_ms} ms\n` +
       `Usage: ${JSON.stringify(diagnostic.run.usage)} · Checklist: ${diagnostic.checklist.version}`;
     container.replaceChildren();
-    container.append(el("p", "Why: the engine refuses to score output whose facts, evidence or rules do not validate. " +
-      "In the official export this conversation becomes status=error with the reason below — never a zero score.", "notice"));
-    for (const issue of diagnostic.issues) container.append(el("p", `${issue.criterion_id || "Schema"}: ${issue.message}`, "error"));
+    const report = el("section", undefined, "cqa-failure-report"), issues = el("ul", undefined, "cqa-issues");
+    for (const issue of diagnostic.issues) issues.append(el("li", `${issue.criterion_id || "Schema"}: ${issue.message}`, "error"));
+    report.append(el("h3", "Validation failed — no score was produced"),
+      el("p", "Why: the engine refuses to score output whose facts, evidence or rules do not validate. " +
+        "In the official export this conversation becomes status=error with the reason below — never a zero score.", "notice"),
+      issues, el("p", diagnostic.run.is_mock && diagnostic.checklist.decision_path === "atomic_first" ?
+        "Next step: mock fixtures cannot supply the atomic facts this checklist requires (by design). For a scored run choose Replay (recorded reply: p1-ru-001 with checklist 2026-11-07.v5) or a legacy checklist (v2/v3) with Mock." :
+        "Next step: inspect the original decisions below or download the diagnostic JSON, then re-evaluate. Rejected output is never repaired silently or scored.", "cqa-next-step"));
+    container.append(report);
     const raw = diagnostic.original_model_output;
     const legacy = raw && typeof raw === "object" && Array.isArray(raw.decisions) ? raw.decisions : [];
     const atomic = raw && typeof raw === "object" && Array.isArray(raw.criteria) ? raw.criteria : [];
     const states = new Map((diagnostic.criterion_reviews || []).map(r => [r.criterion_id, r.state]));
     for (const decision of legacy.length ? legacy : atomic) {
       const card = el("article", undefined, "result-card rejected-card");
-      card.dataset.criterionId = decision.criterion_id;
+      card.dataset.criterionId = decision.criterion_id; card.dataset.verdict = "rejected";
       const definition = diagnostic.checklist.criteria.find(c => c.criterion_id === decision.criterion_id);
       const response = legacy.length ? decision.response : decision.judgment?.response ?? "derived from atomic facts";
       card.append(el("h3", `${decision.criterion_id} · ${definition?.title || "Original AI decision"}`),
@@ -117,15 +169,19 @@
     const el = factory(container);
     container.replaceChildren();
     const original = view.original_score, revised = view.revised_score;
-    container.append(el("p", `Original total: ${original.total_score ?? "not calculated"} · critical ${original.critical_violation ? "yes" : "no"}` +
-      (revised ? `  →  Revised total: ${revised.total_score ?? "not calculated"} · critical ${revised.critical_violation ? "yes" : "no"}` :
-        "  ·  No reviewer change applied; the original total stands."), "raw"));
+    const totals = el("div", undefined, "cqa-compare-totals");
+    totals.append(el("p", `Original total: ${original.total_score ?? "not calculated"} · critical ${original.critical_violation ? "yes" : "no"}`, "raw"));
+    if (revised) totals.append(el("span", undefined, "cqa-arrow"),
+      el("p", `Revised total: ${revised.total_score ?? "not calculated"} · critical ${revised.critical_violation ? "yes" : "no"}`, "raw cqa-revised"));
+    else totals.append(el("p", "No reviewer change applied; the original total stands.", "notice"));
+    container.append(totals);
     const table = el("table", undefined, "comparison");
     const head = el("tr"); for (const h of ["Criterion", "Original", "Revised", "Weight"]) head.append(el("th", h));
     table.append(head);
     for (const criterion of checklist.criteria) {
       const row = el("tr");
       const a = view.original_responses[criterion.criterion_id], b = view.revised_responses[criterion.criterion_id];
+      if (a !== b) row.dataset.changed = "true";
       row.append(el("td", `${criterion.criterion_id} · ${criterion.title}`), el("td", String(a)),
         el("td", String(b), a === b ? undefined : "changed"), el("td", criterion.kind === "critical" ? "flag" : String(criterion.weight)));
       table.append(row);

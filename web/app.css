@@ -909,13 +909,169 @@ body > .cqa-app {
   background: var(--cqa-surface-muted);
   border-radius: var(--cqa-radius-sm);
 }
-#results > p.error {
-  margin: var(--cqa-s1) 0;
-  padding: var(--cqa-s2) var(--cqa-s3);
-  font-size: var(--cqa-fs-sm);
+/* Score hero: first child of #results; values are backend strings. */
+.cqa-app .cqa-score-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 2px var(--cqa-s5);
+  margin: 0 0 var(--cqa-s4);
+  padding: var(--cqa-s3) var(--cqa-s4);
+  background: var(--cqa-surface-muted);
+  border: 1px solid var(--cqa-border);
+  border-radius: var(--cqa-radius);
+}
+.cqa-app .cqa-score-hero[data-critical="true"] {
   background: var(--cqa-no-soft);
-  border-left: 3px solid var(--cqa-no);
+  border-color: #f1b8b2;
+}
+.cqa-app .cqa-hero-label {
+  grid-column: 1;
+  margin: 0;
+  font-size: var(--cqa-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cqa-ink-muted);
+}
+.cqa-app .cqa-hero-total {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+}
+.cqa-app .cqa-hero-value {
+  font-size: var(--cqa-fs-xl);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.cqa-app .cqa-hero-scale {
+  font-size: var(--cqa-fs-md);
+  font-weight: 600;
+  color: var(--cqa-ink-muted);
+}
+.cqa-app .cqa-hero-badges {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.cqa-app .cqa-hero-run {
+  grid-column: 1 / -1;
+  margin: var(--cqa-s2) 0 0;
+  padding-top: var(--cqa-s2);
+  font-family: var(--cqa-mono);
+  font-size: var(--cqa-fs-xs);
+  color: var(--cqa-ink-muted);
+  overflow-wrap: anywhere;
+  border-top: 1px solid var(--cqa-border);
+}
+.cqa-app .cqa-pill[data-critical="false"] { color: var(--cqa-yes); background: var(--cqa-yes-soft); }
+.cqa-app .cqa-pill[data-critical="true"] { color: var(--cqa-critical-ink); background: var(--cqa-critical); border-color: var(--cqa-critical); }
+.cqa-app .cqa-pill[data-status="live"] { color: var(--cqa-accent); background: var(--cqa-accent-soft); }
+
+/* Weights: base → effective (+ redistribution tag from the backend applicability flags). */
+.cqa-app .result-card > .cqa-weights {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px var(--cqa-s2);
+  margin: 0 0 var(--cqa-s2);
+}
+.cqa-app .cqa-weights > span:nth-child(3) {
+  font-weight: 700;
+  color: var(--cqa-ink);
+}
+.cqa-app .cqa-weights > span:nth-child(4)::before {
+  content: "· ";
+}
+.cqa-app .cqa-arrow::before {
+  content: "→";
+  font-family: var(--cqa-font);
+  color: var(--cqa-ink-muted);
+}
+.cqa-app .cqa-tag {
+  padding: 0 6px;
+  font-family: var(--cqa-font);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  color: var(--cqa-accent);
+  background: var(--cqa-accent-soft);
+  border: 1px solid var(--cqa-accent-line);
+  border-radius: var(--cqa-radius-pill);
+}
+.cqa-app .result-card[data-verdict="na"] .cqa-tag {
+  color: var(--cqa-na);
+  background: var(--cqa-na-soft);
+  border-color: #cdd4db;
+}
+.cqa-app .cqa-violations {
+  font-size: var(--cqa-fs-sm);
+  font-weight: 700;
+  color: var(--cqa-no);
+}
+
+/* Checked part of the conversation (scope / omission evidence), labelled. */
+.cqa-app .cqa-checked {
+  margin: var(--cqa-s2) 0;
+  padding: var(--cqa-s2) var(--cqa-s3);
+  background: var(--cqa-surface-muted);
+  border: 1px dashed var(--cqa-border-strong);
   border-radius: var(--cqa-radius-sm);
+}
+.cqa-app .cqa-checked[data-kind="omission"] {
+  background: var(--cqa-review-soft);
+  border-color: var(--cqa-review);
+}
+.cqa-app .cqa-block-label {
+  margin: 0;
+  font-size: var(--cqa-fs-xs);
+  font-weight: 700;
+  color: var(--cqa-ink-muted);
+}
+.cqa-app .cqa-checked[data-kind="omission"] .cqa-block-label {
+  color: var(--cqa-review);
+}
+.cqa-app .cqa-checked > .evidence-links {
+  margin-top: var(--cqa-s1);
+}
+
+/* Validation failure report (renderFailure). */
+.cqa-app .cqa-failure-report {
+  margin: 0 0 var(--cqa-s4);
+  padding: var(--cqa-s3) var(--cqa-s4);
+  background: var(--cqa-no-soft);
+  border: 1px solid #f1b8b2;
+  border-left: 4px solid var(--cqa-no);
+  border-radius: var(--cqa-radius);
+}
+.cqa-app .cqa-failure-report h3 {
+  margin-bottom: var(--cqa-s1);
+  color: var(--cqa-no);
+}
+.cqa-app .cqa-failure-report .notice {
+  color: var(--cqa-ink);
+}
+.cqa-app .cqa-issues {
+  margin: var(--cqa-s2) 0;
+  padding-left: var(--cqa-s5);
+  font-size: var(--cqa-fs-sm);
+}
+.cqa-app .cqa-issues li {
+  margin: 2px 0;
+}
+.cqa-app .cqa-next-step {
+  margin: var(--cqa-s2) 0 0;
+  padding-top: var(--cqa-s2);
+  font-size: var(--cqa-fs-sm);
+  font-weight: 600;
+  border-top: 1px solid #f1b8b2;
 }
 
 /* ===================================================================== 10. History, appeals, comparison */
@@ -1006,10 +1162,41 @@ body > .cqa-app {
   color: var(--cqa-review);
   background: var(--cqa-review-soft);
 }
-.cqa-app #comparison > .raw {
+.cqa-app .cqa-compare-totals {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cqa-s2) var(--cqa-s3);
   margin: 0 0 var(--cqa-s3);
+  padding: var(--cqa-s3);
+  background: var(--cqa-surface-muted);
+  border-radius: var(--cqa-radius);
+}
+.cqa-app .cqa-compare-totals > p {
+  margin: 0;
   font-family: var(--cqa-mono);
+  font-size: var(--cqa-fs-md);
+  font-weight: 700;
+}
+.cqa-app .cqa-compare-totals > p.notice {
+  font-family: var(--cqa-font);
   font-size: var(--cqa-fs-sm);
+  font-weight: 500;
+}
+.cqa-app .cqa-compare-totals > .cqa-revised {
+  padding: 2px var(--cqa-s2);
+  color: var(--cqa-review);
+  background: var(--cqa-review-soft);
+  border-radius: var(--cqa-radius-sm);
+}
+.cqa-app .cqa-compare-totals > .cqa-arrow::before {
+  font-size: var(--cqa-fs-lg);
+}
+.cqa-app table.comparison tr[data-changed="true"] td {
+  background: var(--cqa-review-soft);
+}
+.cqa-app table.comparison tr[data-changed="true"] td:first-child {
+  box-shadow: inset 3px 0 0 var(--cqa-review);
   font-weight: 700;
 }
 .cqa-app .reviewer {
