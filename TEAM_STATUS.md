@@ -144,7 +144,26 @@ future work.
 - Current application suite: 83 run, 82 passed, one expected full-DEV voice skip.
   Claude's unchanged original 41 and new 15 tests all pass; both Node suites pass.
 - No paid model calls, key loading, frontend work, new rule derivation system or
-  Maker/Checker implementation. Read-only readiness audit follows this core fix.
+  Maker/Checker implementation.
+
+## Read-only readiness audit
+
+- R1/R3/R4 core commit is `9ee9605`. Subsequent audit changed no production code.
+  See `docs/CORE_READINESS_AUDIT.md` and `docs/BACKEND_CONTRACT.md` for the frontend
+  handoff and source/test evidence. No organizer control schema was invented.
+- New normalized IDs can run locally with mock/scripted providers and round-trip
+  results. Current HTTP IDs and real-provider export remain confined to the
+  reviewed 60-chat derivative; unseen control input is not yet end-to-end ready.
+- In-memory probes verify new criteria/questions, changed N/A condition/trigger,
+  integer weights, zero-based integer scales and same-input/new-version runs.
+  New category names, nonzero/fractional scales and per-request HTTP checklist or
+  conversation objects are rejected. No save/version/editor endpoint exists.
+- Atomic prompting, deterministic constraints/evidence gates and advisory hooks
+  exist. Full rule-derived responses, an independent model checker, semantic
+  accuracy proof and production counterfactual laboratory do not. QA checker and
+  scenario harness remain separate experiments with proposed/unreviewed labels.
+- Highest blockers: authorized unseen-input ingestion/export path, demonstrated
+  live/semantic reliability, and frontend-facing dynamic-checklist delivery.
 
 ## Private synchronization policy
 

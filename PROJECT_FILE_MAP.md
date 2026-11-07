@@ -27,6 +27,8 @@ machine. Inspect the filesystem including ignored paths before declaring absence
 | `src/cqa/checklists/official-v2.json` | IMPLEMENTATION / PRIVATE configuration | Active default rubric with reviewed D02 implications, role/first-reply evidence policies and critical-category mappings; official weights/scales/N/A unchanged; v1 retained |
 | `src/cqa/evidence.py`, `tests/test_evidence_repairs.py` | IMPLEMENTATION / PRIVATE source | Opt-in quote-format matching to exact spans, preservation/diagnostic tests; no score changes or fuzzy semantic repairs |
 | `tests/test_output_contract.py` | IMPLEMENTATION / PRIVATE tests | R1/R3/R4: complete independent diagnostics, serialized output-schema ordering, N/A descriptions, applicability-first input, legacy output reading and order-sensitive prompt hashes; offline only |
+| `docs/CORE_READINESS_AUDIT.md`, `docs/BACKEND_CONTRACT.md` | IMPLEMENTATION / PRIVATE documentation | Verified unseen-input/dynamic-checklist matrix, actual backend request/response contract, code-grounded concept inventory and three competition blockers |
+| `outputs/readiness-audit/` | GENERATED / LOCAL ONLY | Read-only offline probe results, fictional normalized input, full mock response, active schema and replay diagnostics; no paid calls or human labels |
 | `docs/VALIDATION_REPAIR_REPORT.md` | IMPLEMENTATION / PRIVATE documentation | Twelve confirmed fixes, unchanged independent QA results, exact live-call outcome/cost, changed-file manifest and remaining control-data/checklist gaps |
 | `outputs/app/live-smoke/`, `outputs/app/rejected-*.json` | GENERATED / LOCAL ONLY | One genuine OpenAI response, original and enriched diagnostics, usage/cost summary and browser screenshot; no accepted total; never staged |
 | `tests/*.py` | IMPLEMENTATION / PRIVATE source | Offline contract/scoring/provider/pipeline tests; hand-authored fixtures and DEV integrity/mock runs, never official labels |
@@ -39,7 +41,7 @@ machine. Inspect the filesystem including ignored paths before declaring absence
 | `tests/test_web.py`, `tests/test_web_ui.cjs` | IMPLEMENTATION / PRIVATE source | Backend HTTP/N/A/provider/export-boundary checks and DOM rendering/identity regressions; no live API calls |
 | `docs/LOCAL_MVP.md` | IMPLEMENTATION / PRIVATE documentation | Startup, secure model readiness, endpoint contract, preservation/commit scope and actual verification |
 | `outputs/app/` | GENERATED / LOCAL ONLY | Saved evaluation JSON and browser QA, separate from manual human exports |
-| `../data-challenge-2026-independent-qa/qa/` | SEPARATE WORKTREE / tracked on `feature/cqa-independent-qa` | Concurrent independent adversarial tests/report; not merged into this integration. Twelve inherited gate defects reproduced; see local MVP limitations |
+| `../data-challenge-2026-independent-qa/qa/` | SEPARATE WORKTREE / tracked on `feature/cqa-independent-qa` | Independent tests/report/checker/replay at `10647cf`, unchanged and not imported into production; original 41 plus new 15 tests pass against corrected core |
 | `ANALYSIS.md` | GIT TRACKED | Reverse engineering, deep analysis, evidence and final-file checks |
 | `src/`, `notebooks/` | GIT TRACKED files only after review | Development files available on disk may be uncommitted; inspect local paths and Git status |
 | `data/processed/`, other `data/`, `outputs/`, `deliverables/`, `tmp/`, caches | GENERATED / LOCAL ONLY by default | Derived evidence, artifacts and temporary review files; may still be sensitive; inspect filenames before contents |

@@ -9,6 +9,13 @@ and [scoring specification](case/CQA_SCORING_SPEC.md).
 Validation repairs, the 41/41 independent QA result and the exact single-call
 OpenAI outcome are documented in [the repair report](docs/VALIDATION_REPAIR_REPORT.md).
 
+The current core is engine 0.3.0 / prompt `baseline-v3`, with atomic-first model
+output schema 1.1 and historical 1.0 reading. See the
+[readiness audit](docs/CORE_READINESS_AUDIT.md) and
+[implemented backend contract](docs/BACKEND_CONTRACT.md) before frontend work.
+New local conversations work through Python; the HTTP/OpenAI paths still restrict
+input to the reviewed 60 synthetic DEV chats.
+
 ## Run the local browser application
 
 From this checkout with the existing Python/Pydantic dependency available:
