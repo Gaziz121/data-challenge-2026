@@ -99,6 +99,13 @@ future work.
 - No real LLM call: no authorized key available. Existing real adapter and model
   selection are wired; tests use injected offline transport only. No scoring/core
   contract change. See `docs/LOCAL_MVP.md`; no accuracy claim or public deployment.
+- Concurrent independent QA appeared at final verification. Its 41 tests were
+  run against the integrated engine: 29 passed, 12 failed, no errors. These expose
+  inherited validation gaps, not integration regressions: contradictory atomic
+  decisions, first-reply attribution, valid system verification evidence, critical
+  category consistency and punctuation-only quotations. QA remains on its separate
+  worktree/branch. Targeted gate fixes are the next engineering priority before
+  trusting live evaluations; authorized API access is also still absent.
 
 ## Synchronization and publication
 

@@ -34,6 +34,7 @@ machine. Inspect the filesystem including ignored paths before declaring absence
 | `tests/test_web.py`, `tests/test_web_ui.cjs` | IMPLEMENTATION / PRIVATE source | Backend HTTP/N/A/provider/export-boundary checks and DOM rendering/identity regressions; no live API calls |
 | `docs/LOCAL_MVP.md` | IMPLEMENTATION / PRIVATE documentation | Startup, secure model readiness, endpoint contract, preservation/commit scope and actual verification |
 | `outputs/app/` | GENERATED / LOCAL ONLY | Saved evaluation JSON and browser QA, separate from manual human exports |
+| `../data-challenge-2026-independent-qa/qa/` | SEPARATE WORKTREE / tracked on `feature/cqa-independent-qa` | Concurrent independent adversarial tests/report; not merged into this integration. Twelve inherited gate defects reproduced; see local MVP limitations |
 | `ANALYSIS.md` | GIT TRACKED | Reverse engineering, deep analysis, evidence and final-file checks |
 | `src/`, `notebooks/` | GIT TRACKED files only after review | Development files available on disk may be uncommitted; inspect local paths and Git status |
 | `data/processed/`, other `data/`, `outputs/`, `deliverables/`, `tmp/`, caches | GENERATED / LOCAL ONLY by default | Derived evidence, artifacts and temporary review files; may still be sensitive; inspect filenames before contents |

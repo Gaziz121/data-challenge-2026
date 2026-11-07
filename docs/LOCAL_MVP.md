@@ -166,7 +166,28 @@ node tests/test_web_ui.cjs
   reside under `outputs/app/browser-qa/`. Source hashes and staged confidential
   values are checked before upload; no dataset, key, audio link or output is staged.
 
-The remaining live-evaluation blocker is authorized API access/model selection.
-The highest-priority next step is one genuine synthetic evaluation and evidence
-review. Accuracy still requires independent human labels and approved factual/
-policy references; this functional integration does not establish accuracy.
+## Concurrent independent QA findings
+
+A separate worktree appeared during final verification:
+`/Users/User/data-challenge-2026-independent-qa`, branch
+`feature/cqa-independent-qa`, commit `cbdec73`. It was not created, edited,
+merged or pushed by this integration task. Its report/tests are separate from
+the 66-test application suite above.
+
+All 41 QA tests were executed against the integration worktree's actual engine:
+29 passed, 12 failed, zero errors/skips. The failures reproduce inherited issues
+on the unchanged `ebcab33` core: criterion 01 can cite a later operator reply;
+some atomic answers can contradict final responses; criterion 03 wrongly rejects
+system-only verification evidence; critical categories can contradict atomic
+answers; and punctuation-only quotations can pass the substring gate. Details
+remain in that worktree's `qa/REPORT.md`; the local results are saved as
+`outputs/app/browser-qa/independent-qa.json`.
+
+The integrated workflow is usable, but the original validation gates are not a
+complete implementation of semantic rubric consistency. These newly available
+findings are disclosed, not folded into a passing-test count or silently fixed
+through score overrides. Resolving them with small configurable, reviewed gate
+changes is the single highest-priority next engineering step. Authorized API
+access/model selection is separately required for the first genuine evaluation.
+Accuracy still requires independent human labels and approved factual/policy
+references; this functional integration does not establish scoring accuracy.
