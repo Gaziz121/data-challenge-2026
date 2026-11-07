@@ -133,7 +133,20 @@ future work.
   decision/applicability consistency before another explicitly authorized run,
   control-data export policy/API integration, checklist-editor UX and calibration.
 
-## Synchronization and publication policy
+## Output-contract corrections after independent RCA
+
+- Engine 0.3.0: R1/R3/R4 fixed with no score coercion. Complete field diagnostics
+  expose applicability conflicts even when metadata or nested evidence is invalid.
+- Active model output 1.1 generates atomic checks before response; prompt v3 places
+  applicability checks first and explicitly requires null N/A reasons on applicable
+  answers. Model input/output ordering is covered by offline serialized-payload
+  tests. Saved checklist v2 and deterministic scorer are unchanged.
+- Current application suite: 83 run, 82 passed, one expected full-DEV voice skip.
+  Claude's unchanged original 41 and new 15 tests all pass; both Node suites pass.
+- No paid model calls, key loading, frontend work, new rule derivation system or
+  Maker/Checker implementation. Read-only readiness audit follows this core fix.
+
+## Private synchronization policy
 
 Use live Git preflight/fetch and history comparison, not this snapshot, to verify
 current synchronization. Maintain one authoritative `main` and deliberate review.

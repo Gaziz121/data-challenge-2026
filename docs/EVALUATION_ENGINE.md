@@ -1,7 +1,12 @@
 # Modular evaluation baseline and contract v1
 
-Current repair note: engine 0.2.0 defaults to `official-v2.json` / rubric
-`2026-11-07.v2` and prompt `baseline-v2`. Configurable evidence policies and
+Current core note: engine 0.3.0 defaults to `official-v2.json` / rubric
+`2026-11-07.v2`, prompt `baseline-v3` and active model-output schema `1.1`.
+Atomic checks precede the response in the actual serialized provider schema;
+applicability questions precede other questions in the model input. Legacy
+model-output `1.0` remains readable. Independent field diagnostics report metadata,
+applicability, consistency and evidence failures together without accepting partial
+decisions. Configurable evidence policies and
 atomic/category consistency now close the 12 independent QA defects. Successful
 results preserve original `model_evaluation`, `validated_evaluation` and exact-span
 `evidence_repairs`. Rejected replies retain per-criterion diagnostics and no score.
@@ -57,7 +62,8 @@ human judgment; gates validate structural consistency, not scoring accuracy.
 ## Stable typed contracts
 
 All contracts are in `src/cqa/schemas.py`, forbid unknown fields and use strict
-types. Top-level interchange contracts carry `schema_version="1.0"`. A breaking
+types. Conversation/checklist/result contracts carry `schema_version="1.0"`;
+new model outputs use `1.1` (the reader also accepts historical `1.0`). A breaking
 change requires a new major contract version; a saved checklist change requires
 a new checklist version. Never repurpose a question ID within a saved version.
 

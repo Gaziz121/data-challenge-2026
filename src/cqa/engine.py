@@ -14,9 +14,9 @@ from .preprocessing import extract_facts
 from .prompt import build_request, PROMPT_VERSION
 from .evidence import normalize_evidence
 from .schemas import (Checklist, Conversation, EvaluationConfig, EvaluationResult,
-                      ModelEvaluation, RunMetadata, CheckInput, CheckOutcome, AuditEvent, Decision)
+                      ModelEvaluation, RunMetadata, CheckInput, CheckOutcome, AuditEvent)
 from .scoring import score_evaluation
-from .validation import validate_evaluation, _validate_decision
+from .validation import validate_evaluation, _validate_decision, diagnose_decision
 
 
 class CheckBlocked(ValueError):
@@ -43,6 +43,12 @@ def diagnose_output(raw, conversation, checklist):
     expected = {c.criterion_id: c for c in checklist.criteria}
     messages = {m.message_id: m for m in conversation.messages}
     issues, statuses, seen = [], [], []
+    try:
+        ModelEvaluation.model_validate(raw)
+    except pydantic.ValidationError as error:
+        issues.extend({"criterion_id": None, "location": list(e["loc"]), "message": e["msg"]}
+                      for e in error.errors(include_input=False, include_context=False)
+                      if not e["loc"] or e["loc"][0] != "decisions")
     for item in raw["decisions"]:
         cid = item.get("criterion_id") if isinstance(item, dict) else None
         if not isinstance(cid, str):
@@ -52,14 +58,7 @@ def diagnose_output(raw, conversation, checklist):
         if cid not in expected:
             local.append({"criterion_id": cid, "message": "Unknown or missing criterion ID"})
         else:
-            try:
-                decision = Decision.model_validate(item)
-                _validate_decision(decision, expected[cid], conversation, messages)
-            except pydantic.ValidationError as error:
-                local.extend({"criterion_id": cid, "location": list(e["loc"]), "message": e["msg"]}
-                             for e in error.errors(include_input=False, include_context=False))
-            except ValueError as error:
-                local.append({"criterion_id": cid, "message": str(error)})
+            local.extend(diagnose_decision(item, expected[cid], conversation, messages))
         issues.extend(local)
         statuses.append({"criterion_id": cid, "status": "invalid" if local else "validated"})
     if len(seen) != len(set(seen)) or set(seen) != set(expected):

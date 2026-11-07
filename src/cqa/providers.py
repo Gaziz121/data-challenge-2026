@@ -10,7 +10,7 @@ import urllib.request
 
 from .io import parse_json
 from .loader import require_approved_synthetic
-from .schemas import Checklist, Conversation, EvaluationConfig
+from .schemas import Checklist, Conversation, EvaluationConfig, MODEL_OUTPUT_SCHEMA_VERSION
 
 
 class ProviderError(RuntimeError):
@@ -61,7 +61,7 @@ class MockProvider:
                               "atomic_checks": [{"question_id": q.question_id, "answer": "unknown",
                                                  "rationale": "MOCK: atomic check not assessed.",
                                                  "evidence": [scope.copy()]} for q in criterion.questions]})
-        return ProviderReply({"schema_version": "1.0", "decisions": decisions}, model=self.model, usage={})
+        return ProviderReply({"schema_version": MODEL_OUTPUT_SCHEMA_VERSION, "decisions": decisions}, model=self.model, usage={})
 
 
 class OpenAIProvider:
@@ -109,7 +109,7 @@ class OpenAIProvider:
         payload = {"model": self.model, "instructions": request["instructions"],
                    "input": request["input"], "store": False,
                    "max_output_tokens": config.max_output_tokens,
-                   "text": {"format": {"type": "json_schema", "name": "cqa_evaluation_v1",
+                   "text": {"format": {"type": "json_schema", "name": "cqa_evaluation_v1_1",
                                        "strict": True, "schema": request["schema"]}}}
         started = time.perf_counter()
         try:

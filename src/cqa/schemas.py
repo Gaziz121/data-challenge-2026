@@ -5,6 +5,7 @@ from typing import Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 CONTRACT_VERSION = "1.0"
+MODEL_OUTPUT_SCHEMA_VERSION = "1.1"
 RawResponse = Union[Literal["yes", "no", "N/A"], int]
 Violation = Literal["insult", "paid_service_bypassing_company", "confidential_disclosure"]
 
@@ -158,36 +159,52 @@ class AtomicCheck(Contract):
     evidence: list[Evidence] = Field(min_length=1)
 
 
+def decision_metadata_issues(values):
+    """Independent metadata constraints, shared by acceptance and diagnostics."""
+    issues = []
+    if "rationale" in values and not values["rationale"].strip():
+        issues.append("Rationale cannot be whitespace")
+    if "response" in values and "na_reason" in values:
+        if values["response"] == "N/A":
+            if not values["na_reason"] or not values["na_reason"].strip():
+                issues.append("N/A requires a nonempty reason")
+        elif values["na_reason"] is not None:
+            issues.append("Applicable decisions must use null for na_reason")
+    if "needs_review" in values and "review_reason" in values:
+        if values["needs_review"]:
+            if not values["review_reason"] or not values["review_reason"].strip():
+                issues.append("Review marker requires a reason")
+        elif values["review_reason"] is not None:
+            issues.append("Unflagged decisions must use null for review_reason")
+    if "violation_categories" in values and len(set(values["violation_categories"])) != len(values["violation_categories"]):
+        issues.append("Duplicate critical categories")
+    return issues
+
+
 class Decision(Contract):
     criterion_id: str = Field(min_length=1)
+    atomic_checks: list[AtomicCheck] = Field(min_length=1)
     response: RawResponse
     rationale: str = Field(min_length=1)
-    na_reason: Optional[str]
+    na_reason: Optional[str] = Field(description=(
+        'Must be JSON null unless response is exactly "N/A". If response is "N/A", '
+        'provide a nonempty explanation of the configured N/A condition. '
+        'For yes, no, or any numeric score use null, never an applicability explanation.'))
     evidence: list[Evidence] = Field(min_length=1)
     violation_categories: list[Violation]
     needs_review: bool
     review_reason: Optional[str]
-    atomic_checks: list[AtomicCheck] = Field(min_length=1)
 
     @model_validator(mode="after")
     def valid_reason(self):
-        if not self.rationale.strip():
-            raise ValueError("Rationale cannot be whitespace")
-        if (self.response == "N/A") != bool(self.na_reason and self.na_reason.strip()):
-            raise ValueError("N/A requires a reason; applicable decisions must use null")
-        if self.response != "N/A" and self.na_reason is not None:
-            raise ValueError("Applicable decisions must use null for na_reason")
-        if self.needs_review != bool(self.review_reason and self.review_reason.strip()):
-            raise ValueError("Review marker requires a reason")
-        if not self.needs_review and self.review_reason is not None:
-            raise ValueError("Unflagged decisions must use null for review_reason")
-        if len(set(self.violation_categories)) != len(self.violation_categories):
-            raise ValueError("Duplicate critical categories")
+        issues = decision_metadata_issues({name: getattr(self, name) for name in type(self).model_fields})
+        if issues:
+            raise ValueError("; ".join(issues))
         return self
 
 
 class ModelEvaluation(Contract):
-    schema_version: Literal["1.0"]
+    schema_version: Literal["1.0", "1.1"]
     decisions: list[Decision] = Field(min_length=1)
 
 
@@ -256,7 +273,7 @@ class OverallScore(Contract):
 
 class EvaluationConfig(Contract):
     strategy: Literal["single_pass"] = "single_pass"
-    prompt_version: Literal["baseline-v1", "baseline-v2"] = "baseline-v2"
+    prompt_version: Literal["baseline-v1", "baseline-v2", "baseline-v3"] = "baseline-v3"
     max_output_tokens: int = Field(default=8000, ge=256, le=32000)
     timeout_seconds: int = Field(default=90, ge=1, le=300)
     external_synthetic_allowed: bool = False
