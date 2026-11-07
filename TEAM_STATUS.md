@@ -22,6 +22,20 @@ A clone intentionally lacks originals, real calls, signed access and local statu
   important paths or sharing status change.
 - Utility scripts inspect Git state and reproduce/check the shared subset.
 
+## Independent human-review viewer
+
+- `tools/dev_review/` supplies a separate offline viewer for the shared 60 chats;
+  its README explains build/open and independent reviewer save/resume steps.
+- It preserves all 882 messages, distinguishes all four roles, and offers eight
+  initially blank criterion forms with permitted scales/N/A and evidence indexes.
+  Original message IDs are absent and are never invented.
+- Separate reviewer JSON/CSV downloads say `team_human`, never official Ground
+  Truth. JSON resume validates dataset/rubric hashes and exact source evidence.
+  No browser autosave, AI scores, external dependencies, dataset edits or engine
+  imports. RU/KZ/EN browser checks and dataset-fidelity/export/resume tests passed.
+- This is a local manual-review aid, not a completed benchmark or production
+  application. QA notes left all real-conversation scores blank.
+
 ## Working evaluation baseline
 
 - Implementation is isolated on `codex/cqa-evaluation-engine`; main is unchanged.

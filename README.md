@@ -107,6 +107,22 @@ Obtain approved API access separately; do not copy signed links into Git, issues
 chat logs or documentation. A teammate lacking a LOCAL ONLY file is not evidence
 that the material never existed.
 
+## Local human conversation review
+
+Build and open the offline, read-only DEV transcript viewer:
+
+```sh
+python3 -B tools/dev_review/build.py
+open outputs/dev_review/index.html
+```
+
+It provides blank eight-criterion human forms and separate `team_human` JSON/CSV
+downloads, with JSON resume. It uses no external dependencies or AI scoring and
+does not modify the dataset or import the production evaluation engine. See
+[reviewer instructions](tools/dev_review/README.md) for independent labeling,
+evidence references, provenance, and save/resume behavior. Save JSON before
+closing: there is no browser autosave. These labels are never official Ground Truth.
+
 ## Reproduce the shared chat subset
 
 With the approved full original available locally:

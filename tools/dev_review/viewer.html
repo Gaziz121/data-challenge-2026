@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; base-uri 'none'; form-action 'none'">
+<title>DEV · independent human review</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#182b3b;font:16px/1.5 system-ui,sans-serif}header{background:#172e40;color:white;padding:18px 24px}h1{font-size:23px;margin:0}h2{font-size:19px;margin:0 0 10px}p{margin:6px 0}header p{color:#dce7ef}.toolbar{padding:12px 24px;background:white;border-bottom:1px solid #ccd6df;display:flex;flex-wrap:wrap;align-items:center;gap:10px}label{display:block;font-size:14px;font-weight:600}input,select,textarea,button{font:inherit;border:1px solid #9cabb7;border-radius:5px;padding:7px;background:white;color:#182b3b}button{cursor:pointer;background:#eaf1f5}button:hover{background:#d9e8f0}button:disabled{opacity:.5;cursor:default}input:focus,select:focus,textarea:focus,button:focus{outline:3px solid #80b3df;outline-offset:1px}#conversation{min-width:260px}#search{width:175px}.workspace{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(350px,1fr);gap:20px;padding:20px 24px}.panel{background:white;border:1px solid #d0dae2;border-radius:8px;overflow:hidden}.panel-heading{padding:16px;border-bottom:1px solid #d0dae2}.scroll{padding:16px;max-height:calc(100vh - 340px);min-height:300px;overflow:auto}.message{padding:12px 14px;margin:0 0 12px;border:1px solid #d2dce3;border-left:5px solid #9ba7b0;border-radius:5px;scroll-margin-top:12px}.message.client{background:#f1f7ff;border-left-color:#3277bf}.message.operator{background:#f0faf4;border-left-color:#238454}.message.bot{background:#faf5ff;border-left-color:#8a56ae}.message.system{background:#fff9ea;border-left-color:#ba861c}.message:target,.message.highlight{outline:3px solid #457cb3}.meta{font-size:12px;color:#40546a}.speaker{font-size:14px;font-weight:750;text-transform:uppercase}.message-text{white-space:pre-wrap;overflow-wrap:anywhere;tab-size:4;margin-top:6px}.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px}.legend span{border-bottom:4px solid;padding-bottom:3px}.criterion{border:1px solid #d1dbe3;border-radius:5px;padding:12px;margin:0 0 16px}.criterion legend{font-size:16px;font-weight:700;padding:0 5px}.criterion p{font-size:13px;color:#40546a;margin-bottom:10px}.criterion textarea,.criterion input{width:100%;margin-bottom:8px}.criterion select{width:100%;margin-bottom:8px}textarea{min-height:65px;resize:vertical}.links{font-size:13px;min-height:20px}.links a{margin-right:12px;color:#1b5987}.error{color:#a11b20}.notice{font-size:13px;color:#40546a}.status{padding:8px 24px;font-size:14px;background:#edf4fa}#source{overflow-wrap:anywhere}#import-file{max-width:235px}.exports{display:flex;gap:8px;align-items:center;flex-wrap:wrap}#assessment-count{font-size:13px}#reviewer{width:200px}#feedback{font-weight:600}fieldset:disabled{opacity:.65}@media(max-width:850px){.workspace{grid-template-columns:1fr;padding:12px}.scroll{max-height:65vh}.toolbar{padding:12px}header{padding:16px}}@media print{.toolbar,.status,#review-panel{display:none}.workspace{display:block}.scroll{max-height:none;overflow:visible}.message{break-inside:avoid}}
+</style>
+<header>
+  <h1>DEV · independent human review</h1>
+  <p>Read-only synthetic transcripts · Human labels: <strong>team_human</strong> · Never official Ground Truth</p>
+</header>
+<div class="toolbar">
+  <label>Language<select id="language"><option value="">All languages</option><option>RU</option><option>KZ</option><option>EN</option></select></label>
+  <label>Find conversation ID<input id="search" type="search" placeholder="e.g. p1-ru-001"></label>
+  <label>Conversation<select id="conversation"></select></label>
+  <button id="previous" aria-label="Previous conversation">← Previous</button><button id="next" aria-label="Next conversation">Next →</button>
+</div>
+<div class="toolbar">
+  <label>Reviewer name / ID<input id="reviewer" autocomplete="off" placeholder="Your independent reviewer ID"></label>
+  <button id="start">Start blank review</button>
+  <div class="exports"><button id="export-json">Save JSON / resume file</button><button id="export-csv">Export CSV</button></div>
+  <label>Resume your saved JSON<input id="import-file" type="file" accept=".json,application/json"></label>
+</div>
+<div class="status" aria-live="polite"><span id="feedback">Reading mode. Start a blank review to enter your own labels.</span> <span id="assessment-count"></span></div>
+<main class="workspace">
+  <section class="panel" aria-label="Original transcript">
+    <div class="panel-heading"><h2 id="conversation-title"></h2><p id="conversation-meta" class="meta"></p>
+      <div class="legend"><span style="border-color:#3277bf">Client</span><span style="border-color:#238454">Operator</span><span style="border-color:#8a56ae">Bot</span><span style="border-color:#ba861c">System</span></div>
+      <p class="notice">Message indexes start at 0 and are local evidence locators, not original IDs. Timestamps appear exactly as supplied.</p>
+    </div>
+    <div id="transcript" class="scroll"></div>
+  </section>
+  <section id="review-panel" class="panel" aria-label="Human assessment">
+    <div class="panel-heading"><h2>Your independent assessment</h2><p class="notice">All responses begin blank. N/A appears only where permitted. Unfinished work exports as a draft. No AI scores or totals are calculated.</p><p class="notice">Work stays in this tab until downloaded. Save JSON before closing; CSV is for comparison and cannot be resumed.</p></div>
+    <form id="review-form" class="scroll" onsubmit="return false"></form>
+  </section>
+  <details><summary>Dataset and rubric provenance</summary><p id="source" class="meta"></p></details>
+</main>
+<script type="application/json" id="review-data"><!-- REVIEW_DATA --></script>
+<script>/* REVIEW_SCRIPT */</script>
+</html>

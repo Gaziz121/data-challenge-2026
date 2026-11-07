@@ -1,0 +1,14 @@
+{
+  "version": "dev-human-review-2026-11-07.v1",
+  "source": "case/CQA_SCORING_SPEC.md sections 2-3; team interpretation of organizer checklist, not an answer key",
+  "criteria": [
+    {"id":"01","title":"Establishing contact","weight":10,"responses":["yes","no"],"guidance":"First human operator reply: greet in the client's language AND introduce oneself. Bot greetings do not count.","na_condition":null},
+    {"id":"02","title":"Identifying the need","weight":15,"responses":["yes","no","N/A"],"guidance":"Consider known details and clarify missing information before answering.","na_condition":"Enough information to answer was available from the outset."},
+    {"id":"03","title":"Identification","weight":20,"responses":["yes","no","N/A"],"guidance":"Confirm verification before a protected disclosure/action. If required but unconfirmed, choose No. Record policy uncertainty in your justification.","na_condition":"The request did not require identification."},
+    {"id":"04","title":"Correct and complete consultation","weight":20,"responses":[0,5,10,15,20,"N/A"],"guidance":"0: no substantive answer or key advice incorrect; 5: general guidance without clear action; 10: material question open; 15: main question resolved, secondary detail omitted; 20: all material questions addressed OR a correct next step given. Assess factual correctness and necessary next steps; record policy sources/uncertainty.","na_condition":"The conversation ended before the client formulated a request."},
+    {"id":"05","title":"Empathy and client orientation","weight":15,"responses":["yes","no"],"guidance":"Polite AND responds to the client's specific dissatisfaction/inconvenience when present. Applies even without dissatisfaction.","na_condition":null},
+    {"id":"06","title":"Dialogue management, speed and language quality","weight":15,"responses":[0,4,7,10],"guidance":"0: incoherent/contradictory; 4: wording/order forces client to ask again; 7: one noticeable lapse but client can continue; 10: clear/coherent, with warning if explicit waiting. No invented delay thresholds.","na_condition":null},
+    {"id":"07","title":"Closing","weight":5,"responses":["yes","no","N/A"],"guidance":"Working interpretation: (summary OR further-help offer) AND farewell. Missing farewell alone is No, not N/A. Grouping remains a team interpretation.","na_condition":"The conversation broke off before there was an opportunity to close it."},
+    {"id":"08","title":"Critical errors","weight":null,"responses":["yes","no"],"guidance":"Yes means a violation: insulting the client; offering paid service bypassing the company; disclosing confidential information. For No cite the complete inspected scope. Missing verification alone does not establish disclosure.","na_condition":null}
+  ]
+}
