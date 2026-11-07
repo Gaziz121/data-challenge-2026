@@ -29,7 +29,9 @@ Updated November 7, 2026, Asia/Almaty. Start with
 - Opt-in `evidence_gate=review` (not default) built and measured offline on the 59 stored replies: 42/59 scored
   vs 25/59 strict; recovered cases include critical and low C04/C05/C06 outcomes; totals independently verified.
   Systematic C01 false negatives (~17/20 "no" are wrong) found in both gates; needs a wording fix + live check.
-- Not done: no PROD-10 results; no committed results/dev; gate adoption and C01 fix need owner decisions;
+- C01 v7 drafted (wording only, experimental, selectable, not default; v6 byte-pinned) with 8 invented
+  RU/KZ/EN Yes/No cases, comparison tool and guarded paired live-check script; offline tests pass. Not yet live.
+- Not done: no PROD-10 results; no committed results/dev; gate adoption and v7 live check need owner decisions;
   semantic accuracy unmeasured; team name and submission URL/branch unconfirmed; control API unknown.
 
 ## Earlier collaboration checkpoint

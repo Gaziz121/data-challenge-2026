@@ -1,0 +1,586 @@
+{
+  "schema_version": "1.0",
+  "checklist_id": "freedom-cqa-initial",
+  "version": "2026-11-07.v7",
+  "source": "Original CQA Chat Quality Checklist pp.1-3; user-relayed organizer clarifications O1-O7; case/CQA_SCORING_SPEC.md; v5 DRAFT: C06 waiting fact rephrased after live run a958142 (atomic answer only; weights/levels/anchors/N/A unchanged); v6 CANDIDATE: only C07 wording clarified from the official text (farewell/thanks alone is not a summary or offer of help); weights/levels/N/A unchanged; v7 CANDIDATE: only C01 wording clarified after the DEV-60 run showed systematic false 'no greeting' answers (official rule unchanged: greet in the client's language AND introduce oneself in the first operator reply)",
+  "rounding": "half_up_2dp",
+  "rounding_note": "Two decimal places are official. HALF_UP tie-breaking is a local reproducibility convention pending organizer clarification A06.",
+  "criteria": [
+    {
+      "criterion_id": "01",
+      "title": "Establishing contact",
+      "kind": "binary",
+      "weight": 10,
+      "levels": [],
+      "anchors": {},
+      "na_condition": null,
+      "instructions": "Official text: «Да — оператор поздоровался на языке клиента и представился в первом ответе.» Assess only the FIRST human operator reply. Greeting: any ordinary greeting word or phrase, however short, counts, even when the same reply continues straight into the answer. The client's language is the language the client writes in. Introduction: the operator says who they are (for example states their name). A bot greeting or introduction never counts, and an earlier bot greeting neither replaces nor cancels the operator's own greeting. Do not invent a company script, required wording or timing SLA.",
+      "questions": [
+        {
+          "question_id": "01.q1",
+          "question": "Does the first human operator reply contain a greeting (any ordinary greeting word, however brief, even if the reply continues with the answer) in the language the client writes in?",
+          "violation_category": null,
+          "fact_policy": {
+            "yes_roles": [
+              "agent"
+            ],
+            "yes_locator": "first_agent",
+            "full_scope_answers": []
+          }
+        },
+        {
+          "question_id": "01.q2",
+          "question": "Does the first human operator reply introduce the operator (say who they are, e.g. their name)?",
+          "violation_category": null,
+          "fact_policy": {
+            "yes_roles": [
+              "agent"
+            ],
+            "yes_locator": "first_agent",
+            "full_scope_answers": []
+          }
+        }
+      ],
+      "applicability_rule": null,
+      "consistency_rules": [
+        {
+          "question_id": "01.q1",
+          "when_answer": "no",
+          "permitted_responses": [
+            "no"
+          ]
+        },
+        {
+          "question_id": "01.q2",
+          "when_answer": "no",
+          "permitted_responses": [
+            "no"
+          ]
+        }
+      ],
+      "evidence_policy": {
+        "positive_roles": [
+          "agent"
+        ],
+        "positive_locator": "first_agent"
+      },
+      "output_source": "atomic",
+      "decision_rule": {
+        "all_of": [
+          "01.q1",
+          "01.q2"
+        ],
+        "conditional": null,
+        "source": "Official checklist page 1, criterion 01; apply the configured applicability condition before the binary conjunction."
+      }
+    },
+    {
+      "criterion_id": "02",
+      "title": "Identifying the need",
+      "kind": "binary",
+      "weight": 15,
+      "levels": [],
+      "anchors": {},
+      "na_condition": "Enough information to answer was available from the outset.",
+      "instructions": "Consider details already known and clarify missing information before answering. Do not require redundant questions. N/A only if the stated condition holds.",
+      "questions": [
+        {
+          "question_id": "02.q1",
+          "question": "Was enough information available from the outset to answer?",
+          "violation_category": null,
+          "fact_policy": {
+            "yes_roles": [
+              "customer"
+            ],
+            "yes_locator": "any",
+            "full_scope_answers": []
+          }
+        },
+        {
+          "question_id": "02.q2",
+          "question": "If information was missing, did the operator consider known details and clarify the missing details before answering?",
+          "violation_category": null,
+          "fact_policy": {
+            "yes_roles": [
+              "agent"
+            ],
+            "yes_locator": "any",
+            "full_scope_answers": []
+          }
+        }
+      ],
+      "applicability_rule": {
+        "question_id": "02.q1",
+        "na_when": "yes"
+      },
+      "consistency_rules": [
+        {
+          "question_id": "02.q2",
+          "when_answer": "no",
+          "permitted_responses": [
+            "no",
+            "N/A"
+          ]
+        }
+      ],
+      "evidence_policy": {
+        "positive_roles": [
+          "agent"
+        ],
+        "positive_locator": "any"
+      },
+      "output_source": "atomic",
+      "decision_rule": {
+        "all_of": [
+          "02.q2"
+        ],
+        "conditional": null,
+        "source": "Official checklist page 1, criterion 02; apply the configured applicability condition before the binary conjunction."
+      }
+    },
+    {
+      "criterion_id": "03",
+      "title": "Identification",
+      "kind": "binary",
+      "weight": 20,
+      "levels": [],
+      "anchors": {},
+      "na_condition": "The request did not require identification.",
+      "instructions": "Confirm identity verification BEFORE disclosure of protected data or a protected action. For a general tariff question identification is not required. If a protected action requires verification and the transcript does not confirm it, answer no, not N/A. Do not assume invisible off-channel verification. Flag policy uncertainty for review.",
+      "questions": [
+        {
+          "question_id": "03.q1",
+          "question": "Did the request require identity verification before disclosure or a protected action?",
+          "violation_category": null
+        },
+        {
+          "question_id": "03.q2",
+          "question": "If verification was required, is it confirmed before the protected disclosure/action?",
+          "violation_category": null,
+          "fact_policy": {
+            "yes_roles": [
+              "agent",
+              "system"
+            ],
+            "yes_locator": "any",
+            "full_scope_answers": []
+          }
+        }
+      ],
+      "applicability_rule": {
+        "question_id": "03.q1",
+        "na_when": "no"
+      },
+      "consistency_rules": [
+        {
+          "question_id": "03.q2",
+          "when_answer": "no",
+          "permitted_responses": [
+            "no",
+            "N/A"
+          ]
+        }
+      ],
+      "evidence_policy": {
+        "positive_roles": [
+          "agent",
+          "system"
+        ],
+        "positive_locator": "any"
+      },
+      "output_source": "atomic",
+      "decision_rule": {
+        "all_of": [
+          "03.q2"
+        ],
+        "conditional": null,
+        "source": "Official checklist page 1, criterion 03; apply the configured applicability condition before the binary conjunction."
+      },
+      "identification_policy": {
+        "need_question_id": "03.q1",
+        "verified_question_id": "03.q2",
+        "verification_roles": [
+          "agent",
+          "system"
+        ],
+        "action_roles": [
+          "agent",
+          "system"
+        ]
+      }
+    },
+    {
+      "criterion_id": "04",
+      "title": "Correct and complete consultation",
+      "kind": "discrete",
+      "weight": 20,
+      "levels": [
+        0,
+        5,
+        10,
+        15,
+        20
+      ],
+      "anchors": {
+        "0": "No substantive answer, or the key recommendation is incorrect.",
+        "5": "General guidance given, but the client still lacks a clear course of action.",
+        "10": "Part addressed; a material question remains open.",
+        "15": "Main question resolved; a secondary detail omitted.",
+        "20": "All material questions are addressed, OR a correct next step is given."
+      },
+      "na_condition": "The conversation ended before the client formulated a request.",
+      "instructions": "Map substantive customer questions to operator answers/next steps. Assess factual correctness and necessary next steps. Do not invent product policies; if correctness is unestablished, make the provisional anchor decision explicit and require review. N/A is not a substitute for factual uncertainty. A correct next step can earn full marks.",
+      "questions": [
+        {
+          "question_id": "04.q1",
+          "question": "Did the client formulate a request before the conversation ended?",
+          "violation_category": null
+        },
+        {
+          "question_id": "04.q2",
+          "question": "Were all material questions addressed or a correct next step given?",
+          "violation_category": null
+        },
+        {
+          "question_id": "04.q3",
+          "question": "Is the key advice factually correct on available evidence?",
+          "violation_category": null
+        },
+        {
+          "question_id": "04.q4",
+          "question": "Were necessary next steps explained clearly enough to act?",
+          "violation_category": null
+        }
+      ],
+      "applicability_rule": {
+        "question_id": "04.q1",
+        "na_when": "no"
+      },
+      "consistency_rules": [
+        {
+          "question_id": "04.q2",
+          "when_answer": "no",
+          "permitted_responses": [
+            0,
+            5,
+            10,
+            "N/A"
+          ]
+        },
+        {
+          "question_id": "04.q3",
+          "when_answer": "no",
+          "permitted_responses": [
+            0,
+            "N/A"
+          ]
+        }
+      ],
+      "evidence_policy": {
+        "positive_roles": [
+          "agent"
+        ],
+        "positive_locator": "any"
+      }
+    },
+    {
+      "criterion_id": "05",
+      "title": "Empathy and client orientation",
+      "kind": "binary",
+      "weight": 15,
+      "levels": [],
+      "anchors": {},
+      "na_condition": null,
+      "instructions": "The operator is polite AND, if the client expresses dissatisfaction or inconvenience, responds to that specific problem. Apply even if the client is not dissatisfied. No mandatory apology wording. Answer the dissatisfaction trigger separately. Absence of dissatisfaction makes only the response-to-problem atomic check not_applicable; the criterion itself remains applicable. The backend derives the final response from the configured rule; do not generate a final model judgment.",
+      "questions": [
+        {
+          "question_id": "05.q1",
+          "question": "Was the operator polite?",
+          "violation_category": null,
+          "fact_policy": {
+            "yes_roles": [
+              "agent"
+            ],
+            "yes_locator": "any",
+            "full_scope_answers": []
+          }
+        },
+        {
+          "question_id": "05.q3",
+          "question": "Did the client express dissatisfaction or describe an inconvenience? Answer yes or no based on the entire dialogue; unknown if genuinely unresolved.",
+          "violation_category": null,
+          "fact_policy": {
+            "yes_roles": [
+              "customer"
+            ],
+            "yes_locator": "any",
+            "full_scope_answers": [
+              "no"
+            ]
+          }
+        },
+        {
+          "question_id": "05.q2",
+          "question": "If 05.q3 is yes, did the operator respond to that specific expressed problem? Use not_applicable when 05.q3 is no; no means a required response was missing, not that there was no complaint.",
+          "violation_category": null,
+          "fact_policy": {
+            "yes_roles": [
+              "agent"
+            ],
+            "yes_locator": "any",
+            "full_scope_answers": []
+          }
+        }
+      ],
+      "applicability_rule": null,
+      "consistency_rules": [
+        {
+          "question_id": "05.q1",
+          "when_answer": "no",
+          "permitted_responses": [
+            "no"
+          ]
+        }
+      ],
+      "evidence_policy": {
+        "positive_roles": [
+          "agent"
+        ],
+        "positive_locator": "any"
+      },
+      "decision_rule": {
+        "all_of": [
+          "05.q1"
+        ],
+        "conditional": {
+          "trigger_question_id": "05.q3",
+          "required_when": "yes",
+          "requirement_question_id": "05.q2"
+        },
+        "source": "Official checklist page 1, criterion 05: polite AND (no expressed dissatisfaction/inconvenience OR specific problem addressed)."
+      },
+      "output_source": "atomic"
+    },
+    {
+      "criterion_id": "06",
+      "title": "Dialogue management, speed and language quality",
+      "kind": "discrete",
+      "weight": 15,
+      "levels": [
+        0,
+        4,
+        7,
+        10
+      ],
+      "anchors": {
+        "0": "Incoherent or contradictory replies make the dialogue unclear.",
+        "4": "Wording or response order forces the client to ask again.",
+        "7": "One noticeable lapse, but the client can understand and continue.",
+        "10": "Clear, coherent replies; warning given if there was explicit waiting."
+      },
+      "na_condition": null,
+      "instructions": "Assess clarity, sequence and warning of explicit waiting separately from factual completeness in criterion 04. The three-minute first-response SLA, tags and attachments do not enter the score. Do not invent delay thresholds or spelling counts. For voice assess conversational logic, clarity, appropriate wording and pause management; do not infer acoustic tone/diction from text or penalize ASR spelling. The 10 anchor is conditional on explicit waiting: answer 06.q4 yes ONLY when the human operator left the client in an explicit wait without warning; answer no when every explicit wait was warned OR there was no explicit waiting, citing the full dialogue scope. No time threshold is defined (open A07); do not invent one.",
+      "questions": [
+        {
+          "question_id": "06.q1",
+          "question": "Were the operator replies clear and coherent?",
+          "violation_category": null
+        },
+        {
+          "question_id": "06.q2",
+          "question": "Did wording or order force the client to ask again?",
+          "violation_category": null
+        },
+        {
+          "question_id": "06.q4",
+          "question": "Did the human operator leave the client in an explicit wait WITHOUT warning them? Answer no if every explicit wait was warned or there was no explicit waiting at all.",
+          "violation_category": null,
+          "fact_policy": {
+            "yes_roles": [],
+            "yes_locator": "any",
+            "full_scope_answers": [
+              "no"
+            ]
+          }
+        }
+      ],
+      "applicability_rule": null,
+      "consistency_rules": [
+        {
+          "question_id": "06.q1",
+          "when_answer": "no",
+          "permitted_responses": [
+            0,
+            4,
+            7
+          ]
+        },
+        {
+          "question_id": "06.q2",
+          "when_answer": "yes",
+          "permitted_responses": [
+            0,
+            4
+          ]
+        },
+        {
+          "question_id": "06.q4",
+          "when_answer": "yes",
+          "permitted_responses": [
+            0,
+            4,
+            7
+          ]
+        }
+      ],
+      "evidence_policy": {
+        "positive_roles": [
+          "agent"
+        ],
+        "positive_locator": "any"
+      }
+    },
+    {
+      "criterion_id": "07",
+      "title": "Closing",
+      "kind": "binary",
+      "weight": 5,
+      "levels": [],
+      "anchors": {},
+      "na_condition": "The conversation broke off before there was an opportunity to close it.",
+      "instructions": "Working interpretation: (summary OR offer of further help) AND farewell, from the official text «оператор подвёл итог или предложил дальнейшую помощь и попрощался». A summary restates the outcome or next step of the client's request; an offer of further help explicitly invites further questions or asks whether anything else is needed. Thanks, 'you are welcome' and farewell wishes (e.g. «Спасибо за обращение, хорошего дня!») are a farewell only, never a summary or offer. A routine operator closure without a farewell is no, not N/A. Cite evidence of interruption for N/A. Boolean scope remains an explicitly documented interpretation.",
+      "questions": [
+        {
+          "question_id": "07.q1",
+          "question": "Did the conversation break off before an opportunity to close?",
+          "violation_category": null
+        },
+        {
+          "question_id": "07.q2",
+          "question": "Did the operator explicitly summarize the outcome/next step or explicitly offer further help (e.g. ask if anything else is needed, invite further questions)? Thanks or farewell wishes alone are no.",
+          "violation_category": null
+        },
+        {
+          "question_id": "07.q3",
+          "question": "Did the operator say farewell?",
+          "violation_category": null
+        }
+      ],
+      "applicability_rule": {
+        "question_id": "07.q1",
+        "na_when": "yes"
+      },
+      "consistency_rules": [
+        {
+          "question_id": "07.q2",
+          "when_answer": "no",
+          "permitted_responses": [
+            "no",
+            "N/A"
+          ]
+        },
+        {
+          "question_id": "07.q3",
+          "when_answer": "no",
+          "permitted_responses": [
+            "no",
+            "N/A"
+          ]
+        }
+      ],
+      "evidence_policy": {
+        "positive_roles": [
+          "agent"
+        ],
+        "positive_locator": "any"
+      }
+    },
+    {
+      "criterion_id": "08",
+      "title": "Critical errors",
+      "kind": "critical",
+      "weight": 0,
+      "levels": [],
+      "anchors": {},
+      "na_condition": null,
+      "instructions": "Yes only for at least one of: insulting the client; offering a paid service bypassing the company; disclosing confidential information. A private paid offer itself suffices; acceptance/payment is unnecessary. Asking for a phone number alone does not establish the paid-private-service purpose. Missing identity verification alone is not proof of disclosure. For yes cite agent utterances and list categories; for no cite the complete inspected scope. No automatic numerical deduction.",
+      "questions": [
+        {
+          "question_id": "08.q1",
+          "question": "Did the operator insult the client?",
+          "violation_category": "insult",
+          "fact_policy": {
+            "yes_roles": [
+              "agent"
+            ],
+            "yes_locator": "any",
+            "full_scope_answers": [
+              "no"
+            ]
+          }
+        },
+        {
+          "question_id": "08.q2",
+          "question": "Did the operator offer a paid service bypassing the company?",
+          "violation_category": "paid_service_bypassing_company",
+          "fact_policy": {
+            "yes_roles": [
+              "agent"
+            ],
+            "yes_locator": "any",
+            "full_scope_answers": [
+              "no"
+            ]
+          }
+        },
+        {
+          "question_id": "08.q3",
+          "question": "Did the operator disclose confidential information?",
+          "violation_category": "confidential_disclosure",
+          "fact_policy": {
+            "yes_roles": [
+              "agent"
+            ],
+            "yes_locator": "any",
+            "full_scope_answers": [
+              "no"
+            ]
+          }
+        }
+      ],
+      "applicability_rule": null,
+      "consistency_rules": [
+        {
+          "question_id": "08.q1",
+          "when_answer": "yes",
+          "permitted_responses": [
+            "yes"
+          ]
+        },
+        {
+          "question_id": "08.q2",
+          "when_answer": "yes",
+          "permitted_responses": [
+            "yes"
+          ]
+        },
+        {
+          "question_id": "08.q3",
+          "when_answer": "yes",
+          "permitted_responses": [
+            "yes"
+          ]
+        }
+      ],
+      "evidence_policy": {
+        "positive_roles": [
+          "agent"
+        ],
+        "positive_locator": "any",
+        "negative_coverage": "decision_and_atomic"
+      },
+      "output_source": "atomic"
+    }
+  ],
+  "decision_path": "atomic_first"
+}

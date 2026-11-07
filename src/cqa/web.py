@@ -106,7 +106,7 @@ class Application:
         # Keep explicit selection of the previous default working after upgrade.
         # v5 = only live-accepted atomic pair; v6 = production candidate (C07 wording clarified).
         additional = [load_checklist(CHECKLIST_DIR / name) for name in
-                      ("official-v2.json", "official-v3.json", "official-v4.json", "official-v5.json", "official-v6.json")]
+                      ("official-v2.json", "official-v3.json", "official-v4.json", "official-v5.json", "official-v6.json", "official-v7.json")]
         self.checklists = ChecklistRegistry(self.checklist, self.output_dir / "checklists", additional=additional)
         # None keeps the engine default (atomic-v2); the CLI selects atomic-v5 explicitly.
         self.atomic_prompt_version = atomic_prompt_version

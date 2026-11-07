@@ -1,0 +1,70 @@
+{
+  "schema": "c01-fictional-expectations/1",
+  "note": "Expected values are true BY CONSTRUCTION of these invented conversations (authored test fixtures). They are not DEV or official labels and are never used by the engine.",
+  "cases": [
+    {
+      "conversation_id": "fict-c01-001",
+      "language": "RU",
+      "c01": "yes",
+      "01.q1": "yes",
+      "01.q2": "yes",
+      "variant": "formal greeting + name, same reply continues"
+    },
+    {
+      "conversation_id": "fict-c01-002",
+      "language": "KZ",
+      "c01": "yes",
+      "01.q1": "yes",
+      "01.q2": "yes",
+      "variant": "KZ greeting + name"
+    },
+    {
+      "conversation_id": "fict-c01-003",
+      "language": "EN",
+      "c01": "yes",
+      "01.q1": "yes",
+      "01.q2": "yes",
+      "variant": "EN alternative greeting + 'this is'"
+    },
+    {
+      "conversation_id": "fict-c01-004",
+      "language": "RU",
+      "c01": "yes",
+      "01.q1": "yes",
+      "01.q2": "yes",
+      "variant": "informal greeting + name"
+    },
+    {
+      "conversation_id": "fict-c01-005",
+      "language": "RU",
+      "c01": "no",
+      "01.q1": "no",
+      "01.q2": "yes",
+      "variant": "name but no operator greeting (bot greeted)"
+    },
+    {
+      "conversation_id": "fict-c01-006",
+      "language": "EN",
+      "c01": "no",
+      "01.q1": "yes",
+      "01.q2": "no",
+      "variant": "greeting but no introduction"
+    },
+    {
+      "conversation_id": "fict-c01-007",
+      "language": "KZ",
+      "c01": "no",
+      "01.q1": "no",
+      "01.q2": "yes",
+      "variant": "greeting in another language than the client"
+    },
+    {
+      "conversation_id": "fict-c01-008",
+      "language": "EN",
+      "c01": "no",
+      "01.q1": "no",
+      "01.q2": "no",
+      "variant": "greeting and name only in the SECOND operator reply"
+    }
+  ]
+}

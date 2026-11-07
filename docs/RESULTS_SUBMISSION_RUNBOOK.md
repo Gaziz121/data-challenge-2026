@@ -136,7 +136,16 @@ The model misreads "in the client language". No gate can catch this; it needs a 
 Review gate = GO only as an explicit owner decision (flag, not default). Direct-rubric fallback = NO-GO now:
 3/3 earlier genuine replies rejected, it passes through the same evidence validators, and it is unmeasured at
 scale. Before final DEV and PROD: fix C01 wording, verify with a small paid check, then run with
-`--evidence-gate review --repair-authorization ...`. Never change the pair between DEV and PROD runs without
+`--evidence-gate review --repair-authorization ...`.
+
+**C01 v7 candidate (experimental, not default; v6 byte-pinned):** official text «Да — оператор поздоровался
+на языке клиента и представился в первом ответе» — language matching IS official. v7 changes only the C01
+instructions and 01.q1/01.q2 wording: any ordinary greeting counts even if the reply continues with the answer;
+client language = the language the client writes in; introduction = says who they are; bot greetings never
+count. Offline baseline on the 59 saved v6 replies (`tools/c01_compare.py`, audit heuristic, not labels):
+42 agree, 17 model false "no" (all 01.q1; EN 11, KZ 5, RU 1), 0 false "yes". Paired live check, pre-registered
+criteria and fixed conversation selection: `tools/c01_live_comparison.sh` (≤34 calls, ~USD 0.7; refuses without
+`CQA_C01_PAID_OK=yes`). Do not re-run DEV-60 until that check meets its criteria. Never change the pair between DEV and PROD runs without
 recording why; resume refuses a changed pair. Accepted structure is not semantic accuracy.
 
 Optional `--repair-authorization '<owner reference>'` adds at most ONE bounded criterion-repair call per
