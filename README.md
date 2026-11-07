@@ -60,7 +60,10 @@ Rationale: [docs/ARCHITECTURE_DECISIONS.md](docs/ARCHITECTURE_DECISIONS.md), rel
   trustworthy structural acceptance (total 100.00); an earlier atomic-v3 acceptance had a grammar-forced
   C06 and is not trusted. That reply credits a farewell as an offer of help under C07; the official text
   requires a summary or offer of help **and** a farewell, so a reviewer would likely score C07 = no (92.31).
-  v6 clarifies exactly that. **v6 has not yet been called live.**
+  v6 clarifies exactly that wording. **v6 gate (3 owner-authorized calls, RU/KZ/EN synthetic):** 2/3
+  structurally accepted (p1-ru-001 100.00; p1-kz-013 92.31 with a correct critical flag for an off-company paid
+  offer); p1-en-013 rejected on evidence/coverage rules. The clarified wording did NOT change C07 on p1-ru-001
+  (still credits the farewell) — a known open semantic bias, not tuned further on DEV items.
 - Measured cost: ~12.6k input / ~2.6–2.9k output tokens, **USD 0.013–0.023 per call** (DEV-65 ≈ USD 1–2;
   PROD-10 ≈ USD 0.1–0.3 including optional repair calls); latency ≈ 14 s per call.
 - **Semantic accuracy against official Ground Truth is unknown.** No official labels exist for development;

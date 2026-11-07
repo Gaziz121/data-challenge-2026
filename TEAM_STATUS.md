@@ -19,7 +19,9 @@ Updated November 7, 2026, Asia/Almaty. Start with
 - Tests: production 217 run / 217 pass with local DEV-65 present (clean clone: 2 expected skips); independent
   QA 81/81; both Node suites pass; DEV-65 real-local mock wiring with v6+atomic-v5 exports 65 IDs (all honest
   errors, validator exit 0); PROD-10 fictional rehearsal passes. Browser flow checked on localhost.
-- Not done: no genuine DEV-65 or PROD-10 results (paid calls need owner authorization); v6 not live-tested;
+- v6 gate (3 owner-authorized calls, ~USD 0.06): 2/3 accepted -> v6 + atomic-v5 selected; EN rejected on
+  evidence/coverage rules; C07 farewell bias persists on p1-ru-001 despite the clarified wording.
+- Not done: no genuine DEV-65 or PROD-10 results (paid calls need owner authorization); repair not live-tested;
   semantic accuracy unmeasured; team name and submission URL/branch unconfirmed; control API unknown.
 
 ## Earlier collaboration checkpoint

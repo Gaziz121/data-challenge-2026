@@ -96,7 +96,14 @@ PYTHONPATH=src python3 -B -m cqa_results.batch --data data/shared/DEV_synthetic_
 ls outputs/submission/gate-v6     # *.result.json = accepted, *.rejected.json = validation failure
 ```
 Use v6 if at least 2 of 3 are structurally accepted and none shows a new systematic failure; otherwise use v5.
-Record the choice and run directory in `STATUS.md`. Never change the pair between DEV and PROD runs without
+Record the choice and run directory in `STATUS.md`.
+
+**Gate executed 2026-11-07 (owner-authorized, 3 calls, ~USD 0.06, run dir `outputs/submission/gate-v6`):**
+2/3 accepted (RU 100.00; KZ 92.31, critical = yes for an off-company paid offer, C07 = no); EN rejected
+(02 quote from an ineligible role, 03 missing full-dialogue coverage, 04 unresolved fact). Decision: **v6 +
+atomic-v5**. Caveat: on p1-ru-001 the model still answers 07.q2 = yes for a farewell, so the C07 bias is not
+fixed by wording. The EN failure type is what the bounded repair targets; using `--repair-authorization` in the
+DEV/PROD batches is recommended but has not yet been exercised live. Never change the pair between DEV and PROD runs without
 recording why; resume refuses a changed pair. Accepted structure is not semantic accuracy.
 
 Optional `--repair-authorization '<owner reference>'` adds at most ONE bounded criterion-repair call per
