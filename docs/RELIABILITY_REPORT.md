@@ -115,3 +115,29 @@ question in a way that the validator then rejects. v4 latency/tokens are not
 live-measured; by schema size, input is estimated at roughly 11–12k tokens
 (v3 live: 24.1k; v2-class: 6.0k), i.e. about USD 0.02 per call — an estimate.
 Repair estimate: ~14 KB schema + ~12 KB input, roughly USD 0.01 per repair call.
+
+## Draft checklist 2026-11-07.v5 (C06 waiting fact) — needs team review
+
+Source: official 06 anchor 10 is conditional — «Ответы ясные и связные. Если было
+явное ожидание, оператор предупредил.» v4 asked the condition as a yes/no question
+(06.q3 "If there was explicit waiting, did the operator warn?") with rule
+no -> {0,4,7}, so "no" meant either "no waiting" or "no warning".
+
+`src/cqa/checklists/official-v5.json` is v4 with only C06 changed:
+- 06.q3 retired; new 06.q4 "Did the human operator leave the client in an explicit
+  wait WITHOUT warning them? Answer no if every explicit wait was warned or there
+  was no explicit waiting at all." `no` is an absence claim (full-dialogue scope).
+- Consistency rule 06.q4=yes -> {0,4,7} (same cap as before, now unambiguous).
+- C06 instructions add the explanation; no time threshold (open A07).
+- Weights, levels, anchors, N/A, applicability, output sources and all other
+  criteria are identical (asserted in `tests/test_checklist_v5.py`).
+
+Not the default anywhere; the web registry is unchanged (an existing test pins its
+four versions). Select by loading the file, or register it at runtime via the
+existing `POST /api/checklists`. The live a958142 reply is not migrated to v5.
+Hand-authored counterfactual only: with 06.q4=no and C06=10, the p1-ru-001 total
+would be 100.00 — that is a fixture, not a measured result. Open: whether
+pre-handover queue waiting announced by the bot counts as "explicit waiting" for
+the operator — a reviewer calibration question, not encoded.
+
+Tests: 153 run, 152 pass, 1 expected skip; QA 81/81; both Node suites pass.
