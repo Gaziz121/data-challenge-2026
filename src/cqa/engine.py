@@ -15,10 +15,11 @@ from .prompt import build_request, PROMPT_VERSION
 from .evidence import normalize_evidence
 from .coverage import assess_output
 from .atomic import AtomicReviewRequired, process_atomic_output
-from .atomic_prompt import PROMPT_VERSION as ATOMIC_PROMPT_VERSION
+from .atomic_prompt import PROMPT_VERSION as ATOMIC_PROMPT_VERSION, ATOMIC_PROMPT_VERSIONS
 from .schemas import (Checklist, Conversation, EvaluationConfig, EvaluationResult,
-                      ModelEvaluation, RunMetadata, CheckInput, CheckOutcome, AuditEvent)
+                      ModelEvaluation, RunMetadata, CheckInput, CheckOutcome, AuditEvent, RepairPolicy)
 from .scoring import score_evaluation
+from .repair import REPAIR_PROMPT_VERSION, attempt_repair
 from .validation import validate_evaluation, _validate_decision, diagnose_decision
 
 
@@ -69,11 +70,19 @@ def diagnose_output(raw, conversation, checklist):
     return issues, statuses
 
 
-def evaluate(conversation, checklist, provider, config=None, checks=()):
+def evaluate(conversation, checklist, provider, config=None, checks=(), repair=None):
+    """`repair` is an explicit RepairPolicy; None (default) disables any extra call."""
     config = EvaluationConfig.model_validate((config or EvaluationConfig()).model_dump())
     atomic_path = checklist.decision_path == "atomic_first"
+    if repair is not None:
+        repair = RepairPolicy.model_validate(repair.model_dump())
+        if not atomic_path:
+            raise ValueError("Bounded repair applies only to the atomic_first decision path")
+    repair_attempts = []
     if atomic_path:
-        config = config.model_copy(update={"prompt_version": ATOMIC_PROMPT_VERSION})
+        # atomic-v2 remains the compatibility default; atomic-v3 is explicit opt-in.
+        version = config.prompt_version if config.prompt_version in ATOMIC_PROMPT_VERSIONS else ATOMIC_PROMPT_VERSION
+        config = config.model_copy(update={"prompt_version": version})
     elif config.prompt_version != PROMPT_VERSION:
         raise ValueError("Requested prompt version is not the active implementation")
     conversation = Conversation.model_validate(conversation.model_dump())
@@ -118,7 +127,8 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
                 raise CheckBlocked(outcomes.copy(), evaluation, audit.copy())
 
     run_checks("pre_evaluation", None)
-    request, prompt_hash = build_request(conversation, checklist, facts)
+    request, prompt_hash = build_request(conversation, checklist, facts,
+                                         config.prompt_version if atomic_path else None)
     reply = provider.evaluate(conversation, checklist, request, config)
     def run_metadata():
         return RunMetadata(engine_version=__version__, provider=provider.name,
@@ -136,7 +146,19 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
         raw = parse_json(reply.evaluation) if isinstance(reply.evaluation, (str, bytes)) else reply.evaluation
         record("primary_atomic_evaluation", config.prompt_version, raw)
         if atomic_path:
-            projection, criterion_reviews = process_atomic_output(raw, conversation, checklist)
+            try:
+                projection, criterion_reviews = process_atomic_output(raw, conversation, checklist)
+            except AtomicReviewRequired as first:
+                if repair is None:
+                    raise
+                # Exactly one bounded attempt; the primary reply is never modified.
+                attempt, merged = attempt_repair(repair, provider, conversation, checklist, config,
+                                                 raw, first.reviews, first.issues)
+                repair_attempts.append(attempt)
+                record("bounded_criterion_repair", REPAIR_PROMPT_VERSION, attempt.model_dump(mode="json"), "review")
+                if merged is None:
+                    raise
+                projection, criterion_reviews = process_atomic_output(merged, conversation, checklist)
             record("validated_facts_to_official_decisions", "atomic-v1",
                    [r.model_dump(mode="json") for r in criterion_reviews])
         if atomic_path:
@@ -174,6 +196,7 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
                                   "decision_path": checklist.decision_path,
                                   "criterion_reviews": [r.model_dump(mode="json") for r in criterion_reviews],
                                   "validated_criteria": [d.model_dump(mode="json") for d in error.accepted] if isinstance(error, AtomicReviewRequired) else [],
+                                  "repair_attempts": [a.model_dump(mode="json") for a in repair_attempts],
                                   "audit": [a.model_dump(mode="json") for a in audit]}) from None
     if repairs:
         record("evidence_formatting_resolution", "formatting-v1", [r.model_dump(mode="json") for r in repairs])
@@ -182,7 +205,7 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
     score = score_evaluation(model_evaluation, conversation, checklist)
     record("official_deterministic_scoring", "rational-v1", score.model_dump(mode="json"))
     status = "mock_only" if provider.is_mock else (
-        "needs_review" if any(d.needs_review for d in model_evaluation.decisions)
+        "needs_review" if any(d.needs_review for d in model_evaluation.decisions) or repair_attempts
         or any(f.severity == "review" for o in outcomes for f in o.findings) else "structurally_valid")
     return EvaluationResult(
         evaluation_id=str(uuid4()), status=status, conversation=conversation, checklist=checklist,
@@ -191,6 +214,6 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
         decision_rule_checks=rule_checks, coverage_proofs=coverage_proofs,
         decision_path=checklist.decision_path,
         original_provider_output=raw if atomic_path else None,
-        criterion_reviews=criterion_reviews,
+        criterion_reviews=criterion_reviews, repair_attempts=repair_attempts,
         facts=facts, check_outcomes=outcomes, audit=audit,
         run=run_metadata())
