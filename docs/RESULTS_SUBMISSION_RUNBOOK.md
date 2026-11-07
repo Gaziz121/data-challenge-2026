@@ -145,7 +145,22 @@ client language = the language the client writes in; introduction = says who the
 count. Offline baseline on the 59 saved v6 replies (`tools/c01_compare.py`, audit heuristic, not labels):
 42 agree, 17 model false "no" (all 01.q1; EN 11, KZ 5, RU 1), 0 false "yes". Paired live check, pre-registered
 criteria and fixed conversation selection: `tools/c01_live_comparison.sh` (≤34 calls, ~USD 0.7; refuses without
-`CQA_C01_PAID_OK=yes`). Do not re-run DEV-60 until that check meets its criteria. Never change the pair between DEV and PROD runs without
+`CQA_C01_PAID_OK=yes`). Do not re-run DEV-60 until that check meets its criteria.
+
+**C01 paired live check executed 2026-11-07 (owner-approved; 34 calls, ~USD 0.53; `outputs/c01-compare/20261107-223917`):**
+
+| Pre-registered criterion | v7 result |
+| --- | --- |
+| 1. Invented cases ≥ 7/8 correct and no false Yes | 7/8 correct, but 1 false Yes (Russian greeting to a Kazakh-writing client) — **FAIL** (v6: 6/8, 2 false Yes) |
+| 2. DEV genuine No kept No (3) | 3/3 — pass |
+| 3. DEV previously-wrong Yes fixed (≥ 2/3) | 3/3 — pass (v6 itself got 2 of them right this time: v6 is erratic) |
+| 4. DEV previously-right Yes, no regression | 3/3 — pass |
+| 5. Structural acceptance not lower by > 2 | 9/17 vs v6 9/17 — pass |
+
+Paired flips: v7 fixed 2 (operator credited with the bot's greeting; English greeting judged "not the client
+language"), regressed 0; 1 shared residual error. Root cause seen in rationales: the model tends to assume the
+client's language is Russian. Per the pre-registered rule v7 is NOT adopted automatically; it is never worse than
+v6 on this sample (n = 17, directional only). Owner decision. Never change the pair between DEV and PROD runs without
 recording why; resume refuses a changed pair. Accepted structure is not semantic accuracy.
 
 Optional `--repair-authorization '<owner reference>'` adds at most ONE bounded criterion-repair call per
