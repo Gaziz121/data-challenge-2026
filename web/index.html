@@ -2,97 +2,144 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CQA · local evaluation</title>
+<title>CQA · Conversation Quality Analytics</title>
 <link rel="stylesheet" href="/app.css">
 <script defer src="/transcript.js"></script>
 <script defer src="/app.js"></script>
+<!-- Single embeddable root (e.g. a Dynamics 365 HTML web resource). The active tab is the root's data-tab attribute. -->
 <div class="cqa-app" id="cqa-app" data-tab="evaluation">
-<header>
-  <h1>CQA · local evaluation</h1>
-  <p>Freedom Broker customer-service quality · RU / KZ / EN chats and voice transcripts · evidence, deterministic scoring, appeals</p>
-  <a href="/human-review/" target="_blank" rel="noopener noreferrer">Open independent human review in a separate tab</a>
+<header class="cqa-header">
+  <div class="cqa-brand">
+    <svg class="cqa-mark" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+      <rect x="1" y="1" width="22" height="22" rx="5" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M6.5 12.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <h1>CQA · Conversation Quality Analytics</h1>
+      <p>Freedom Broker customer-service quality · RU / KZ / EN chats and voice transcripts</p>
+    </div>
+  </div>
+  <nav class="cqa-tabs" id="cqa-tabs" role="tablist" aria-label="Workspace">
+    <button type="button" role="tab" id="cqa-tab-evaluation" aria-controls="cqa-panel-evaluation" aria-selected="true">Evaluation</button>
+    <button type="button" role="tab" id="cqa-tab-history-appeals" aria-controls="cqa-panel-history-appeals" aria-selected="false" tabindex="-1">History &amp; appeals</button>
+    <button type="button" role="tab" id="cqa-tab-checklists" aria-controls="cqa-panel-checklists" aria-selected="false" tabindex="-1">Checklists</button>
+  </nav>
+  <a class="cqa-header-link" href="/human-review/" target="_blank" rel="noopener noreferrer">Independent human review<span class="cqa-visually-hidden"> (opens in a new tab)</span></a>
 </header>
-<div id="mode" class="mode">MOCK mode — fixed test fixtures, not AI quality judgments.</div>
-<div class="toolbar">
-  <label>Language<select id="language"><option value="">All languages</option><option>RU</option><option>KZ</option><option>EN</option></select></label>
-  <label>Conversation<select id="conversation" disabled></select></label>
-  <label>Checklist<select id="checklist"></select></label>
-  <label>Provider<select id="provider"><option value="mock">Mock fixture</option><option value="replay">Replay recorded genuine reply</option><option value="openai">OpenAI LLM</option></select></label>
-  <label>Model<input id="model" placeholder="Explicit OpenAI model" disabled autocomplete="off"></label>
-  <button id="evaluate" disabled>Evaluate</button>
-  <button id="download" disabled>Download evaluation JSON</button>
+<div class="cqa-statusbar">
+  <div id="mode" class="mode">MOCK mode — fixed test fixtures, not AI quality judgments.</div>
+  <div class="status" id="feedback" role="status" aria-live="polite">Loading synthetic DEV…</div>
 </div>
-<details class="toolbar paste" id="paste-panel">
-  <summary>Supply a new conversation (JSON, owner-approved input only)</summary>
-  <p class="notice">Shape: {"dataset_group_id": "...", "record": {"conversation_id", "channel": "agent chat"|"voice call", "language", "audio_url", "transcript": [{"timestamp", "speaker": client|operator|bot|system, "text", "message_id"?}]}}.
-    The server evaluates it only if a matching local approval exists (see TEAM_START_HERE.md). Source order, IDs and timestamps are preserved.</p>
-  <textarea id="paste-json" rows="6" spellcheck="false" aria-label="Conversation JSON"></textarea>
-  <button id="paste-load" type="button">Show pasted transcript</button>
-</details>
-<div class="status" id="feedback" role="status" aria-live="polite">Loading synthetic DEV…</div>
-<main class="workspace">
-  <section class="panel" aria-label="Original transcript">
-    <div class="panel-heading"><h2 id="conversation-title">Transcript</h2><p id="conversation-meta" class="meta"></p>
-      <div class="legend"><span>Client</span><span>Operator</span><span>Bot</span><span>System</span></div>
-      <p class="notice">Original wording and timestamps. Index is zero-based; official evidence turn = index + 1.</p>
+
+<section class="cqa-tabpanel" id="cqa-panel-evaluation" role="tabpanel" aria-labelledby="cqa-tab-evaluation">
+  <div class="toolbar">
+    <div class="cqa-toolbar-group" role="group" aria-label="Conversation">
+      <label>Language<select id="language"><option value="">All languages</option><option>RU</option><option>KZ</option><option>EN</option></select></label>
+      <label>Conversation<select id="conversation" disabled></select></label>
     </div>
-    <div id="transcript" class="scroll"></div>
-  </section>
-  <section class="panel" aria-label="Evaluation results">
-    <div class="panel-heading"><h2>Evaluation results</h2><p id="run-summary">Select a conversation, then click Evaluate.</p>
-      <p class="notice">Human labels stay separate. This page never fills or imports team_human assessments.</p>
+    <div class="cqa-toolbar-group" role="group" aria-label="Evaluation settings">
+      <label>Checklist<select id="checklist"></select></label>
+      <label>Provider<select id="provider"><option value="mock">Mock fixture</option><option value="replay">Replay recorded genuine reply</option><option value="openai">OpenAI LLM</option></select></label>
+      <label>Model<input id="model" placeholder="Explicit OpenAI model" disabled autocomplete="off"></label>
     </div>
-    <div id="results" class="scroll" aria-busy="false"><p class="empty">No evaluation yet.</p></div>
-  </section>
-</main>
-<section class="workspace lower">
-  <section class="panel" aria-label="History and appeals">
-    <div class="panel-heading"><h2>History and appeals</h2>
-      <p class="notice">Saved evaluations are immutable. Appeals and reviewer decisions are stored separately; the revised total is recalculated with the same official arithmetic.</p>
+    <div class="cqa-toolbar-group cqa-toolbar-actions" role="group" aria-label="Run">
+      <button id="evaluate" type="button" disabled>Evaluate</button>
     </div>
-    <div class="scroll">
-      <h3>Evaluation history <button id="history-refresh" type="button">Refresh</button>
-        <label class="inline"><input id="history-all" type="checkbox"> all conversations</label></h3>
-      <table class="history"><thead><tr><th>Started (UTC)</th><th>Conversation</th><th>Checklist</th><th>Provider · model</th><th>Status</th><th>Total</th><th>Appeals</th><th></th></tr></thead>
-        <tbody id="history"></tbody></table>
-      <h3>Score: original versus revised</h3>
-      <div id="comparison"><p class="empty">Open an accepted evaluation to see appeals.</p></div>
-      <h3>Submit an appeal</h3>
-      <form id="appeal-form" class="form-grid">
-        <label>Criterion<select id="appeal-criterion" disabled></select></label>
-        <label>Requested response<select id="appeal-requested" disabled></select></label>
-        <label>Your name<input id="appeal-name" maxlength="80" autocomplete="off"></label>
-        <label class="wide">Explanation<textarea id="appeal-explanation" maxlength="4000"></textarea></label>
-        <button id="appeal-submit" type="submit" disabled>Submit appeal</button>
-      </form>
-      <h3>Appeals for this evaluation</h3>
-      <div id="appeals"><p class="empty">No appeals.</p></div>
-      <div class="form-grid reviewer">
-        <label>Reviewer name<input id="reviewer-name" maxlength="80" autocomplete="off"></label>
-        <label>Reviewer key<input id="reviewer-key" type="password" autocomplete="off" placeholder="Printed at server start"></label>
+  </div>
+  <details class="toolbar paste" id="paste-panel">
+    <summary>Supply a new conversation (JSON, owner-approved input only)</summary>
+    <p class="notice">Shape: {"dataset_group_id": "...", "record": {"conversation_id", "channel": "agent chat"|"voice call", "language", "audio_url", "transcript": [{"timestamp", "speaker": client|operator|bot|system, "text", "message_id"?}]}}.
+      The server evaluates it only if a matching local approval exists (see TEAM_START_HERE.md). Source order, IDs and timestamps are preserved.</p>
+    <textarea id="paste-json" rows="6" spellcheck="false" aria-label="Conversation JSON"></textarea>
+    <button id="paste-load" type="button">Show pasted transcript</button>
+  </details>
+  <main class="workspace">
+    <section class="panel" aria-label="Original transcript">
+      <div class="panel-heading"><h2 id="conversation-title">Transcript</h2><p id="conversation-meta" class="meta"></p>
+        <div class="legend"><span>Client</span><span>Operator</span><span>Bot</span><span>System</span></div>
+        <p class="notice">Original wording and timestamps. Index is zero-based; official evidence turn = index + 1.</p>
       </div>
-    </div>
-  </section>
-  <section class="panel" aria-label="Checklist editor">
-    <div class="panel-heading"><h2>Checklist editor</h2>
-      <p class="notice">Versions are immutable: edit, give a new version name and save. Saved versions appear in the Checklist selector.
-        Official submission export stays pinned to the organizer criteria (contact … critical) and refuses incompatible checklists.</p>
-    </div>
-    <div class="scroll">
-      <div class="form-grid">
-        <label>Base version<select id="editor-base"></select></label>
-        <label>New version name<input id="editor-version" autocomplete="off"></label>
-        <button id="editor-save" type="button" disabled>Save as new version</button>
+      <div id="transcript" class="scroll"></div>
+    </section>
+    <section class="panel" aria-label="Evaluation results">
+      <div class="panel-heading"><h2>Evaluation results</h2><button id="download" type="button" disabled>Download evaluation JSON</button>
+        <p id="run-summary">Select a conversation, then click Evaluate.</p>
+        <p class="notice">Human labels stay separate. This page never fills or imports team_human assessments.</p>
       </div>
-      <p id="editor-feedback" class="notice" role="status"></p>
-      <div id="editor-criteria"></div>
-      <details><summary>Advanced: full checklist JSON (add/remove criteria, atomic questions, N/A rules)</summary>
-        <p class="notice">The form above edits this JSON. Server-side validation is authoritative: discrete scales need 0 and anchors for every level, N/A needs an applicability question, critical flags are unweighted.</p>
-        <textarea id="editor-json" rows="16" spellcheck="false" aria-label="Checklist JSON"></textarea>
-        <button id="editor-apply" type="button">Reload form from JSON</button>
-      </details>
-    </div>
-  </section>
+      <div id="results" class="scroll" aria-busy="false"><p class="empty">No evaluation yet.</p></div>
+    </section>
+  </main>
+</section>
+
+<section class="cqa-tabpanel" id="cqa-panel-history-appeals" role="tabpanel" aria-labelledby="cqa-tab-history-appeals">
+  <div class="workspace cqa-review-grid">
+    <section class="panel" aria-label="Appeals">
+      <div class="panel-heading"><h2>Appeals</h2>
+        <p class="notice">Saved evaluations are immutable. Appeals and reviewer decisions are stored separately; the revised total is recalculated with the same official arithmetic.</p>
+      </div>
+      <div class="cqa-panel-body">
+        <h3><span class="cqa-step" aria-hidden="true">1</span>Submit an appeal</h3>
+        <form id="appeal-form" class="form-grid">
+          <label>Criterion<select id="appeal-criterion" disabled></select></label>
+          <label>Requested response<select id="appeal-requested" disabled></select></label>
+          <label>Your name<input id="appeal-name" maxlength="80" autocomplete="off"></label>
+          <label class="wide">Explanation<textarea id="appeal-explanation" maxlength="4000"></textarea></label>
+          <button id="appeal-submit" type="submit" disabled>Submit appeal</button>
+        </form>
+        <h3><span class="cqa-step" aria-hidden="true">2</span>Reviewer decision</h3>
+        <p class="notice">A different person confirms or changes the disputed score, using the reviewer key printed at server start.</p>
+        <div class="form-grid reviewer">
+          <label>Reviewer name<input id="reviewer-name" maxlength="80" autocomplete="off"></label>
+          <label>Reviewer key<input id="reviewer-key" type="password" autocomplete="off" placeholder="Printed at server start"></label>
+        </div>
+        <h3>Appeals for this evaluation</h3>
+        <div id="appeals"><p class="empty">No appeals.</p></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="Score: original versus revised">
+      <div class="panel-heading"><h2>Score: original versus revised</h2></div>
+      <div class="cqa-panel-body">
+        <div id="comparison"><p class="empty">Open an accepted evaluation to see appeals.</p></div>
+      </div>
+    </section>
+  </div>
+  <div class="cqa-section">
+    <section class="panel" aria-label="Evaluation history">
+      <div class="panel-heading"><h2>Evaluation history</h2>
+        <div class="cqa-heading-actions"><label class="inline"><input id="history-all" type="checkbox"> all conversations</label>
+          <button id="history-refresh" type="button">Refresh</button></div>
+      </div>
+      <div class="cqa-panel-body cqa-table-wrap">
+        <table class="history"><thead><tr><th>Started (UTC)</th><th>Conversation</th><th>Checklist</th><th>Provider · model</th><th>Status</th><th>Total</th><th>Appeals</th><th><span class="cqa-visually-hidden">Open</span></th></tr></thead>
+          <tbody id="history"></tbody></table>
+      </div>
+    </section>
+  </div>
+</section>
+
+<section class="cqa-tabpanel" id="cqa-panel-checklists" role="tabpanel" aria-labelledby="cqa-tab-checklists">
+  <div class="cqa-section">
+    <section class="panel" aria-label="Checklist editor">
+      <div class="panel-heading"><h2>Checklist editor</h2>
+        <p class="notice">Versions are immutable: edit, give a new version name and save. The saved version is selected in the Checklist selector on the Evaluation tab.
+          Official submission export stays pinned to the organizer criteria (contact … critical) and refuses incompatible checklists.</p>
+      </div>
+      <div class="cqa-panel-body">
+        <div class="form-grid cqa-editor-bar">
+          <label>Base version<select id="editor-base"></select></label>
+          <label>New version name<input id="editor-version" autocomplete="off"></label>
+          <button id="editor-save" type="button" disabled>Save as new version</button>
+        </div>
+        <p id="editor-feedback" class="notice" role="status"></p>
+        <div id="editor-criteria"></div>
+        <details class="cqa-json-editor"><summary>Advanced: full checklist JSON (add/remove criteria, atomic questions, N/A rules)</summary>
+          <p class="notice">The form above edits this JSON. Server-side validation is authoritative: discrete scales need 0 and anchors for every level, N/A needs an applicability question, critical flags are unweighted.</p>
+          <textarea id="editor-json" rows="16" spellcheck="false" aria-label="Checklist JSON"></textarea>
+          <button id="editor-apply" type="button">Reload form from JSON</button>
+        </details>
+      </div>
+    </section>
+  </div>
 </section>
 </div>
 </html>

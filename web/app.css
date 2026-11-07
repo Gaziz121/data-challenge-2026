@@ -273,52 +273,127 @@ body > .cqa-app {
   justify-self: start;
 }
 
-/* ===================================================================== 5. Header and status */
-.cqa-app > header {
+/* ===================================================================== 5. Header, tabs and status */
+.cqa-app .cqa-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--cqa-s1) var(--cqa-s4);
-  padding: var(--cqa-s3) var(--cqa-s6);
+  gap: var(--cqa-s2) var(--cqa-s6);
+  padding: 0 var(--cqa-s6);
   color: var(--cqa-header-ink);
   background: var(--cqa-header-bg);
 }
-.cqa-app > header h1 {
+.cqa-app .cqa-brand {
+  display: flex;
+  flex: 1 1 280px;
+  align-items: center;
+  gap: var(--cqa-s3);
+  min-width: 0;
+  padding: 10px 0;
+}
+.cqa-app .cqa-brand > div {
+  min-width: 0;
+}
+.cqa-app .cqa-mark {
+  flex: none;
+  color: #8fb8ea;
+}
+.cqa-app .cqa-header h1 {
   font-size: var(--cqa-fs-md);
   font-weight: 700;
   letter-spacing: 0.01em;
 }
-.cqa-app > header p {
+.cqa-app .cqa-header h1,
+.cqa-app .cqa-header p {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cqa-app .cqa-header p {
   margin: 0;
   font-size: var(--cqa-fs-xs);
   color: var(--cqa-header-muted);
 }
-.cqa-app > header a {
+.cqa-app .cqa-header :focus-visible {
+  outline-color: var(--cqa-header-ink);
+}
+
+/* Tabs live in the header bar: role=tablist, roving tabindex, arrows/Home/End in app.js. */
+.cqa-app .cqa-tabs {
+  display: flex;
+  align-self: stretch;
+  gap: var(--cqa-s1);
+}
+.cqa-app .cqa-tabs > button[role="tab"] {
+  min-height: 48px;
+  padding: 0 var(--cqa-s4);
+  font-size: var(--cqa-fs-sm);
+  font-weight: 600;
+  color: var(--cqa-header-muted);
+  background: transparent;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  white-space: nowrap;
+}
+.cqa-app .cqa-tabs > button[role="tab"]:hover:not(:disabled) {
+  color: var(--cqa-header-ink);
+  background: var(--cqa-header-line);
+  border-color: transparent;
+}
+.cqa-app .cqa-tabs > button[role="tab"][aria-selected="true"],
+.cqa-app .cqa-tabs > button[role="tab"][aria-selected="true"]:hover:not(:disabled) {
+  color: var(--cqa-header-ink);
+  border-bottom-color: #8fb8ea;
+}
+.cqa-app .cqa-tabs > button[role="tab"]:focus-visible {
+  outline-offset: -4px;
+}
+.cqa-app .cqa-header-link {
   margin-left: auto;
-  padding: 6px 12px;
+  padding: 6px var(--cqa-s3);
   font-size: var(--cqa-fs-xs);
   font-weight: 600;
+  white-space: nowrap;
   text-decoration: none;
   color: var(--cqa-header-ink);
   border: 1px solid #5d7389;
   border-radius: var(--cqa-radius-sm);
   transition: background-color var(--cqa-transition), border-color var(--cqa-transition);
 }
-.cqa-app > header a:hover {
+.cqa-app .cqa-header-link::after {
+  content: " ↗";
+}
+.cqa-app .cqa-header-link:hover {
   background: var(--cqa-header-line);
   border-color: var(--cqa-header-muted);
 }
-.cqa-app > header :focus-visible {
-  outline-color: var(--cqa-header-ink);
+.cqa-app .cqa-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
+/* Status bar: provider mode chip + global feedback (visible on every tab). */
+.cqa-app .cqa-statusbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cqa-s2) var(--cqa-s4);
+  padding: var(--cqa-s2) var(--cqa-s6);
+  background: var(--cqa-surface);
+  border-bottom: 1px solid var(--cqa-border);
+}
 /* Mode chip: text is written by app.js; MOCK/REPLAY neutral grey, LIVE accent blue. */
 .cqa-app .mode {
   display: inline-flex;
   align-items: center;
   gap: var(--cqa-s2);
   max-width: 100%;
-  padding: var(--cqa-s1) 10px;
+  padding: 3px 10px;
   font-size: var(--cqa-fs-xs);
   font-weight: 600;
   line-height: 1.4;
@@ -340,14 +415,9 @@ body > .cqa-app {
   background: var(--cqa-accent-soft);
   border-color: var(--cqa-accent-line);
 }
-.cqa-app > .mode {
-  margin: var(--cqa-s2) var(--cqa-s6) 0;
-}
-
-/* Global feedback line (role=status). */
+/* Global feedback line (role=status; className "status" / "status error" set by app.js). */
 .cqa-app .status {
   margin: 0;
-  padding: var(--cqa-s2) var(--cqa-s6);
   font-size: var(--cqa-fs-sm);
   font-weight: 600;
   color: var(--cqa-ink);
@@ -360,6 +430,16 @@ body > .cqa-app {
   font-weight: 800;
 }
 
+/* Tab panels: all stay in the DOM; the root attribute hides the inactive ones. */
+.cqa-app[data-tab="evaluation"] #cqa-panel-history-appeals,
+.cqa-app[data-tab="evaluation"] #cqa-panel-checklists,
+.cqa-app[data-tab="history-appeals"] #cqa-panel-evaluation,
+.cqa-app[data-tab="history-appeals"] #cqa-panel-checklists,
+.cqa-app[data-tab="checklists"] #cqa-panel-evaluation,
+.cqa-app[data-tab="checklists"] #cqa-panel-history-appeals {
+  display: none;
+}
+
 /* ===================================================================== 6. Toolbar */
 .cqa-app div.toolbar {
   position: sticky;
@@ -368,19 +448,39 @@ body > .cqa-app {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: var(--cqa-s3);
+  gap: var(--cqa-s3) var(--cqa-s4);
   padding: var(--cqa-s3) var(--cqa-s6);
   background: var(--cqa-surface);
   border-bottom: 1px solid var(--cqa-border);
+  box-shadow: 0 1px 0 rgba(21, 32, 43, 0.04);
+}
+.cqa-app .cqa-toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--cqa-s3);
+}
+.cqa-app .cqa-toolbar-group + .cqa-toolbar-group {
+  padding-left: var(--cqa-s4);
+  border-left: 1px solid var(--cqa-border);
+}
+.cqa-app .cqa-toolbar-actions {
+  margin-left: auto;
+}
+.cqa-app #language {
+  width: 132px;
 }
 .cqa-app #conversation {
-  min-width: 220px;
+  min-width: 190px;
 }
 .cqa-app #checklist {
-  min-width: 240px;
+  width: 250px;
+}
+.cqa-app #provider {
+  width: 220px;
 }
 .cqa-app #model {
-  width: 200px;
+  width: 170px;
 }
 
 /* Supplied-conversation panel. */
@@ -416,6 +516,16 @@ body > .cqa-app {
   gap: var(--cqa-s4);
   padding: var(--cqa-s4) var(--cqa-s6) var(--cqa-s6);
 }
+.cqa-app .cqa-review-grid {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  padding-bottom: var(--cqa-s4);
+}
+.cqa-app .cqa-section {
+  padding: var(--cqa-s4) var(--cqa-s6) var(--cqa-s6);
+}
+.cqa-app .cqa-review-grid + .cqa-section {
+  padding-top: 0;
+}
 .cqa-app .panel {
   min-width: 0;
   background: var(--cqa-surface);
@@ -426,15 +536,29 @@ body > .cqa-app {
 .cqa-app .panel-heading {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: var(--cqa-s1) var(--cqa-s3);
   padding: var(--cqa-s3) var(--cqa-s4);
   border-bottom: 1px solid var(--cqa-border);
 }
 .cqa-app .panel-heading > p,
-.cqa-app .panel-heading > div {
+.cqa-app .panel-heading > .legend {
   flex-basis: 100%;
   margin: 0;
+}
+.cqa-app .panel-heading > button,
+.cqa-app .panel-heading > .cqa-heading-actions {
+  margin-left: auto;
+}
+.cqa-app .cqa-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--cqa-s3);
+}
+.cqa-app .panel-heading button {
+  min-height: 30px;
+  padding: 3px var(--cqa-s3);
+  font-size: var(--cqa-fs-xs);
 }
 .cqa-app .scroll {
   min-height: 300px;
@@ -442,6 +566,34 @@ body > .cqa-app {
   overflow: auto;
   padding: var(--cqa-s4);
   overscroll-behavior: contain;
+}
+.cqa-app .cqa-panel-body {
+  padding: var(--cqa-s4);
+}
+.cqa-app .cqa-panel-body > h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--cqa-s2);
+  margin: var(--cqa-s5) 0 var(--cqa-s2);
+}
+.cqa-app .cqa-panel-body > h3:first-child {
+  margin-top: 0;
+}
+.cqa-app .cqa-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: var(--cqa-fs-xs);
+  font-weight: 700;
+  color: var(--cqa-accent);
+  background: var(--cqa-accent-soft);
+  border-radius: 50%;
+}
+.cqa-app .cqa-table-wrap {
+  padding: 0;
+  overflow-x: auto;
 }
 
 /* ===================================================================== 8. Transcript */
@@ -767,29 +919,6 @@ body > .cqa-app {
 }
 
 /* ===================================================================== 10. History, appeals, comparison */
-.cqa-app .lower {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  padding-top: 0;
-}
-.cqa-app .lower .scroll {
-  max-height: none;
-}
-.cqa-app .lower h3 {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--cqa-s2) var(--cqa-s3);
-  margin: var(--cqa-s5) 0 var(--cqa-s2);
-}
-.cqa-app .lower h3:first-child {
-  margin-top: 0;
-}
-.cqa-app .lower h3 button {
-  min-height: 28px;
-  padding: 2px 10px;
-  font-size: var(--cqa-fs-xs);
-}
-
 .cqa-app table {
   width: 100%;
   border-collapse: collapse;
@@ -810,6 +939,15 @@ body > .cqa-app {
   background: var(--cqa-surface-muted);
   border-bottom-color: var(--cqa-border-strong);
 }
+.cqa-app .history th:first-child,
+.cqa-app .history td:first-child {
+  padding-left: var(--cqa-s4);
+}
+.cqa-app .history td {
+  padding-top: var(--cqa-s2);
+  padding-bottom: var(--cqa-s2);
+  vertical-align: middle;
+}
 .cqa-app .history tbody tr:nth-child(even) {
   background: #f9fbfc;
 }
@@ -827,14 +965,37 @@ body > .cqa-app {
   font-family: var(--cqa-mono);
   font-weight: 600;
 }
+.cqa-app .history th:nth-child(6),
 .cqa-app .history td:nth-child(6) {
   text-align: right;
+}
+.cqa-app .history td:nth-child(7) {
+  font-size: var(--cqa-fs-xs);
+  color: var(--cqa-ink-muted);
 }
 .cqa-app .history td button {
   min-height: 28px;
   padding: 2px 10px;
   font-size: var(--cqa-fs-xs);
 }
+
+/* Status pills (history rows; data-status mirrors the backend status string). */
+.cqa-app .cqa-pill {
+  display: inline-block;
+  padding: 1px var(--cqa-s2);
+  font-size: var(--cqa-fs-xs);
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+  color: var(--cqa-na);
+  background: var(--cqa-na-soft);
+  border: 1px solid currentColor;
+  border-radius: var(--cqa-radius-pill);
+}
+.cqa-app .cqa-pill[data-status="structurally_valid"] { color: var(--cqa-yes); background: var(--cqa-yes-soft); }
+.cqa-app .cqa-pill[data-status="needs_review"] { color: var(--cqa-review); background: var(--cqa-review-soft); }
+.cqa-app .cqa-pill[data-status="rejected"] { color: var(--cqa-no); background: var(--cqa-no-soft); }
+
 .cqa-app table.comparison td:nth-child(2),
 .cqa-app table.comparison td:nth-child(3),
 .cqa-app table.comparison td:nth-child(4) {
@@ -851,11 +1012,17 @@ body > .cqa-app {
   font-size: var(--cqa-fs-sm);
   font-weight: 700;
 }
+.cqa-app .reviewer {
+  margin-bottom: var(--cqa-s4);
+}
 
 /* Appeal cards: browser-only markup "result-card appeal <state>". */
 .cqa-app .result-card.appeal.open { --cqa-verdict: var(--cqa-accent); }
 .cqa-app .result-card.appeal.upheld { --cqa-verdict: var(--cqa-yes); }
 .cqa-app .result-card.appeal.revised { --cqa-verdict: var(--cqa-review); }
+.cqa-app .result-card.appeal > h3 {
+  font-family: var(--cqa-mono);
+}
 .cqa-app .result-card.appeal > .raw {
   font-size: var(--cqa-fs-sm);
   font-weight: 700;
@@ -864,9 +1031,40 @@ body > .cqa-app {
   font-size: var(--cqa-fs-sm);
 }
 
+/* Request refused before any evaluation (e.g. 403 without owner approval). */
+.cqa-app .cqa-error-card {
+  padding: var(--cqa-s3) var(--cqa-s4);
+  background: var(--cqa-no-soft);
+  border: 1px solid #f1b8b2;
+  border-left: 4px solid var(--cqa-no);
+  border-radius: var(--cqa-radius);
+}
+.cqa-app .cqa-error-card h3 {
+  margin-bottom: var(--cqa-s1);
+  color: var(--cqa-no);
+}
+.cqa-app .cqa-error-card .notice {
+  color: var(--cqa-ink);
+}
+
 /* ===================================================================== 11. Checklist editor */
+.cqa-app .cqa-editor-bar {
+  grid-template-columns: minmax(200px, 320px) minmax(180px, 280px) auto;
+  justify-content: start;
+}
+.cqa-app #editor-criteria {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr));
+  gap: var(--cqa-s4);
+  align-items: start;
+}
+.cqa-app #editor-criteria > p {
+  grid-column: 1 / -1;
+  margin: 0;
+}
 .cqa-app .criterion {
-  margin: 0 0 var(--cqa-s4);
+  min-width: 0;
+  margin: 0;
   padding: var(--cqa-s3) var(--cqa-s4) var(--cqa-s2);
   background: var(--cqa-surface);
   border: 1px solid var(--cqa-border);
@@ -892,12 +1090,16 @@ body > .cqa-app {
   display: none;
 }
 .cqa-app #editor-feedback {
+  margin: 0 0 var(--cqa-s3);
   padding: var(--cqa-s2) var(--cqa-s3);
   color: var(--cqa-ink);
   background: var(--cqa-accent-soft);
   border-radius: var(--cqa-radius-sm);
 }
-.cqa-app .panel details:not(.audit) > summary {
+.cqa-app .cqa-json-editor {
+  margin-top: var(--cqa-s4);
+}
+.cqa-app .cqa-json-editor > summary {
   cursor: pointer;
   width: fit-content;
   font-size: var(--cqa-fs-sm);
@@ -907,46 +1109,62 @@ body > .cqa-app {
 
 /* ===================================================================== 12. Narrow containers (850 px) */
 @container cqa (max-width: 850px) {
-  .cqa-app > header,
+  .cqa-app .cqa-header,
+  .cqa-app .cqa-statusbar,
   .cqa-app div.toolbar,
-  .cqa-app details.paste,
-  .cqa-app .status {
+  .cqa-app details.paste {
     padding-left: var(--cqa-s3);
     padding-right: var(--cqa-s3);
   }
-  .cqa-app > .mode {
-    margin-left: var(--cqa-s3);
-    margin-right: var(--cqa-s3);
+  .cqa-app .cqa-header {
+    padding-bottom: var(--cqa-s2);
   }
-  .cqa-app > header a {
-    margin-left: 0;
+  .cqa-app .cqa-brand {
+    padding-bottom: 0;
+  }
+  .cqa-app .cqa-tabs {
+    order: 3;
+    flex-basis: 100%;
+    overflow-x: auto;
+  }
+  .cqa-app .cqa-tabs > button[role="tab"] {
+    min-height: 40px;
+    padding: 0 var(--cqa-s3);
   }
   .cqa-app .workspace,
-  .cqa-app .lower {
+  .cqa-app .cqa-review-grid {
     grid-template-columns: minmax(0, 1fr);
+    padding: var(--cqa-s3);
+  }
+  .cqa-app .cqa-section {
     padding: var(--cqa-s3);
   }
   .cqa-app .scroll {
     max-height: 560px;
   }
-  .cqa-app .lower .scroll {
-    max-height: none;
-  }
   .cqa-app div.toolbar {
     position: static;
   }
+  .cqa-app .cqa-toolbar-group {
+    flex: 1 1 100%;
+  }
+  .cqa-app .cqa-toolbar-group + .cqa-toolbar-group {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .cqa-app .cqa-toolbar-group > label {
+    flex: 1 1 160px;
+  }
+  .cqa-app #language,
   .cqa-app #conversation,
   .cqa-app #checklist,
+  .cqa-app #provider,
   .cqa-app #model {
-    min-width: 0;
     width: 100%;
+    min-width: 0;
   }
-  .cqa-app div.toolbar > label {
-    flex: 1 1 200px;
-  }
-  .cqa-app .history {
-    display: block;
-    overflow-x: auto;
+  .cqa-app .cqa-editor-bar {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -961,6 +1179,7 @@ body > .cqa-app {
   }
 }
 
+/* Print: evaluation, appeals and history of all tabs; controls and the editor are omitted. */
 @media print {
   body > .cqa-app {
     min-height: 0;
@@ -968,29 +1187,36 @@ body > .cqa-app {
   .cqa-app {
     background: #ffffff;
   }
+  .cqa-app .cqa-tabpanel {
+    display: block !important;
+  }
+  .cqa-app .cqa-tabs,
+  .cqa-app .cqa-header-link,
+  .cqa-app .cqa-statusbar,
   .cqa-app div.toolbar,
   .cqa-app details.paste,
-  .cqa-app .status,
-  .cqa-app > header a,
-  .cqa-app #review-panel,
+  .cqa-app #cqa-panel-checklists,
+  .cqa-app #download,
+  .cqa-app .cqa-heading-actions,
   .cqa-app form,
   .cqa-app .form-grid {
-    display: none;
+    display: none !important;
   }
-  .cqa-app > header {
+  .cqa-app .cqa-header {
     color: #000000;
     background: none;
     border-bottom: 2px solid #000000;
   }
-  .cqa-app > header p {
+  .cqa-app .cqa-header p,
+  .cqa-app .cqa-mark {
     color: #333333;
   }
-  .cqa-app .workspace {
+  .cqa-app .workspace,
+  .cqa-app .cqa-review-grid {
     display: block;
   }
   .cqa-app .panel {
     margin-bottom: var(--cqa-s4);
-    break-inside: auto;
   }
   .cqa-app .scroll {
     max-height: none;

@@ -219,6 +219,14 @@
     renderFailure(diagnostic, $("results"), $("run-summary")); $("download").disabled = false;
     renderAppealsPanel(null);
   }
+  function errorCard(error) {
+    const card = el("article", undefined, "cqa-error-card");
+    card.append(el("h3", `Evaluation not run${error.status ? " · HTTP " + error.status : ""}`), el("p", error.message),
+      el("p", error.status === 403 ? "Next step: supplied input needs a matching local owner approval (authorization manifest, see TEAM_START_HERE.md). The server refused it before any provider call; nothing was scored or stored." :
+        error.status === 409 ? "Next step: another evaluation is running or the checklist version conflicts. Wait, then try again." :
+          "Next step: check the selection above and try again. No score was produced.", "notice"));
+    return card;
+  }
   $("evaluate").onclick = async () => {
     if (busy || !(current || pasted)) return;
     busy = true; clearResult(); updateMode();
@@ -234,6 +242,7 @@
     } catch (error) {
       feedback(error.status === 403 ? `${error.message} — supplied input needs an owner approval manifest (see TEAM_START_HERE.md).` : error.message, true);
       $("run-summary").textContent = "Evaluation failed. No score returned.";
+      if (!error.details?.diagnostic_id) $("results").replaceChildren(errorCard(error));
       if (error.details?.diagnostic_id) {
         try {showRejected(await api("/api/diagnostics/" + error.details.diagnostic_id));}
         catch (_) {feedback("Evaluation failed; diagnostic remains saved on the server.", true);}
@@ -276,8 +285,10 @@
     const tr = el("tr");
     const status = row.kind === "rejected" ? `rejected (${row.issues} issues)` : row.status;
     const appeals = row.kind === "rejected" ? "—" : `${row.appeals_open} open · ${row.appeals_revised} revised`;
+    const pill = el("span", status, "cqa-pill"), statusCell = el("td");
+    pill.dataset.status = row.kind === "rejected" ? "rejected" : row.status; statusCell.append(pill);
     tr.append(el("td", (row.started_at || "").replace("T", " ").slice(0, 19)), el("td", row.conversation_id),
-      el("td", row.checklist_version), el("td", `${row.provider} · ${row.model}`), el("td", status),
+      el("td", row.checklist_version), el("td", `${row.provider} · ${row.model}`), statusCell,
       el("td", row.total_score ?? "—"), el("td", appeals));
     const td = el("td"), open = el("button", "Open"); open.type = "button";
     open.onclick = async () => {
@@ -449,6 +460,30 @@
       $("editor-feedback").textContent = `Not saved: ${error.message}${error.details?.fields ? " — fields: " + error.details.fields.join(", ") : ""}`;
     }
   };
+
+  // Tabs: every panel stays in the DOM; the root's data-tab attribute selects the visible one in CSS,
+  // so switching never resets a result or typed input. State lives in location.hash.
+  const tabNames = ["evaluation", "history-appeals", "checklists"];
+  function showTab(name, focus) {
+    if (!tabNames.includes(name)) name = tabNames[0];
+    $("cqa-app").dataset.tab = name;
+    for (const other of tabNames) {
+      const tab = $("cqa-tab-" + other), selected = other === name;
+      tab.setAttribute("aria-selected", String(selected)); tab.tabIndex = selected ? 0 : -1;
+    }
+    if (focus) $("cqa-tab-" + name).focus();
+    const hash = name === tabNames[0] && !window.location.hash ? "" : "#" + name;
+    if (hash && window.location.hash !== hash) window.history.replaceState(null, "", hash);
+  }
+  for (const name of tabNames) $("cqa-tab-" + name).onclick = () => showTab(name);
+  $("cqa-tabs").onkeydown = event => {
+    const index = tabNames.indexOf($("cqa-app").dataset.tab);
+    const next = {ArrowRight: index + 1, ArrowLeft: index + tabNames.length - 1, Home: 0, End: tabNames.length - 1}[event.key];
+    if (next === undefined) return;
+    event.preventDefault(); showTab(tabNames[next % tabNames.length], true);
+  };
+  window.onhashchange = () => showTab(window.location.hash.slice(1));
+  showTab(window.location.hash.slice(1));
 
   $("language").onchange = filter; $("conversation").onchange = selectConversation;
   $("checklist").onchange = () => {clearResult(); updateMode();};
