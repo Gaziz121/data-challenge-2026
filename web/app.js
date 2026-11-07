@@ -198,8 +198,10 @@
   let records = [], config, checklists = [], current = null, pasted = null, result = null, rejected = null;
   let busy = false, sequence = 0, editing = null;
   async function api(path, options) {
-    const response = await fetch(path, options);
-    const value = await response.json();
+    let response;
+    try {response = await fetch(path, options);}
+    catch (_) {throw new Error("The local CQA server is not reachable. Start it (see README), reload the page and retry.");}
+    const value = await response.json().catch(() => ({}));
     if (!response.ok) {const error = new Error(value.error || "Local request failed."); error.details = value; error.status = response.status; throw error;}
     return value;
   }
@@ -214,7 +216,7 @@
   function updateMode() {
     const provider = $("provider").value, mock = provider !== "openai";
     $("mode").className = mock ? "mode" : "mode live";
-    $("mode").textContent = provider === "mock" ? "MOCK mode — fixed test fixtures, not AI quality judgments. Atomic checklists (v4–v6) reject mock facts by design." :
+    $("mode").textContent = provider === "mock" ? "MOCK mode — fixed test fixtures, not AI quality judgments. Atomic checklists (v4 and later) reject mock facts by design; use v2/v3 with Mock." :
       provider === "replay" ? "REPLAY — re-validates a recorded genuine reply (p1-ru-001, checklist v5). No new model call." :
       "OpenAI selected — only a successful provider response is an LLM evaluation.";
     $("model").disabled = mock || busy;
@@ -363,6 +365,7 @@
       try {
         if (row.kind === "rejected") showRejected(await api("/api/diagnostics/" + row.evaluation_id));
         else showResult(await api("/api/evaluations/" + row.evaluation_id));
+        showTab("evaluation"); $("results").scrollTop = 0;
         feedback(`Loaded saved ${row.kind} ${row.evaluation_id}. No new evaluation was run.`);
       } catch (error) {feedback(error.message, true);}
     };
