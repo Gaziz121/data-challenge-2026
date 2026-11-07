@@ -606,6 +606,15 @@ body > .cqa-app {
   min-height: 18px;
   font-family: var(--cqa-mono);
 }
+/* Link to the call recording (voice calls with an https audio_url only). */
+.cqa-app .cqa-recording-link {
+  font-family: var(--cqa-font);
+  font-weight: 700;
+  color: var(--cqa-accent);
+}
+.cqa-app .cqa-recording-link::after {
+  content: " ↗";
+}
 .cqa-app .legend {
   display: flex;
   flex-wrap: wrap;

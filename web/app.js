@@ -235,7 +235,20 @@
     current = conversation; pasted = null;
     $("conversation-title").textContent = conversation.conversation_id;
     $("conversation-meta").textContent = `${conversation.language} · ${conversation.channel} · ${conversation.messages.length} messages · source order`;
+    recordingLink(conversation.channel, conversation.audio_url);
     window.CqaTranscript.render($("transcript"), conversation);
+  }
+  // Call recording: a plain link in the transcript header (no <audio>: the CSP has no media-src). Shown only for a
+  // voice conversation with an https audio_url, from the backend response or a pasted voice record. The signed URL
+  // itself is never printed, logged or sent anywhere by the UI.
+  function recordingLink(channel, url) {
+    let safe = false;
+    try {safe = (channel === "voice" || channel === "voice call") && typeof url === "string" && new URL(url).protocol === "https:";}
+    catch (_) {safe = false;}
+    if (!safe) return;
+    const link = document.createElement("a"); link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
+    link.textContent = "Open recording"; link.className = "cqa-recording-link";
+    $("conversation-meta").append(" · ", link);
   }
   async function selectConversation() {
     const requestSequence = ++sequence;
@@ -337,6 +350,7 @@
       clearResult(); current = null; pasted = value;
       $("conversation-title").textContent = `${value.record.conversation_id} (supplied)`;
       $("conversation-meta").textContent = `${value.record.language} · ${value.record.channel} · ${value.record.transcript.length} turns · not yet normalized`;
+      recordingLink(value.record.channel, value.record.audio_url);
       window.CqaTranscript.render($("transcript"), value.record);
       feedback("Supplied transcript shown. Click Evaluate; the server checks the owner approval first."); updateMode();
     } catch (error) {feedback(`Invalid conversation JSON: ${error.message}`, true);}
