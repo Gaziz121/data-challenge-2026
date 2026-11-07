@@ -7,6 +7,11 @@ Snapshot: **November 7, 2026, Asia/Almaty**. Engine checked: `f4599f0`; independ
 QA checked: `3ff9c76`. Branch tips can advance; inspect Git before relying on this
 snapshot. [TEAM_STATUS.md](TEAM_STATUS.md) records the concise shared status.
 
+For the reasoning behind the implementation, read
+[Architecture Decisions](docs/ARCHITECTURE_DECISIONS.md). For five measurable
+future trials, existing synthetic collections and the safe scenario/label
+contribution workflow, read [Experiment Backlog](docs/EXPERIMENT_BACKLOG.md).
+
 ## 1. What we must deliver
 
 Build an operator-quality evaluation application for RU/KZ/EN chats and voice-call

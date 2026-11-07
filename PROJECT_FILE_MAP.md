@@ -9,6 +9,7 @@ machine. Inspect the filesystem including ignored paths before declaring absence
 | Expected path | Status | Purpose, authority and how to read |
 | --- | --- | --- |
 | `TEAM_START_HERE.md` | GIT TRACKED on documentation branch (not yet pushed) | Authoritative four-person onboarding: clone/setup/tests, workstream ownership, branch/QA split, API routing and handoff blockers |
+| `docs/ARCHITECTURE_DECISIONS.md`, `docs/EXPERIMENT_BACKLOG.md` | GIT TRACKED on documentation branch (not yet pushed) | Code-grounded choices/trade-offs and Socrates concept status; proposed measurable trials, synthetic/QA inventory, provenance/label/split contribution rules; no new scenarios or experiments executed |
 | `README.md`, `CLAUDE.md`, this file | GIT TRACKED | Setup, mandatory discovery and material routing; read each session |
 | `TEAM_STATUS.md` | GIT TRACKED | Sanitized shared snapshot; read each session; not the detailed evidence ledger |
 | `STATUS.md` | LOCAL ONLY | Owner's detailed status/evidence; read if available, never upload wholesale |

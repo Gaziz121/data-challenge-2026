@@ -6,6 +6,13 @@ four-person ownership plan. Read [PROJECT_FILE_MAP.md](PROJECT_FILE_MAP.md) and
 inspect disk before requesting missing materials. Local `STATUS.md` remains the
 owner's detailed evidence ledger; this snapshot contains no restricted evidence.
 
+[Architecture decisions](docs/ARCHITECTURE_DECISIONS.md) distinguish implemented
+choices and Socrates-inspired foundations from deferred work.
+[Experiment backlog](docs/EXPERIMENT_BACKLOG.md) proposes five measurable trials
+and documents synthetic-scenario provenance, proposed labels and frozen splits.
+These documentation additions generated no conversations/labels, changed no
+production/QA logic and executed no live experiments.
+
 ## Published and obtainable
 
 A successful fetch and live remote-head check confirmed:
