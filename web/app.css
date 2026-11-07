@@ -1,13 +1,1003 @@
+/*
+ * CQA · Conversation Quality Analytics — UI stylesheet.
+ *
+ * Embedding contract (e.g. a Dynamics 365 HTML web resource):
+ *   - every rule is scoped to the single root `.cqa-app`; design tokens live on that root
+ *     with the `--cqa-` prefix, new classes use the `cqa-` prefix;
+ *   - no global html/body/* rules except the clearly marked "Standalone page" block below,
+ *     which a host page can drop;
+ *   - no viewport units or position:fixed in the component itself; responsive rules use a
+ *     container query on the root, so the layout follows the host container's width.
+ * Content Security Policy: style-src 'self' only — no inline styles, images, web fonts or
+ * external resources. Icons are CSS glyphs or inline SVG in index.html.
+ */
 
-*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#182b3b;font:16px/1.5 system-ui,sans-serif}header{background:#172e40;color:white;padding:18px 24px}h1{font-size:23px;margin:0}h2{font-size:19px;margin:0 0 10px}p{margin:6px 0}header p{color:#dce7ef}.toolbar{padding:12px 24px;background:white;border-bottom:1px solid #ccd6df;display:flex;flex-wrap:wrap;align-items:center;gap:10px}label{display:block;font-size:14px;font-weight:600}input,select,textarea,button{font:inherit;border:1px solid #9cabb7;border-radius:5px;padding:7px;background:white;color:#182b3b}button{cursor:pointer;background:#eaf1f5}button:hover{background:#d9e8f0}button:disabled{opacity:.5;cursor:default}input:focus,select:focus,textarea:focus,button:focus{outline:3px solid #80b3df;outline-offset:1px}#conversation{min-width:260px}#search{width:175px}.workspace{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(350px,1fr);gap:20px;padding:20px 24px}.panel{background:white;border:1px solid #d0dae2;border-radius:8px;overflow:hidden}.panel-heading{padding:16px;border-bottom:1px solid #d0dae2}.scroll{padding:16px;max-height:calc(100vh - 340px);min-height:300px;overflow:auto}.message{padding:12px 14px;margin:0 0 12px;border:1px solid #d2dce3;border-left:5px solid #9ba7b0;border-radius:5px;scroll-margin-top:12px}.message.client{background:#f1f7ff;border-left-color:#3277bf}.message.operator{background:#f0faf4;border-left-color:#238454}.message.bot{background:#faf5ff;border-left-color:#8a56ae}.message.system{background:#fff9ea;border-left-color:#ba861c}.message:target,.message.highlight{outline:3px solid #457cb3}.meta{font-size:12px;color:#40546a}.speaker{font-size:14px;font-weight:750;text-transform:uppercase}.message-text{white-space:pre-wrap;overflow-wrap:anywhere;tab-size:4;margin-top:6px}.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px}.legend span{border-bottom:4px solid;padding-bottom:3px}.criterion{border:1px solid #d1dbe3;border-radius:5px;padding:12px;margin:0 0 16px}.criterion legend{font-size:16px;font-weight:700;padding:0 5px}.criterion p{font-size:13px;color:#40546a;margin-bottom:10px}.criterion textarea,.criterion input{width:100%;margin-bottom:8px}.criterion select{width:100%;margin-bottom:8px}textarea{min-height:65px;resize:vertical}.links{font-size:13px;min-height:20px}.links a{margin-right:12px;color:#1b5987}.error{color:#a11b20}.notice{font-size:13px;color:#40546a}.status{padding:8px 24px;font-size:14px;background:#edf4fa}#source{overflow-wrap:anywhere}#import-file{max-width:235px}.exports{display:flex;gap:8px;align-items:center;flex-wrap:wrap}#assessment-count{font-size:13px}#reviewer{width:200px}#feedback{font-weight:600}fieldset:disabled{opacity:.65}@media(max-width:850px){.workspace{grid-template-columns:1fr;padding:12px}.scroll{max-height:65vh}.toolbar{padding:12px}header{padding:16px}}@media print{.toolbar,.status,#review-panel{display:none}.workspace{display:block}.scroll{max-height:none;overflow:visible}.message{break-inside:avoid}}
+/* ===================================================================== 1. Tokens */
+.cqa-app {
+  container: cqa / inline-size;
 
-.mode{padding:12px 24px;background:#fff1c9;border-bottom:1px solid #d4ad4c;font-weight:650}.mode.live{background:#e7f2ff;border-color:#83a7c6}.result-card{border:1px solid #d1dbe3;border-radius:5px;padding:12px;margin-bottom:14px}.result-card h3{font-size:17px;margin:0 0 7px}.raw{font-weight:750}.review{color:#805309}.evidence-links{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.evidence-links button{font-size:13px}.result-card details{font-size:13px}.result-card summary{cursor:pointer}.result-card blockquote{white-space:pre-wrap;margin:8px 0;border-left:3px solid #ccd6df;padding-left:10px}.audit{font-size:12px;overflow-wrap:anywhere}a{color:#1b5987}header a{color:#dce7ef}#run-summary{white-space:pre-wrap}#model{width:220px}#results[aria-busy=true]{opacity:.65}.scroll{max-height:calc(100vh - 350px)}.workspace{align-items:start}button:disabled{cursor:default}.empty{padding:12px;color:#40546a}
+  /* Type: system stack (renders Kazakh Cyrillic ә і ң ғ ү ұ қ ө һ), scale 12/13/15/20/32. */
+  --cqa-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  --cqa-mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  --cqa-fs-xs: 12px;
+  --cqa-fs-sm: 13px;
+  --cqa-fs-md: 15px;
+  --cqa-fs-lg: 20px;
+  --cqa-fs-xl: 32px;
 
-#run-summary,.rejected-card pre{overflow-wrap:anywhere}.rejected-card pre{white-space:pre-wrap}
+  /* Spacing on a 4 px grid. */
+  --cqa-s1: 4px;
+  --cqa-s2: 8px;
+  --cqa-s3: 12px;
+  --cqa-s4: 16px;
+  --cqa-s5: 20px;
+  --cqa-s6: 24px;
 
-.lower{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding-top:0}.lower .scroll{max-height:none}.lower h3{font-size:16px;margin:16px 0 8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.lower h3:first-child{margin-top:0}
-table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #d9e1e7;padding:5px 6px;text-align:left;vertical-align:top;overflow-wrap:anywhere}td.changed{font-weight:750;color:#805309;background:#fff6dd}
-.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;align-items:end;margin:8px 0}.form-grid .wide{grid-column:1/-1}.form-grid input,.form-grid select,.form-grid textarea{width:100%}label.inline{display:inline-flex;gap:6px;align-items:center;font-weight:400}
-.paste{display:block}.paste summary{cursor:pointer;font-weight:600}.paste textarea{width:100%;font-family:ui-monospace,monospace;font-size:13px}#editor-json{width:100%;font-family:ui-monospace,monospace;font-size:12px}
-.appeal.revised{border-left:5px solid #b07b12}.appeal.upheld{border-left:5px solid #238454}.appeal.open{border-left:5px solid #457cb3}
-@media(max-width:850px){.lower{grid-template-columns:1fr}.history{display:block;overflow-x:auto}}
+  --cqa-radius: 6px;
+  --cqa-radius-sm: 4px;
+  --cqa-radius-pill: 999px;
+  --cqa-transition: 120ms ease-out;
+
+  /* Neutral surfaces. */
+  --cqa-bg: #eef2f6;
+  --cqa-surface: #ffffff;
+  --cqa-surface-muted: #f6f8fa;
+  --cqa-border: #d6dee6;
+  --cqa-border-strong: #a9b6c3;
+  --cqa-ink: #15202b;
+  --cqa-ink-muted: #4b5b6b;
+
+  /* Header and accent (the only action colour). */
+  --cqa-header-bg: #1b2a3a;
+  --cqa-header-ink: #ffffff;
+  --cqa-header-muted: #b9c7d5;
+  --cqa-header-line: #33475c;
+  --cqa-accent: #1f5fae;
+  --cqa-accent-hover: #184d8e;
+  --cqa-accent-soft: #e6effa;
+  --cqa-accent-line: #b9cfec;
+  --cqa-accent-ink: #ffffff;
+  --cqa-focus: #1f5fae;
+
+  /* Semantics: never the only carrier of meaning — every pill also has a text label. */
+  --cqa-yes: #17703f;
+  --cqa-yes-soft: #e5f4ea;
+  --cqa-no: #b42318;
+  --cqa-no-soft: #fdecea;
+  --cqa-na: #56626e;
+  --cqa-na-soft: #eceff3;
+  --cqa-review: #8a5300;
+  --cqa-review-soft: #fff3d6;
+  --cqa-partial: #1f5fae;
+  --cqa-partial-soft: #e6effa;
+  --cqa-critical: #b42318;
+  --cqa-critical-ink: #ffffff;
+
+  /* Transcript roles. */
+  --cqa-role-client: #2a64a8;
+  --cqa-role-client-soft: #f3f7fc;
+  --cqa-role-operator: #17703f;
+  --cqa-role-operator-soft: #f2f8f4;
+  --cqa-role-bot: #6a45a5;
+  --cqa-role-bot-soft: #f7f3fb;
+  --cqa-role-system: #8a5300;
+  --cqa-role-system-soft: #fcf8ee;
+
+  /* Height of the scrolling transcript/results panes; a host may override it. */
+  --cqa-pane-max-height: 680px;
+
+  font: var(--cqa-fs-md)/1.5 var(--cqa-font);
+  color: var(--cqa-ink);
+  background: var(--cqa-bg);
+  font-variant-numeric: tabular-nums;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ===================================================================== 2. Standalone page
+ * Applies only when the app is the whole page. Drop this block when embedding. */
+body {
+  margin: 0;
+  background: #eef2f6;
+}
+body > .cqa-app {
+  min-height: 100vh;
+  --cqa-pane-max-height: max(420px, calc(100vh - 290px));
+}
+
+/* ===================================================================== 3. Base (scoped) */
+.cqa-app *,
+.cqa-app *::before,
+.cqa-app *::after {
+  box-sizing: border-box;
+}
+.cqa-app h1,
+.cqa-app h2,
+.cqa-app h3 {
+  margin: 0;
+  line-height: 1.3;
+}
+.cqa-app h2 {
+  font-size: var(--cqa-fs-lg);
+  font-weight: 650;
+}
+.cqa-app h3 {
+  font-size: var(--cqa-fs-md);
+  font-weight: 650;
+}
+.cqa-app p {
+  margin: var(--cqa-s1) 0;
+}
+.cqa-app a {
+  color: var(--cqa-accent);
+}
+.cqa-app pre {
+  font: var(--cqa-fs-xs)/1.45 var(--cqa-mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: var(--cqa-s2) 0 0;
+}
+.cqa-app :focus-visible {
+  outline: 2px solid var(--cqa-focus);
+  outline-offset: 2px;
+}
+.cqa-app .notice {
+  font-size: var(--cqa-fs-sm);
+  color: var(--cqa-ink-muted);
+}
+.cqa-app .meta {
+  font-size: var(--cqa-fs-xs);
+  color: var(--cqa-ink-muted);
+}
+.cqa-app .error {
+  color: var(--cqa-no);
+}
+
+/* ===================================================================== 4. Controls */
+.cqa-app input,
+.cqa-app select,
+.cqa-app textarea,
+.cqa-app button {
+  font: inherit;
+  font-size: var(--cqa-fs-sm);
+  color: var(--cqa-ink);
+  background: var(--cqa-surface);
+  border: 1px solid var(--cqa-border-strong);
+  border-radius: var(--cqa-radius-sm);
+  min-height: 36px;
+  padding: 6px 10px;
+  transition: border-color var(--cqa-transition), background-color var(--cqa-transition), box-shadow var(--cqa-transition);
+}
+.cqa-app textarea {
+  min-height: 72px;
+  resize: vertical;
+  line-height: 1.45;
+}
+.cqa-app input:hover:not(:disabled),
+.cqa-app select:hover:not(:disabled),
+.cqa-app textarea:hover:not(:disabled) {
+  border-color: var(--cqa-ink-muted);
+}
+.cqa-app input:focus-visible,
+.cqa-app select:focus-visible,
+.cqa-app textarea:focus-visible {
+  outline: 2px solid var(--cqa-focus);
+  outline-offset: 0;
+  border-color: var(--cqa-focus);
+}
+.cqa-app input[type="checkbox"] {
+  min-height: 0;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--cqa-accent);
+}
+.cqa-app input::placeholder,
+.cqa-app textarea::placeholder {
+  color: #6b7886;
+}
+.cqa-app input:disabled,
+.cqa-app select:disabled,
+.cqa-app textarea:disabled {
+  background: var(--cqa-surface-muted);
+  color: var(--cqa-ink-muted);
+  border-color: var(--cqa-border);
+  cursor: not-allowed;
+}
+
+/* Buttons: secondary by default; Evaluate is the single primary action. */
+.cqa-app button {
+  cursor: pointer;
+  font-weight: 600;
+  background: var(--cqa-surface);
+  border-color: var(--cqa-border-strong);
+}
+.cqa-app button:hover:not(:disabled) {
+  background: var(--cqa-surface-muted);
+  border-color: var(--cqa-ink-muted);
+}
+.cqa-app button:disabled {
+  cursor: not-allowed;
+  color: #6b7886;
+  background: var(--cqa-surface-muted);
+  border-color: var(--cqa-border);
+}
+.cqa-app #evaluate {
+  min-width: 112px;
+  color: var(--cqa-accent-ink);
+  background: var(--cqa-accent);
+  border-color: var(--cqa-accent);
+}
+.cqa-app #evaluate:hover:not(:disabled) {
+  background: var(--cqa-accent-hover);
+  border-color: var(--cqa-accent-hover);
+}
+.cqa-app #evaluate:disabled {
+  color: #f1f5fa;
+  background: #8aa5c6;
+  border-color: #8aa5c6;
+}
+
+/* Labels: caption above control. */
+.cqa-app label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cqa-s1);
+  font-size: var(--cqa-fs-xs);
+  font-weight: 600;
+  color: var(--cqa-ink-muted);
+}
+.cqa-app label.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--cqa-s2);
+  font-size: var(--cqa-fs-sm);
+  font-weight: 500;
+  color: var(--cqa-ink);
+}
+.cqa-app .form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--cqa-s3);
+  align-items: end;
+  margin: var(--cqa-s2) 0 var(--cqa-s3);
+}
+.cqa-app .form-grid .wide {
+  grid-column: 1 / -1;
+}
+.cqa-app .form-grid input,
+.cqa-app .form-grid select,
+.cqa-app .form-grid textarea {
+  width: 100%;
+}
+.cqa-app .form-grid > button {
+  justify-self: start;
+}
+
+/* ===================================================================== 5. Header and status */
+.cqa-app > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cqa-s1) var(--cqa-s4);
+  padding: var(--cqa-s3) var(--cqa-s6);
+  color: var(--cqa-header-ink);
+  background: var(--cqa-header-bg);
+}
+.cqa-app > header h1 {
+  font-size: var(--cqa-fs-md);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.cqa-app > header p {
+  margin: 0;
+  font-size: var(--cqa-fs-xs);
+  color: var(--cqa-header-muted);
+}
+.cqa-app > header a {
+  margin-left: auto;
+  padding: 6px 12px;
+  font-size: var(--cqa-fs-xs);
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--cqa-header-ink);
+  border: 1px solid #5d7389;
+  border-radius: var(--cqa-radius-sm);
+  transition: background-color var(--cqa-transition), border-color var(--cqa-transition);
+}
+.cqa-app > header a:hover {
+  background: var(--cqa-header-line);
+  border-color: var(--cqa-header-muted);
+}
+.cqa-app > header :focus-visible {
+  outline-color: var(--cqa-header-ink);
+}
+
+/* Mode chip: text is written by app.js; MOCK/REPLAY neutral grey, LIVE accent blue. */
+.cqa-app .mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cqa-s2);
+  max-width: 100%;
+  padding: var(--cqa-s1) 10px;
+  font-size: var(--cqa-fs-xs);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--cqa-na);
+  background: var(--cqa-na-soft);
+  border: 1px solid #cdd4db;
+  border-radius: var(--cqa-radius-sm);
+}
+.cqa-app .mode::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.cqa-app .mode.live {
+  color: var(--cqa-accent);
+  background: var(--cqa-accent-soft);
+  border-color: var(--cqa-accent-line);
+}
+.cqa-app > .mode {
+  margin: var(--cqa-s2) var(--cqa-s6) 0;
+}
+
+/* Global feedback line (role=status). */
+.cqa-app .status {
+  margin: 0;
+  padding: var(--cqa-s2) var(--cqa-s6);
+  font-size: var(--cqa-fs-sm);
+  font-weight: 600;
+  color: var(--cqa-ink);
+}
+.cqa-app .status.error {
+  color: var(--cqa-no);
+}
+.cqa-app .status.error::before {
+  content: "! ";
+  font-weight: 800;
+}
+
+/* ===================================================================== 6. Toolbar */
+.cqa-app div.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--cqa-s3);
+  padding: var(--cqa-s3) var(--cqa-s6);
+  background: var(--cqa-surface);
+  border-bottom: 1px solid var(--cqa-border);
+}
+.cqa-app #conversation {
+  min-width: 220px;
+}
+.cqa-app #checklist {
+  min-width: 240px;
+}
+.cqa-app #model {
+  width: 200px;
+}
+
+/* Supplied-conversation panel. */
+.cqa-app details.paste {
+  display: block;
+  padding: var(--cqa-s2) var(--cqa-s6);
+  background: var(--cqa-surface);
+  border-bottom: 1px solid var(--cqa-border);
+}
+.cqa-app details.paste > summary {
+  cursor: pointer;
+  width: fit-content;
+  font-size: var(--cqa-fs-sm);
+  font-weight: 600;
+  color: var(--cqa-accent);
+}
+.cqa-app details.paste[open] > summary {
+  margin-bottom: var(--cqa-s2);
+}
+.cqa-app details.paste textarea,
+.cqa-app #editor-json {
+  display: block;
+  width: 100%;
+  margin: var(--cqa-s2) 0;
+  font: var(--cqa-fs-xs)/1.5 var(--cqa-mono);
+}
+
+/* ===================================================================== 7. Workspace and panels */
+.cqa-app .workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--cqa-s4);
+  padding: var(--cqa-s4) var(--cqa-s6) var(--cqa-s6);
+}
+.cqa-app .panel {
+  min-width: 0;
+  background: var(--cqa-surface);
+  border: 1px solid var(--cqa-border);
+  border-radius: var(--cqa-radius);
+  overflow: hidden;
+}
+.cqa-app .panel-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--cqa-s1) var(--cqa-s3);
+  padding: var(--cqa-s3) var(--cqa-s4);
+  border-bottom: 1px solid var(--cqa-border);
+}
+.cqa-app .panel-heading > p,
+.cqa-app .panel-heading > div {
+  flex-basis: 100%;
+  margin: 0;
+}
+.cqa-app .scroll {
+  min-height: 300px;
+  max-height: var(--cqa-pane-max-height);
+  overflow: auto;
+  padding: var(--cqa-s4);
+  overscroll-behavior: contain;
+}
+
+/* ===================================================================== 8. Transcript */
+.cqa-app #conversation-title {
+  font-family: var(--cqa-mono);
+  font-size: var(--cqa-fs-md);
+}
+/* Reserved metadata line (channel · language · count; room for a future recording link). */
+.cqa-app #conversation-meta {
+  min-height: 18px;
+  font-family: var(--cqa-mono);
+}
+.cqa-app .legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cqa-s1) var(--cqa-s3);
+  font-size: var(--cqa-fs-xs);
+  color: var(--cqa-ink-muted);
+}
+.cqa-app .legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cqa-app .legend span::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--cqa-na);
+}
+.cqa-app .legend span:nth-child(1)::before { background: var(--cqa-role-client); }
+.cqa-app .legend span:nth-child(2)::before { background: var(--cqa-role-operator); }
+.cqa-app .legend span:nth-child(3)::before { background: var(--cqa-role-bot); }
+.cqa-app .legend span:nth-child(4)::before { background: var(--cqa-role-system); }
+
+.cqa-app .message {
+  --cqa-role: var(--cqa-na);
+  --cqa-role-soft: var(--cqa-surface-muted);
+  margin: 0 0 var(--cqa-s2);
+  padding: 10px var(--cqa-s3) var(--cqa-s3);
+  background: var(--cqa-role-soft);
+  border: 1px solid var(--cqa-border);
+  border-left: 4px solid var(--cqa-role);
+  border-radius: var(--cqa-radius);
+  scroll-margin: var(--cqa-s4);
+  transition: outline-color var(--cqa-transition), box-shadow var(--cqa-transition), background-color var(--cqa-transition);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+.cqa-app .message.client { --cqa-role: var(--cqa-role-client); --cqa-role-soft: var(--cqa-role-client-soft); }
+.cqa-app .message.operator { --cqa-role: var(--cqa-role-operator); --cqa-role-soft: var(--cqa-role-operator-soft); }
+.cqa-app .message.bot { --cqa-role: var(--cqa-role-bot); --cqa-role-soft: var(--cqa-role-bot-soft); }
+.cqa-app .message.system { --cqa-role: var(--cqa-role-system); --cqa-role-soft: var(--cqa-role-system-soft); }
+.cqa-app .message .speaker {
+  display: inline-block;
+  margin-right: var(--cqa-s2);
+  padding: 1px var(--cqa-s2);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: var(--cqa-role);
+  border-radius: var(--cqa-radius-pill);
+}
+.cqa-app .message .meta {
+  display: inline;
+  font-family: var(--cqa-mono);
+  font-size: 11px;
+}
+.cqa-app .message-text {
+  margin-top: 6px;
+  font-size: var(--cqa-fs-md);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  tab-size: 4;
+}
+/* Evidence target: strong accent ring. */
+.cqa-app .message:target,
+.cqa-app .message.highlight {
+  outline-color: var(--cqa-accent);
+  box-shadow: 0 0 0 6px var(--cqa-accent-soft);
+  background: var(--cqa-surface);
+}
+
+/* ===================================================================== 9. Results */
+.cqa-app #run-summary {
+  font-family: var(--cqa-mono);
+  font-size: var(--cqa-fs-xs);
+  line-height: 1.5;
+  color: var(--cqa-ink-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.cqa-app #results[aria-busy="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.cqa-app #results:empty::before,
+.cqa-app #transcript:empty::before {
+  content: "No evaluation for this selection yet. Choose a checklist and provider, then click Evaluate.";
+  display: block;
+  padding: var(--cqa-s6) var(--cqa-s4);
+  font-size: var(--cqa-fs-sm);
+  text-align: center;
+  color: var(--cqa-ink-muted);
+  border: 1px dashed var(--cqa-border-strong);
+  border-radius: var(--cqa-radius);
+}
+.cqa-app #transcript:empty::before {
+  content: "Select a conversation to load its transcript.";
+}
+.cqa-app #results[aria-busy="true"]:empty::before {
+  content: "Evaluation running…";
+}
+.cqa-app .empty {
+  margin: 0;
+  padding: var(--cqa-s4);
+  font-size: var(--cqa-fs-sm);
+  text-align: center;
+  color: var(--cqa-ink-muted);
+  border: 1px dashed var(--cqa-border-strong);
+  border-radius: var(--cqa-radius);
+}
+.cqa-app td.empty {
+  border: 0;
+  border-bottom: 1px solid var(--cqa-border);
+  border-radius: 0;
+}
+
+/* Criterion cards. The exact className "result-card" is part of the tested contract;
+ * state comes from data-* attributes (data-verdict, data-needs-review, data-critical). */
+.cqa-app .result-card {
+  --cqa-verdict: var(--cqa-border-strong);
+  --cqa-verdict-soft: var(--cqa-surface-muted);
+  margin: 0 0 var(--cqa-s3);
+  padding: var(--cqa-s3) var(--cqa-s4);
+  background: var(--cqa-surface);
+  border: 1px solid var(--cqa-border);
+  border-left: 4px solid var(--cqa-verdict);
+  border-radius: var(--cqa-radius);
+}
+.cqa-app .result-card[data-verdict="yes"],
+.cqa-app .result-card[data-verdict="clear"] { --cqa-verdict: var(--cqa-yes); --cqa-verdict-soft: var(--cqa-yes-soft); }
+.cqa-app .result-card[data-verdict="no"],
+.cqa-app .result-card[data-verdict="flag"] { --cqa-verdict: var(--cqa-no); --cqa-verdict-soft: var(--cqa-no-soft); }
+.cqa-app .result-card[data-verdict="na"] { --cqa-verdict: var(--cqa-na); --cqa-verdict-soft: var(--cqa-na-soft); }
+.cqa-app .result-card[data-verdict="partial"] { --cqa-verdict: var(--cqa-partial); --cqa-verdict-soft: var(--cqa-partial-soft); }
+.cqa-app .result-card[data-critical="true"] {
+  background: #fff8f7;
+  border-color: #f1b8b2;
+  border-left-color: var(--cqa-critical);
+}
+
+#results > .result-card:not(.rejected-card) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: var(--cqa-s3);
+  align-items: start;
+}
+#results > .result-card:not(.rejected-card) > * {
+  grid-column: 1 / -1;
+}
+.cqa-app .result-card > h3 {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0 0 var(--cqa-s2);
+  font-size: var(--cqa-fs-md);
+}
+/* Verdict pill: text label from the backend response, colour from data-verdict. */
+#results > .result-card:not(.rejected-card) > .raw {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  margin: 0;
+  padding: 2px 10px;
+  font-size: var(--cqa-fs-xs);
+  font-weight: 700;
+  line-height: 20px;
+  white-space: nowrap;
+  color: var(--cqa-verdict);
+  background: var(--cqa-verdict-soft);
+  border: 1px solid currentColor;
+  border-radius: var(--cqa-radius-pill);
+}
+#results > .result-card[data-verdict="na"] > .raw,
+#results > .result-card:not([data-verdict]) > .raw {
+  color: var(--cqa-na);
+}
+#results > .result-card[data-critical="true"] > .raw {
+  color: var(--cqa-critical-ink);
+  background: var(--cqa-critical);
+  border-color: var(--cqa-critical);
+}
+.cqa-app .result-card > .meta {
+  font-family: var(--cqa-mono);
+  font-size: var(--cqa-fs-xs);
+}
+.cqa-app .result-card > p:not([class]) {
+  font-size: var(--cqa-fs-sm);
+  line-height: 1.55;
+}
+.cqa-app .result-card .na-reason {
+  margin: var(--cqa-s2) 0;
+  padding: var(--cqa-s2) var(--cqa-s3);
+  font-size: var(--cqa-fs-sm);
+  color: var(--cqa-ink);
+  background: var(--cqa-na-soft);
+  border-radius: var(--cqa-radius-sm);
+}
+.cqa-app .result-card .review {
+  margin: var(--cqa-s2) 0;
+  padding: var(--cqa-s2) var(--cqa-s3);
+  font-size: var(--cqa-fs-sm);
+  font-weight: 600;
+  color: var(--cqa-review);
+  background: var(--cqa-review-soft);
+  border-left: 3px solid var(--cqa-review);
+  border-radius: var(--cqa-radius-sm);
+}
+
+/* Evidence: jump buttons, explanation, verbatim quote. */
+.cqa-app .evidence-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: var(--cqa-s2) 0 2px;
+}
+.cqa-app .evidence-links button {
+  min-height: 28px;
+  padding: 2px 10px;
+  font: 600 var(--cqa-fs-xs)/1.4 var(--cqa-mono);
+  color: var(--cqa-accent);
+  background: var(--cqa-accent-soft);
+  border: 1px solid var(--cqa-accent-line);
+  border-radius: var(--cqa-radius-pill);
+}
+.cqa-app .evidence-links button::before {
+  content: "↳ ";
+}
+.cqa-app .evidence-links button:hover:not(:disabled) {
+  color: var(--cqa-accent-ink);
+  background: var(--cqa-accent);
+  border-color: var(--cqa-accent);
+}
+.cqa-app .evidence-links + .notice {
+  margin-top: 2px;
+  font-size: var(--cqa-fs-xs);
+}
+.cqa-app .result-card blockquote {
+  margin: var(--cqa-s1) 0 var(--cqa-s2);
+  padding: 6px var(--cqa-s3);
+  font-size: var(--cqa-fs-sm);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--cqa-surface-muted);
+  border-left: 3px solid var(--cqa-accent-line);
+  border-radius: 0 var(--cqa-radius-sm) var(--cqa-radius-sm) 0;
+}
+.cqa-app .result-card details {
+  margin-top: var(--cqa-s2);
+  font-size: var(--cqa-fs-sm);
+}
+.cqa-app .result-card details > summary,
+.cqa-app details.audit > summary {
+  cursor: pointer;
+  width: fit-content;
+  font-size: var(--cqa-fs-xs);
+  font-weight: 600;
+  color: var(--cqa-accent);
+}
+.cqa-app .result-card details[open] > summary {
+  margin-bottom: var(--cqa-s2);
+}
+.cqa-app .result-card details > div {
+  padding: var(--cqa-s2) 0 var(--cqa-s2) var(--cqa-s3);
+  border-left: 2px solid var(--cqa-border);
+}
+.cqa-app .result-card details > div + div {
+  margin-top: var(--cqa-s1);
+}
+.cqa-app details.audit {
+  margin-top: var(--cqa-s4);
+  padding-top: var(--cqa-s3);
+  border-top: 1px solid var(--cqa-border);
+}
+.cqa-app details.audit pre {
+  max-height: 360px;
+  overflow: auto;
+  padding: var(--cqa-s3);
+  background: var(--cqa-surface-muted);
+  border-radius: var(--cqa-radius-sm);
+}
+
+/* Rejected (unscored) output. Exact className "result-card rejected-card" is tested. */
+.cqa-app .rejected-card {
+  --cqa-verdict: var(--cqa-no);
+  background: #fffafa;
+}
+.cqa-app .rejected-card > .raw {
+  font-size: var(--cqa-fs-sm);
+  font-weight: 600;
+  color: var(--cqa-no);
+}
+.cqa-app .rejected-card pre {
+  max-height: 280px;
+  overflow: auto;
+  padding: var(--cqa-s2);
+  background: var(--cqa-surface-muted);
+  border-radius: var(--cqa-radius-sm);
+}
+#results > p.error {
+  margin: var(--cqa-s1) 0;
+  padding: var(--cqa-s2) var(--cqa-s3);
+  font-size: var(--cqa-fs-sm);
+  background: var(--cqa-no-soft);
+  border-left: 3px solid var(--cqa-no);
+  border-radius: var(--cqa-radius-sm);
+}
+
+/* ===================================================================== 10. History, appeals, comparison */
+.cqa-app .lower {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  padding-top: 0;
+}
+.cqa-app .lower .scroll {
+  max-height: none;
+}
+.cqa-app .lower h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cqa-s2) var(--cqa-s3);
+  margin: var(--cqa-s5) 0 var(--cqa-s2);
+}
+.cqa-app .lower h3:first-child {
+  margin-top: 0;
+}
+.cqa-app .lower h3 button {
+  min-height: 28px;
+  padding: 2px 10px;
+  font-size: var(--cqa-fs-xs);
+}
+
+.cqa-app table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--cqa-fs-sm);
+}
+.cqa-app th,
+.cqa-app td {
+  padding: 6px var(--cqa-s2);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--cqa-border);
+}
+.cqa-app th {
+  font-size: var(--cqa-fs-xs);
+  font-weight: 600;
+  color: var(--cqa-ink-muted);
+  background: var(--cqa-surface-muted);
+  border-bottom-color: var(--cqa-border-strong);
+}
+.cqa-app .history tbody tr:nth-child(even) {
+  background: #f9fbfc;
+}
+.cqa-app .history tbody tr:hover {
+  background: var(--cqa-accent-soft);
+}
+.cqa-app .history td:nth-child(1),
+.cqa-app .history td:nth-child(3) {
+  font-family: var(--cqa-mono);
+  font-size: var(--cqa-fs-xs);
+  white-space: nowrap;
+}
+.cqa-app .history td:nth-child(2),
+.cqa-app .history td:nth-child(6) {
+  font-family: var(--cqa-mono);
+  font-weight: 600;
+}
+.cqa-app .history td:nth-child(6) {
+  text-align: right;
+}
+.cqa-app .history td button {
+  min-height: 28px;
+  padding: 2px 10px;
+  font-size: var(--cqa-fs-xs);
+}
+.cqa-app table.comparison td:nth-child(2),
+.cqa-app table.comparison td:nth-child(3),
+.cqa-app table.comparison td:nth-child(4) {
+  font-family: var(--cqa-mono);
+}
+.cqa-app td.changed {
+  font-weight: 700;
+  color: var(--cqa-review);
+  background: var(--cqa-review-soft);
+}
+.cqa-app #comparison > .raw {
+  margin: 0 0 var(--cqa-s3);
+  font-family: var(--cqa-mono);
+  font-size: var(--cqa-fs-sm);
+  font-weight: 700;
+}
+
+/* Appeal cards: browser-only markup "result-card appeal <state>". */
+.cqa-app .result-card.appeal.open { --cqa-verdict: var(--cqa-accent); }
+.cqa-app .result-card.appeal.upheld { --cqa-verdict: var(--cqa-yes); }
+.cqa-app .result-card.appeal.revised { --cqa-verdict: var(--cqa-review); }
+.cqa-app .result-card.appeal > .raw {
+  font-size: var(--cqa-fs-sm);
+  font-weight: 700;
+}
+.cqa-app .result-card.appeal > p:not([class]) {
+  font-size: var(--cqa-fs-sm);
+}
+
+/* ===================================================================== 11. Checklist editor */
+.cqa-app .criterion {
+  margin: 0 0 var(--cqa-s4);
+  padding: var(--cqa-s3) var(--cqa-s4) var(--cqa-s2);
+  background: var(--cqa-surface);
+  border: 1px solid var(--cqa-border);
+  border-radius: var(--cqa-radius);
+}
+.cqa-app .criterion legend {
+  padding: 0 6px;
+  font-family: var(--cqa-mono);
+  font-size: var(--cqa-fs-sm);
+  font-weight: 700;
+}
+.cqa-app .criterion .form-grid {
+  margin: var(--cqa-s1) 0;
+}
+.cqa-app .criterion p {
+  font-size: var(--cqa-fs-sm);
+  color: var(--cqa-ink-muted);
+}
+.cqa-app fieldset:disabled {
+  opacity: 0.65;
+}
+.cqa-app #editor-feedback:empty {
+  display: none;
+}
+.cqa-app #editor-feedback {
+  padding: var(--cqa-s2) var(--cqa-s3);
+  color: var(--cqa-ink);
+  background: var(--cqa-accent-soft);
+  border-radius: var(--cqa-radius-sm);
+}
+.cqa-app .panel details:not(.audit) > summary {
+  cursor: pointer;
+  width: fit-content;
+  font-size: var(--cqa-fs-sm);
+  font-weight: 600;
+  color: var(--cqa-accent);
+}
+
+/* ===================================================================== 12. Narrow containers (850 px) */
+@container cqa (max-width: 850px) {
+  .cqa-app > header,
+  .cqa-app div.toolbar,
+  .cqa-app details.paste,
+  .cqa-app .status {
+    padding-left: var(--cqa-s3);
+    padding-right: var(--cqa-s3);
+  }
+  .cqa-app > .mode {
+    margin-left: var(--cqa-s3);
+    margin-right: var(--cqa-s3);
+  }
+  .cqa-app > header a {
+    margin-left: 0;
+  }
+  .cqa-app .workspace,
+  .cqa-app .lower {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--cqa-s3);
+  }
+  .cqa-app .scroll {
+    max-height: 560px;
+  }
+  .cqa-app .lower .scroll {
+    max-height: none;
+  }
+  .cqa-app div.toolbar {
+    position: static;
+  }
+  .cqa-app #conversation,
+  .cqa-app #checklist,
+  .cqa-app #model {
+    min-width: 0;
+    width: 100%;
+  }
+  .cqa-app div.toolbar > label {
+    flex: 1 1 200px;
+  }
+  .cqa-app .history {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* ===================================================================== 13. Motion and print */
+@media (prefers-reduced-motion: reduce) {
+  .cqa-app *,
+  .cqa-app *::before,
+  .cqa-app *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  body > .cqa-app {
+    min-height: 0;
+  }
+  .cqa-app {
+    background: #ffffff;
+  }
+  .cqa-app div.toolbar,
+  .cqa-app details.paste,
+  .cqa-app .status,
+  .cqa-app > header a,
+  .cqa-app #review-panel,
+  .cqa-app form,
+  .cqa-app .form-grid {
+    display: none;
+  }
+  .cqa-app > header {
+    color: #000000;
+    background: none;
+    border-bottom: 2px solid #000000;
+  }
+  .cqa-app > header p {
+    color: #333333;
+  }
+  .cqa-app .workspace {
+    display: block;
+  }
+  .cqa-app .panel {
+    margin-bottom: var(--cqa-s4);
+    break-inside: auto;
+  }
+  .cqa-app .scroll {
+    max-height: none;
+    overflow: visible;
+  }
+  .cqa-app .message,
+  .cqa-app .result-card {
+    break-inside: avoid;
+  }
+}
