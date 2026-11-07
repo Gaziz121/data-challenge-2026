@@ -164,3 +164,25 @@ recorded requests. Tests: 155 run, 154 pass, 1 expected skip; QA 81/81; Node pas
 
 Live record so far: 6 genuine replies; 1 structurally accepted (v3, C06 forced —
 untrustworthy); 0 trustworthy accepted totals; no semantic accuracy established.
+
+## Third authorized live call (atomic-v5 + draft checklist v5, commit f20d00d)
+
+Synthetic p1-ru-001, gpt-5.4-mini-2026-03-17. Owner authorized one primary call plus
+at most one bounded repair; **the repair was not needed** (one transport).
+**Structurally accepted without repair**: 8/8 criteria, status structurally_valid,
+total 100.00, no critical flag; all quotes exact, 4/4 coverage proofs complete,
+no evidence formatting repairs. Provider 13.8 s; input 12,557 (12,416 cached) /
+output 2,649 tokens; approx. USD 0.01296 (about USD 0.021 uncached).
+Fixture: `tests/fixtures/live_atomic_v5_f20d00d.json`.
+
+Rationales agree with scores (C06=10: "no unwarned explicit waiting"). One fact is
+semantically doubtful: 07.q2 (summary OR offer of further help) = yes because the
+operator "offered further help implicitly" with «Пожалуйста. Хорошего вечера!» —
+a farewell, not an offer or summary. Under the working C07 interpretation a reviewer
+would likely judge C07=no, giving 92.31. This is a model/interpretation issue for
+human calibration, not a structural one; nothing was overridden.
+
+This is ONE accepted run on ONE synthetic conversation: evidence that the pipeline
+can now return a valid, evidence-backed result, not evidence of scoring accuracy.
+Live record: 7 genuine replies; 2 structurally accepted (v3 with C06 forced —
+untrustworthy; v5 — accepted, 07.q2 doubtful); repair never needed live.

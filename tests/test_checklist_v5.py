@@ -150,3 +150,21 @@ class LiveV4DuplicateRegressionTests(unittest.TestCase):
         self.assertEqual(attempt.pinned_answers["04.q1"], "yes")
         self.assertEqual(result.original_provider_output, self.raw)
         self.assertEqual(result.score.total_score, "100.00")  # Scripted repair: a fixture, not a measurement.
+
+
+class LiveV5AcceptedRegressionTests(unittest.TestCase):
+    """First genuine reply accepted without repair (atomic-v5 + v5, f20d00d). Not a label."""
+
+    def test_replays_identically_and_request_reproduces(self):
+        from cqa.prompt import build_request
+        conv, checklist = load_conversation(SHARED, "p1-ru-001"), v5()
+        fixture = json.loads((FIXTURES / "live_atomic_v5_f20d00d.json").read_text())
+        _, sha = build_request(conv, checklist, prompt_version="atomic-v5")
+        self.assertEqual(sha, fixture["prompt_sha256"])
+        result = evaluate(conv, checklist, Scripted(fixture["original_model_output"]), V4CONFIG)
+        self.assertEqual(result.score.total_score, "100.00")
+        self.assertEqual(result.repair_attempts, [])
+        self.assertEqual(result.original_provider_output, fixture["original_model_output"])
+        # Semantic caveat pinned, not corrected: 07.q2 credits a farewell as an offer of help.
+        c07 = next(c for c in fixture["original_model_output"]["criteria"] if c["criterion_id"] == "07")
+        self.assertEqual(next(a["answer"] for a in c07["atomic_checks"] if a["question_id"] == "07.q2"), "yes")
