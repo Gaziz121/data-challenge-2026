@@ -43,10 +43,31 @@ class Conversation(Contract):
         return self
 
 
+class FactPolicy(Contract):
+    yes_roles: list[Literal["customer", "agent", "system", "bot"]] = Field(default_factory=list)
+    yes_locator: Literal["any", "first_agent"] = "any"
+    full_scope_answers: list[Literal["yes", "no", "not_applicable"]] = Field(default_factory=list)
+
+
 class AtomicQuestion(Contract):
     question_id: str = Field(min_length=1)
     question: str = Field(min_length=1)
     violation_category: Optional[Violation] = None
+    fact_policy: Optional[FactPolicy] = None
+
+    @model_serializer(mode="wrap")
+    def preserve_legacy_serialization(self, handler):
+        value = handler(self)
+        if self.fact_policy is None:
+            value.pop("fact_policy", None)
+        return value
+
+
+class IdentificationPolicy(Contract):
+    need_question_id: str
+    verified_question_id: str
+    verification_roles: list[Literal["agent", "system"]] = Field(default_factory=lambda: ["agent", "system"], min_length=1)
+    action_roles: list[Literal["agent", "system"]] = Field(default_factory=lambda: ["agent", "system"], min_length=1)
 
 
 class EvidencePolicy(Contract):
@@ -100,18 +121,35 @@ class Criterion(Contract):
     consistency_rules: list[ConsistencyRule] = Field(default_factory=list)
     evidence_policy: EvidencePolicy = Field(default_factory=EvidencePolicy)
     decision_rule: Optional[BinaryDecisionRule] = None
+    output_source: Literal["model", "atomic"] = "model"
+    identification_policy: Optional[IdentificationPolicy] = None
 
     @model_serializer(mode="wrap")
     def preserve_legacy_serialization(self, handler):
         value = handler(self)
         if self.decision_rule is None:
             value.pop("decision_rule", None)
+        if self.output_source == "model":
+            value.pop("output_source", None)
+        if self.identification_policy is None:
+            value.pop("identification_policy", None)
         return value
 
     @model_validator(mode="after")
     def valid_definition(self):
         if len({q.question_id for q in self.questions}) != len(self.questions):
             raise ValueError("Duplicate atomic question IDs")
+        if self.output_source == "atomic" and (self.kind == "discrete" or self.kind == "binary" and not self.decision_rule):
+            raise ValueError("Atomic output requires an explicit binary rule or mapped critical categories")
+        if self.output_source == "atomic" and self.kind == "critical" and any(q.violation_category is None for q in self.questions):
+            raise ValueError("Atomic critical output requires complete category mappings")
+        if self.identification_policy:
+            p = self.identification_policy
+            if (self.kind != "binary" or not self.applicability_rule
+                    or self.applicability_rule.question_id != p.need_question_id or self.applicability_rule.na_when != "no"
+                    or p.need_question_id == p.verified_question_id
+                    or not {p.need_question_id, p.verified_question_id} <= {q.question_id for q in self.questions}):
+                raise ValueError("Identification policy requires distinct need/verification questions and no -> N/A")
         if self.decision_rule:
             rule = self.decision_rule
             refs = list(rule.all_of)
@@ -160,6 +198,14 @@ class Checklist(Contract):
     rounding: Literal["half_up_2dp"]
     rounding_note: str = Field(min_length=1)
     criteria: list[Criterion] = Field(min_length=1)
+    decision_path: Literal["legacy", "atomic_first"] = "legacy"
+
+    @model_serializer(mode="wrap")
+    def preserve_legacy_serialization(self, handler):
+        value = handler(self)
+        if self.decision_path == "legacy":
+            value.pop("decision_path", None)
+        return value
 
     @model_validator(mode="after")
     def unique_criteria(self):
@@ -196,6 +242,36 @@ class AtomicCheck(Contract):
     answer: Literal["yes", "no", "unknown", "not_applicable"]
     rationale: str = Field(min_length=1)
     evidence: list[Evidence] = Field(min_length=1)
+
+
+class EventEvidence(Contract):
+    kind: Literal["protected_request", "protected_action", "verification"]
+    message_id: str = Field(min_length=1)
+    quote: str = Field(min_length=1)
+
+
+class AtomicObservation(AtomicCheck):
+    events: list[EventEvidence]
+
+
+class ApplicableJudgment(Contract):
+    response: Union[Literal["yes", "no"], int]
+    rationale: str = Field(min_length=1)
+    evidence: list[Evidence] = Field(min_length=1)
+    violation_categories: list[Violation]
+    needs_review: bool
+    review_reason: Optional[str]
+
+
+class AtomicCriterionOutput(Contract):
+    criterion_id: str = Field(min_length=1)
+    atomic_checks: list[AtomicObservation] = Field(min_length=1)
+    judgment: Optional[ApplicableJudgment]
+
+
+class AtomicEvaluation(Contract):
+    schema_version: Literal["1.2"]
+    criteria: list[AtomicCriterionOutput] = Field(min_length=1)
 
 
 def decision_metadata_issues(values):
@@ -312,7 +388,7 @@ class OverallScore(Contract):
 
 class EvaluationConfig(Contract):
     strategy: Literal["single_pass"] = "single_pass"
-    prompt_version: Literal["baseline-v1", "baseline-v2", "baseline-v3", "baseline-v4"] = "baseline-v4"
+    prompt_version: Literal["baseline-v1", "baseline-v2", "baseline-v3", "baseline-v4", "atomic-v1"] = "baseline-v4"
     max_output_tokens: int = Field(default=8000, ge=256, le=32000)
     timeout_seconds: int = Field(default=90, ge=1, le=300)
     external_synthetic_allowed: bool = False
@@ -392,6 +468,17 @@ class CoverageProof(Contract):
     complete: bool
 
 
+class CriterionReview(Contract):
+    criterion_id: str
+    state: Literal["accepted_derived", "accepted_model", "needs_review", "invalid_facts", "schema_invalid", "conflict"]
+    decision_origin: Literal["derived", "model"]
+    response: Optional[RawResponse] = None
+    original_judgment: Optional[dict] = None
+    issues: list[str] = Field(default_factory=list)
+    rule_source: Optional[str] = None
+    atomic_answers: dict[str, str] = Field(default_factory=dict)
+
+
 class EvaluationResult(Contract):
     schema_version: Literal["1.0"] = CONTRACT_VERSION
     evaluation_id: str
@@ -409,3 +496,6 @@ class EvaluationResult(Contract):
     revision_history: list[DecisionRevision]
     decision_rule_checks: list[DecisionRuleAssessment] = Field(default_factory=list)
     coverage_proofs: list[CoverageProof] = Field(default_factory=list)
+    decision_path: Literal["legacy", "atomic_first"] = "legacy"
+    original_provider_output: Optional[dict] = None
+    criterion_reviews: list[CriterionReview] = Field(default_factory=list)

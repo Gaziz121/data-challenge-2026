@@ -58,6 +58,9 @@ Follow only the supplied rubric, not a personal notion of good support. Return s
 
 
 def build_request(conversation, checklist, facts=None):
+    if checklist.decision_path == "atomic_first":
+        from .atomic_prompt import build_atomic_request
+        return build_atomic_request(conversation, checklist, facts)
     from .preprocessing import extract_facts
     facts = facts or extract_facts(conversation, checklist)
     rubric = checklist.model_dump(mode="json")

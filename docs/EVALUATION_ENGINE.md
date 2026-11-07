@@ -1,6 +1,6 @@
 # Modular evaluation baseline and contract v1
 
-Current core note: engine 0.5.0 defaults to `official-v3.json` / rubric
+Current core note: engine 0.6.0 compatibility mode defaults to `official-v3.json` / rubric
 `2026-11-07.v3`, prompt `baseline-v4` and active model-output schema `1.1`.
 Atomic checks precede the response in the actual serialized provider schema;
 applicability questions precede other questions in the model input. Legacy
@@ -186,3 +186,17 @@ counts when supplied, and each executed check's version/findings. No temperature
 or seed is silently assumed. Identical inputs/configs recreate the same prompt,
 but external model output is not guaranteed deterministic. No official metric,
 pricing claim, product-policy knowledge base or accuracy benchmark is invented.
+
+
+## Explicit atomic-first decision path
+
+Rubric official-v4.json selects atomic-v1 / wire schema1.2. The existing evaluate
+pipeline validates typed observations and fact evidence before materializing
+unambiguous decisions; the original provider output is separately retained.
+`atomic.py` is this input stage, using the existing validators, scope proof and
+scorer. It is not a second evaluator. C01/C02/C03/C05/C08 have configured derivation;
+all applicability/N/A is backend-owned. C04/C06 remain discrete model judgments,
+and applicable C07 remains discretionary. Per-criterion review states prevent one
+bad criterion from hiding the others or producing a fabricated total. Legacy
+outputs remain legacy; no silent migration/repaired historical accepted scores.
+See BACKEND_CONTRACT.md for source provenance and the explicit v4 selector.

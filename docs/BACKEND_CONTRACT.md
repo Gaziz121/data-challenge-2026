@@ -288,3 +288,44 @@ may contain only `error`, so the frontend must not assume a diagnostic ID exists
 Neither the diagnostic JSON nor accepted result is `team_human`. The independent
 manual-label workflow remains separate. Appeals/revision fields are reserved
 contracts; no accepted-override workflow is implemented.
+
+
+## Atomic-first contract (engine0.6.0; explicit rubric v4)
+
+The compatibility default remains v3. Select the registered `2026-11-07.v4` in
+`POST /api/evaluations` using the same checklist reference shape:
+
+```json
+{"conversation_id":"p1-ru-001","provider":"mock","checklist":{"checklist_id":"freedom-cqa-initial","version":"2026-11-07.v4"}}
+```
+
+V4 declares `decision_path=atomic_first`; C01/C02/C03/C05/C08 declare
+`output_source=atomic`. Their model-facing judgment field is schema-constrained
+to null. Applicability is backend-owned for all criteria, including discretionary
+ones. C04/C06 retain official raw levels; C07's applicable answer remains model
+judgment because its Boolean grouping is still an acknowledged interpretation.
+No N/A or na_reason is requested from the model. No unsolicited final answer is
+silently overridden: it creates a conflict and blocks a total.
+
+Wire schema1.2 has `criteria[]`: criterion_id, atomic_checks (question_id, answer,
+rationale, evidence, events), and judgment. Judgment is null for derived/N/A
+criteria; otherwise response/rationale/evidence/categories/review fields. Events
+have kind protected_request/protected_action/verification, source message ID and
+exact quote. Identification policy binds need/verification question IDs, source
+roles and chronology; need=no requires full-dialogue coverage and no contradictory
+protected event. Verified=yes requires eligible confirmation before every cited
+actual protected action, with source-order ties unresolved. Other facts retain
+configured quote roles, first-agent locators and negative coverage requirements.
+
+Results include `decision_path`, `original_provider_output` and
+`criterion_reviews`. In atomic mode **model_evaluation is the normalized decision
+projection**, not raw LLM final answers; use original_provider_output for the exact
+wire judgments and event observations. validated_evaluation is the gated projection.
+Review records identify origin, response, rule source, atomic answers and original
+judgment. States: accepted_derived, accepted_model, needs_review, invalid_facts,
+schema_invalid, conflict. Any unresolved/invalid criterion yields 422 with full
+original output and per-criterion states, plus individually validated criteria;
+no partial/redistributed/provisional total is manufactured. No automatic retry.
+Old schemas, exports, strict evidence gates and checklist versions remain intact.
+Event classification and factual advice still need semantic calibration; exact
+citations/order/coverage do not independently establish their truth.

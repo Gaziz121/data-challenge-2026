@@ -14,6 +14,7 @@ from .preprocessing import extract_facts
 from .prompt import build_request, PROMPT_VERSION
 from .evidence import normalize_evidence
 from .coverage import assess_output
+from .atomic import AtomicReviewRequired, process_atomic_output
 from .schemas import (Checklist, Conversation, EvaluationConfig, EvaluationResult,
                       ModelEvaluation, RunMetadata, CheckInput, CheckOutcome, AuditEvent)
 from .scoring import score_evaluation
@@ -69,7 +70,10 @@ def diagnose_output(raw, conversation, checklist):
 
 def evaluate(conversation, checklist, provider, config=None, checks=()):
     config = EvaluationConfig.model_validate((config or EvaluationConfig()).model_dump())
-    if config.prompt_version != PROMPT_VERSION:
+    atomic_path = checklist.decision_path == "atomic_first"
+    if atomic_path:
+        config = config.model_copy(update={"prompt_version": "atomic-v1"})
+    elif config.prompt_version != PROMPT_VERSION:
         raise ValueError("Requested prompt version is not the active implementation")
     conversation = Conversation.model_validate(conversation.model_dump())
     checklist = Checklist.model_validate(checklist.model_dump())
@@ -125,21 +129,37 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
                            checklist_sha256=digest(checklist.model_dump(mode="json")), configuration=config)
     raw = reply.evaluation
     rule_checks, coverage_proofs = [], []
+    criterion_reviews = []
+    projection = None
     try:
         raw = parse_json(reply.evaluation) if isinstance(reply.evaluation, (str, bytes)) else reply.evaluation
         record("primary_atomic_evaluation", config.prompt_version, raw)
-        rule_checks, coverage_proofs = assess_output(raw, conversation, checklist)
+        if atomic_path:
+            projection, criterion_reviews = process_atomic_output(raw, conversation, checklist)
+            record("validated_facts_to_official_decisions", "atomic-v1",
+                   [r.model_dump(mode="json") for r in criterion_reviews])
+        if atomic_path:
+            _, coverage_proofs = assess_output(projection.model_dump(), conversation, checklist)
+        else:
+            rule_checks, coverage_proofs = assess_output(raw, conversation, checklist)
         record("decision_rules_and_source_coverage", "rules-coverage-v1",
                {"decision_rule_checks": [c.model_dump(mode="json") for c in rule_checks],
                 "coverage_proofs": [p.model_dump(mode="json") for p in coverage_proofs]},
                "blocked" if any(c.status == "disagreed" or c.issues for c in rule_checks)
                or any(not p.complete for p in coverage_proofs) else "passed")
-        original = ModelEvaluation.model_validate(raw)
+        original = projection or ModelEvaluation.model_validate(raw)
         model_evaluation, repairs = (normalize_evidence(original, conversation)
                                      if config.quote_policy == "normalize_formatting" else (original, []))
         model_evaluation = validate_evaluation(model_evaluation, conversation, checklist)
     except ValueError as error:
-        issues, statuses = diagnose_output(raw, conversation, checklist)
+        if isinstance(error, AtomicReviewRequired):
+            criterion_reviews = error.reviews
+            issues = error.issues
+            statuses = [{"criterion_id": r.criterion_id, "status": "validated" if r.state.startswith("accepted_") else "invalid"}
+                        for r in criterion_reviews]
+            _, coverage_proofs = assess_output({"decisions": [d.model_dump() for d in error.accepted]}, conversation, checklist)
+        else:
+            issues, statuses = diagnose_output(projection.model_dump() if projection else raw, conversation, checklist)
         if not issues:
             issues = [{"criterion_id": None, "message": "Invalid model schema or evidence"}]
         raise EvaluationRejected({"schema_version": "1.0", "diagnostic_id": str(uuid4()),
@@ -150,6 +170,9 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
                                   "checklist": checklist.model_dump(mode="json"),
                                   "decision_rule_checks": [c.model_dump(mode="json") for c in rule_checks],
                                   "coverage_proofs": [p.model_dump(mode="json") for p in coverage_proofs],
+                                  "decision_path": checklist.decision_path,
+                                  "criterion_reviews": [r.model_dump(mode="json") for r in criterion_reviews],
+                                  "validated_criteria": [d.model_dump(mode="json") for d in error.accepted] if isinstance(error, AtomicReviewRequired) else [],
                                   "audit": [a.model_dump(mode="json") for a in audit]}) from None
     if repairs:
         record("evidence_formatting_resolution", "formatting-v1", [r.model_dump(mode="json") for r in repairs])
@@ -165,5 +188,8 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
         model_evaluation=original, validated_evaluation=model_evaluation,
         evidence_repairs=repairs, score=score, revision_history=[],
         decision_rule_checks=rule_checks, coverage_proofs=coverage_proofs,
+        decision_path=checklist.decision_path,
+        original_provider_output=raw if atomic_path else None,
+        criterion_reviews=criterion_reviews,
         facts=facts, check_outcomes=outcomes, audit=audit,
         run=run_metadata())

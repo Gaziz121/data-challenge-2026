@@ -84,7 +84,8 @@ class Application:
         self.input_policy = InputPolicy.from_path(authorization_manifest, allow_external=allow_external_authorized)
         # Keep explicit selection of the previous default working after upgrade.
         previous = load_checklist(Path(__file__).parent / "checklists/official-v2.json")
-        self.checklists = ChecklistRegistry(self.checklist, self.output_dir / "checklists", additional=[previous])
+        atomic = load_checklist(Path(__file__).parent / "checklists/official-v4.json")
+        self.checklists = ChecklistRegistry(self.checklist, self.output_dir / "checklists", additional=[previous, atomic])
         self.lock = threading.Lock()
         data, _ = read_dataset(SHARED)
         self.records = data["records"]

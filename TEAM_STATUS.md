@@ -204,6 +204,27 @@ future work.
 - See docs/VALIDATION_REPAIR_REPORT.md. Real-model compliance with the new conditional
   atoms and scope instructions is not yet verified; semantic accuracy remains open.
 
+## Atomic-first backend implementation
+
+- Engine0.6.0 adds explicit saved rubric2026-11-07.v4 / atomic-v1 / wire1.2.
+  C01/C02/C03/C05/C08 request facts only; official responses are backend-derived
+  after evidence validation. Every criterion's N/A is backend-owned. C04/C06 retain
+  model-selected official scales; applicable C07 remains discretionary.
+- C03 validates need/protected request/action/confirmation references, eligible
+  source roles and strict source ordering. Missing/late/unresolved proof blocks
+  positive acceptance. Exact quotes and full negative coverage remain required.
+- Original provider output/judgments are retained with explicit per-criterion
+  origin/review records. Unknown, invalid, schema or conflict states block totals;
+  no final response is silently overwritten. Legacy v1/v2/v3 remain unchanged;
+  compatibility default stays v3 and v4 is explicitly selectable over HTTP/startup.
+- Offline125 run/124pass/one expected original local-file skip; all56 independent
+  QA tests unchanged/pass/no skips; full QA discovery also passes81 tests, including
+  the newly committed25 offline lab tests on peer branch3ff9c76. Both JS suites pass. New17 tests include all
+  three genuine failure replays, C03 chronology/roles, unseen RU/KZ/EN, new criteria,
+  version/weight re-evaluation and no fabricated partial score. No frontend changes.
+- Exactly one subsequent paid evaluation was explicitly authorized by the owner
+  after offline checks. Its actual outcome is recorded separately in local evidence.
+
 ## Private synchronization policy
 
 Use live Git preflight/fetch and history comparison, not this snapshot, to verify

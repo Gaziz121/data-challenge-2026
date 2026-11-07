@@ -191,7 +191,7 @@ class ControlBackendTests(unittest.TestCase):
         self.assertEqual(status, 201)
         self.assertEqual(ref["sha256"], digest(changed))
         self.assertEqual(self.request("/api/checklists/" + ref["sha256"]), (200, changed))
-        self.assertEqual(len(self.request("/api/checklists")[1]), 3)
+        self.assertEqual(len(self.request("/api/checklists")[1]), 4)
         body = {"conversation": self.values[2]}
         first_status, first = self.request("/api/evaluations", body)
         body["checklist"] = {"checklist_id": ref["checklist_id"], "version": ref["version"]}
@@ -203,7 +203,7 @@ class ControlBackendTests(unittest.TestCase):
         self.assertNotEqual(first["evaluation_id"], second["evaluation_id"])
         self.assertEqual(json.loads((self.app.output_dir / (first["evaluation_id"] + ".json")).read_text()), first)
         reopened = Application(api_key="", output_dir=self.app.output_dir)
-        self.assertEqual(len(reopened.checklists.list()), 3)
+        self.assertEqual(len(reopened.checklists.list()), 4)
         self.assertEqual(reopened.checklists.by_hash(ref["sha256"]).model_dump(mode="json"), changed)
         # ID-based DEV compatibility also supports the explicitly saved version.
         status, result = self.request("/api/evaluations", {"conversation_id": "p1-ru-001", "checklist": body["checklist"]})
@@ -301,6 +301,31 @@ class ControlBackendTests(unittest.TestCase):
         self.assertEqual(self.request("/api/evaluations", {"conversation": self.values[0]}, {"Content-Length": "private-header"})[0], 413)
         # Reject the declared oversize before reading/uploading its body.
         self.assertEqual(self.request("/api/evaluations", {}, {"Content-Length": str(1024 * 1024 + 1)})[0], 413)
+
+
+    def test_atomic_version_selected_over_http_and_re_evaluated_without_overwrite(self):
+        from tests.test_atomic_path import atomic_checklist, raw_fixture, fact
+        class OfflineAtomic(MockProvider):
+            def evaluate(self, conv, checklist, request, config):
+                raw=raw_fixture(conv,checklist)
+                for qid in ("01.q1","01.q2"):fact(raw,qid)["answer"]="no"
+                return ProviderReply(raw,model="offline-http-atomic")
+        self.app.provider_factory=lambda *args:OfflineAtomic()
+        checklist=atomic_checklist()
+        body={"conversation":self.values[2],"checklist":{"checklist_id":checklist.checklist_id,"version":checklist.version}}
+        status,first=self.request("/api/evaluations",body)
+        self.assertEqual(status,200,first.get("error"))
+        self.assertEqual(first["decision_path"],"atomic_first")
+        self.assertEqual(first["original_provider_output"]["schema_version"],"1.2")
+        self.assertEqual(first["score"]["total_score"],"84.62")
+        changed=checklist.model_dump(mode="json");changed["version"]="atomic-http-next";changed["criteria"][0]["weight"]=30
+        self.assertEqual(self.request("/api/checklists",changed)[0],201)
+        body["checklist"]["version"]=changed["version"]
+        status,second=self.request("/api/evaluations",body)
+        self.assertEqual(status,200,second.get("error"))
+        self.assertEqual(second["score"]["total_score"],"64.71")
+        self.assertNotEqual(first["evaluation_id"],second["evaluation_id"])
+        self.assertEqual(json.loads((self.app.output_dir/(first["evaluation_id"]+".json")).read_text()),first)
 
 
 class LocalVoiceIngressTests(unittest.TestCase):

@@ -51,6 +51,16 @@ class MockProvider:
                  "start_message_id": conversation.messages[0].message_id,
                  "end_message_id": conversation.messages[-1].message_id,
                  "explanation": "MOCK: scope locator fixture only; no semantic assessment performed."}
+        if checklist.decision_path == "atomic_first":
+            return ProviderReply({"schema_version": "1.2", "criteria": [
+                {"criterion_id": c.criterion_id, "atomic_checks": [
+                    {"question_id": q.question_id, "answer": "unknown", "rationale": "MOCK: fact not assessed.",
+                     "evidence": [scope.copy()], "events": []} for q in c.questions],
+                 "judgment": None if c.output_source == "atomic" or c.applicability_rule else {
+                     "response": min(c.levels) if c.kind == "discrete" else "no",
+                     "rationale": "MOCK fixture only.", "evidence": [scope.copy()], "violation_categories": [],
+                     "needs_review": True, "review_reason": "MOCK: no semantic assessment."}}
+                for c in checklist.criteria]}, model=self.model, usage={})
         decisions = []
         for criterion in checklist.criteria:
             decisions.append({"criterion_id": criterion.criterion_id,
@@ -114,7 +124,7 @@ class OpenAIProvider:
         payload = {"model": self.model, "instructions": request["instructions"],
                    "input": request["input"], "store": False,
                    "max_output_tokens": config.max_output_tokens,
-                   "text": {"format": {"type": "json_schema", "name": "cqa_evaluation_v1_1",
+                   "text": {"format": {"type": "json_schema", "name": "cqa_atomic_v1_2" if checklist.decision_path == "atomic_first" else "cqa_evaluation_v1_1",
                                        "strict": True, "schema": request["schema"]}}}
         started = time.perf_counter()
         try:
