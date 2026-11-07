@@ -11,11 +11,12 @@ from . import __version__
 from .io import digest, parse_json
 from .checks import AgentPresenceCheck
 from .preprocessing import extract_facts
-from .prompt import build_request
+from .prompt import build_request, PROMPT_VERSION
+from .evidence import normalize_evidence
 from .schemas import (Checklist, Conversation, EvaluationConfig, EvaluationResult,
-                      ModelEvaluation, RunMetadata, CheckInput, CheckOutcome, AuditEvent)
+                      ModelEvaluation, RunMetadata, CheckInput, CheckOutcome, AuditEvent, Decision)
 from .scoring import score_evaluation
-from .validation import validate_evaluation
+from .validation import validate_evaluation, _validate_decision
 
 
 class CheckBlocked(ValueError):
@@ -28,8 +29,48 @@ class CheckBlocked(ValueError):
         self.audit = audit
 
 
+class EvaluationRejected(ValueError):
+    """Keep the original model reply and diagnostics; never calculate a partial total."""
+    def __init__(self, diagnostic):
+        self.diagnostic = diagnostic
+        super().__init__("Evaluation validation failed; original reply retained without a score")
+
+
+def diagnose_output(raw, conversation, checklist):
+    """Inspect each original decision for diagnostics only. Never calculate a score."""
+    if not isinstance(raw, dict) or not isinstance(raw.get("decisions"), list):
+        return [{"criterion_id": None, "message": "Invalid model schema or JSON"}], []
+    expected = {c.criterion_id: c for c in checklist.criteria}
+    messages = {m.message_id: m for m in conversation.messages}
+    issues, statuses, seen = [], [], []
+    for item in raw["decisions"]:
+        cid = item.get("criterion_id") if isinstance(item, dict) else None
+        if not isinstance(cid, str):
+            cid = None
+        seen.append(cid)
+        local = []
+        if cid not in expected:
+            local.append({"criterion_id": cid, "message": "Unknown or missing criterion ID"})
+        else:
+            try:
+                decision = Decision.model_validate(item)
+                _validate_decision(decision, expected[cid], conversation, messages)
+            except pydantic.ValidationError as error:
+                local.extend({"criterion_id": cid, "location": list(e["loc"]), "message": e["msg"]}
+                             for e in error.errors(include_input=False, include_context=False))
+            except ValueError as error:
+                local.append({"criterion_id": cid, "message": str(error)})
+        issues.extend(local)
+        statuses.append({"criterion_id": cid, "status": "invalid" if local else "validated"})
+    if len(seen) != len(set(seen)) or set(seen) != set(expected):
+        issues.append({"criterion_id": None, "message": "Every configured criterion is required exactly once"})
+    return issues, statuses
+
+
 def evaluate(conversation, checklist, provider, config=None, checks=()):
     config = EvaluationConfig.model_validate((config or EvaluationConfig()).model_dump())
+    if config.prompt_version != PROMPT_VERSION:
+        raise ValueError("Requested prompt version is not the active implementation")
     conversation = Conversation.model_validate(conversation.model_dump())
     checklist = Checklist.model_validate(checklist.model_dump())
     started_at = datetime.now(timezone.utc).isoformat()
@@ -74,10 +115,36 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
     run_checks("pre_evaluation", None)
     request, prompt_hash = build_request(conversation, checklist, facts)
     reply = provider.evaluate(conversation, checklist, request, config)
-    raw = parse_json(reply.evaluation) if isinstance(reply.evaluation, (str, bytes)) else reply.evaluation
-    record("primary_atomic_evaluation", config.prompt_version, raw)
-    model_evaluation = validate_evaluation(ModelEvaluation.model_validate(raw), conversation, checklist)
-    record("schema_evidence_consistency_validation", "gates-v1", model_evaluation.model_dump(mode="json"))
+    def run_metadata():
+        return RunMetadata(engine_version=__version__, provider=provider.name,
+                           python_version=platform.python_version(), pydantic_version=pydantic.__version__,
+                           model_requested=provider.model, model_returned=reply.model, is_mock=provider.is_mock,
+                           started_at=started_at, latency_ms=round((time.perf_counter() - started) * 1000),
+                           provider_latency_ms=reply.latency_ms, response_id=reply.response_id,
+                           usage=reply.usage or {}, prompt_sha256=prompt_hash,
+                           checklist_sha256=digest(checklist.model_dump(mode="json")), configuration=config)
+    raw = reply.evaluation
+    try:
+        raw = parse_json(reply.evaluation) if isinstance(reply.evaluation, (str, bytes)) else reply.evaluation
+        record("primary_atomic_evaluation", config.prompt_version, raw)
+        original = ModelEvaluation.model_validate(raw)
+        model_evaluation, repairs = (normalize_evidence(original, conversation)
+                                     if config.quote_policy == "normalize_formatting" else (original, []))
+        model_evaluation = validate_evaluation(model_evaluation, conversation, checklist)
+    except ValueError as error:
+        issues, statuses = diagnose_output(raw, conversation, checklist)
+        if not issues:
+            issues = [{"criterion_id": None, "message": "Invalid model schema or evidence"}]
+        raise EvaluationRejected({"schema_version": "1.0", "diagnostic_id": str(uuid4()),
+                                  "status": "validation_failed", "original_model_output": reply.evaluation,
+                                  "issues": issues, "criterion_validation": statuses,
+                                  "run": run_metadata().model_dump(mode="json"),
+                                  "conversation": conversation.model_dump(mode="json"),
+                                  "checklist": checklist.model_dump(mode="json"),
+                                  "audit": [a.model_dump(mode="json") for a in audit]}) from None
+    if repairs:
+        record("evidence_formatting_resolution", "formatting-v1", [r.model_dump(mode="json") for r in repairs])
+    record("schema_evidence_consistency_validation", "gates-v2", model_evaluation.model_dump(mode="json"))
     run_checks("post_validation", model_evaluation)
     score = score_evaluation(model_evaluation, conversation, checklist)
     record("official_deterministic_scoring", "rational-v1", score.model_dump(mode="json"))
@@ -86,12 +153,7 @@ def evaluate(conversation, checklist, provider, config=None, checks=()):
         or any(f.severity == "review" for o in outcomes for f in o.findings) else "structurally_valid")
     return EvaluationResult(
         evaluation_id=str(uuid4()), status=status, conversation=conversation, checklist=checklist,
-        model_evaluation=model_evaluation, score=score, revision_history=[],
+        model_evaluation=original, validated_evaluation=model_evaluation,
+        evidence_repairs=repairs, score=score, revision_history=[],
         facts=facts, check_outcomes=outcomes, audit=audit,
-        run=RunMetadata(engine_version=__version__, provider=provider.name,
-                        python_version=platform.python_version(), pydantic_version=pydantic.__version__,
-                        model_requested=provider.model, model_returned=reply.model, is_mock=provider.is_mock,
-                        started_at=started_at, latency_ms=round((time.perf_counter() - started) * 1000),
-                        provider_latency_ms=reply.latency_ms, response_id=reply.response_id,
-                        usage=reply.usage or {}, prompt_sha256=prompt_hash,
-                        checklist_sha256=digest(checklist.model_dump(mode="json")), configuration=config))
+        run=run_metadata())

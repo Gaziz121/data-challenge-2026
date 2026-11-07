@@ -1,5 +1,12 @@
 # First runnable local CQA application
 
+Current repair milestone: all 12 reported defects are fixed (independent QA
+41/41). Exactly one genuine OpenAI response was returned but failed validation;
+the MVP now displays retained rejected decisions without a total. The current
+server uses `--live-call-limit 0`, so no extra paid request can occur. See the
+[repair report](VALIDATION_REPAIR_REPORT.md) for current results; the original
+integration log below is historical.
+
 Integration date: 2026-11-07, Asia/Almaty. This is local-only private development.
 No engine replacement, architecture redesign, deployment or public repository.
 

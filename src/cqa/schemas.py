@@ -45,6 +45,12 @@ class Conversation(Contract):
 class AtomicQuestion(Contract):
     question_id: str = Field(min_length=1)
     question: str = Field(min_length=1)
+    violation_category: Optional[Violation] = None
+
+
+class EvidencePolicy(Contract):
+    positive_roles: list[Literal["agent", "system"]] = Field(default_factory=lambda: ["agent"], min_length=1)
+    positive_locator: Literal["any", "first_agent"] = "any"
 
 
 class ApplicabilityRule(Contract):
@@ -70,11 +76,16 @@ class Criterion(Contract):
     questions: list[AtomicQuestion] = Field(min_length=1)
     applicability_rule: Optional[ApplicabilityRule]
     consistency_rules: list[ConsistencyRule] = Field(default_factory=list)
+    evidence_policy: EvidencePolicy = Field(default_factory=EvidencePolicy)
 
     @model_validator(mode="after")
     def valid_definition(self):
         if len({q.question_id for q in self.questions}) != len(self.questions):
             raise ValueError("Duplicate atomic question IDs")
+        categories = [q.violation_category for q in self.questions if q.violation_category is not None]
+        if categories and (self.kind != "critical" or len(categories) != len(set(categories))
+                           or len(categories) != len(self.questions)):
+            raise ValueError("Category questions require a complete unique mapping on a critical criterion")
         if (self.na_condition is None) != (self.applicability_rule is None):
             raise ValueError("N/A condition and atomic applicability rule must be configured together")
         if self.applicability_rule and self.applicability_rule.question_id not in {
@@ -245,10 +256,22 @@ class OverallScore(Contract):
 
 class EvaluationConfig(Contract):
     strategy: Literal["single_pass"] = "single_pass"
-    prompt_version: Literal["baseline-v1"] = "baseline-v1"
+    prompt_version: Literal["baseline-v1", "baseline-v2"] = "baseline-v2"
     max_output_tokens: int = Field(default=8000, ge=256, le=32000)
     timeout_seconds: int = Field(default=90, ge=1, le=300)
     external_synthetic_allowed: bool = False
+    quote_policy: Literal["exact", "normalize_formatting"] = "exact"
+
+
+class EvidenceRepair(Contract):
+    criterion_id: str
+    evidence_path: str
+    message_id: str
+    original_quote: str
+    source_quote: str
+    source_start: int
+    source_end: int
+    policy: Literal["formatting-v1"] = "formatting-v1"
 
 
 class RunMetadata(Contract):
@@ -288,6 +311,8 @@ class EvaluationResult(Contract):
     conversation: Conversation
     checklist: Checklist
     model_evaluation: ModelEvaluation
+    validated_evaluation: Optional[ModelEvaluation] = None
+    evidence_repairs: list[EvidenceRepair] = Field(default_factory=list)
     score: OverallScore
     run: RunMetadata
     facts: PreEvaluationFacts

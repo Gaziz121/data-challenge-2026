@@ -37,6 +37,9 @@ def evaluation_data(conv=None, checklist=None):
                                      "explanation": "Hand-authored test fixture supporting the selected anchor."}]
         for atomic in decision["atomic_checks"]:
             atomic["answer"] = "no" if criterion.kind == "critical" else "yes"
+            # A fully coherent fixture does not force the customer to ask again.
+            if atomic["question_id"] == "06.q2":
+                atomic["answer"] = "no"
         if criterion.applicability_rule:
             rule = criterion.applicability_rule
             next(a for a in decision["atomic_checks"] if a["question_id"] == rule.question_id)["answer"] = (

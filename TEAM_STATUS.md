@@ -107,7 +107,33 @@ future work.
   worktree/branch. Targeted gate fixes are the next engineering priority before
   trusting live evaluations; authorized API access is also still absent.
 
-## Synchronization and publication
+## Validation repairs and first genuine provider response
+
+- The following supersedes the earlier credential/QA-blocker snapshot. All 12
+  confirmed QA defects are fixed in the integration worktree; Claude's unchanged
+  independent suite passes 41/41. The active rubric is 2026-11-07.v2, with unchanged
+  official weights, anchors, scales, N/A conditions and deterministic arithmetic.
+- Latest app suite: 75 tests, 74 passed, one expected local-only full-DEV skip;
+  both JavaScript suites passed. Original human viewer/exports and original dirty
+  checkout are preserved. QA branch/commit cbdec73 remains unchanged.
+- Quote normalization is opt-in, restricted to formatting equivalence with exact
+  original source spans. Original AI output and resolved evidence are both kept.
+  Invalid criteria retain per-criterion diagnostics and original output, with no
+  partial or redistributed quality total.
+- Authorized key was read in memory from the original ignored .env. Authentication
+  succeeded, then exactly ONE paid Responses call evaluated synthetic p1-ru-001.
+  Model gpt-5.4-mini-2026-03-17; provider latency 10.132 s; 4,348 input / 3,165
+  output tokens; estimated USD 0.0175035 at published standard rates.
+- The genuine reply FAILED evaluation validation: 02 and 04 had non-null N/A
+  reasons on applicable responses; 07 asserted N/A despite its applicability
+  answer being false. No decision was silently changed, no total produced and
+  no retry made. The web MVP shows all eight original decisions as a real rejected
+  response, with errors/provenance/download. Live budget is now capped at zero.
+- See docs/VALIDATION_REPAIR_REPORT.md. Remaining work is improving structured
+  decision/applicability consistency before another explicitly authorized run,
+  control-data export policy/API integration, checklist-editor UX and calibration.
+
+## Synchronization and publication policy
 
 Use live Git preflight/fetch and history comparison, not this snapshot, to verify
 current synchronization. Maintain one authoritative `main` and deliberate review.

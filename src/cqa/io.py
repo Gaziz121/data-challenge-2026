@@ -35,5 +35,5 @@ def digest(value):
 
 def load_checklist(path=None):
     from .schemas import Checklist
-    target = Path(path) if path else Path(__file__).parent / "checklists/official-v1.json"
+    target = Path(path) if path else Path(__file__).parent / "checklists/official-v2.json"
     return Checklist.model_validate(parse_json(target.read_bytes()))

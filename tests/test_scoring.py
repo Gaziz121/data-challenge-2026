@@ -61,6 +61,9 @@ class ScoringTests(unittest.TestCase):
             with self.subTest(category=category):
                 critical = set_response(self.raw, self.checklist, "08", "yes")
                 critical["violation_categories"] = [category]
+                definition = next(c for c in self.checklist.criteria if c.criterion_id == "08")
+                for atomic, question in zip(critical["atomic_checks"], definition.questions):
+                    atomic["answer"] = "yes" if question.violation_category == category else "no"
                 critical["evidence"] = self.raw["decisions"][0]["evidence"]
                 score = self.score()
                 self.assertEqual(score.total_score, original)

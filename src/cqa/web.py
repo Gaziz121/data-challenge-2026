@@ -16,7 +16,7 @@ from urllib.parse import unquote, urlsplit
 
 from pydantic import ValidationError
 
-from .engine import CheckBlocked, evaluate
+from .engine import CheckBlocked, EvaluationRejected, evaluate
 from .io import load_checklist, parse_json
 from .loader import ROOT, SHARED, load_conversation, read_dataset, require_approved_synthetic
 from .providers import MockProvider, OpenAIProvider, ProviderError
@@ -53,11 +53,14 @@ def load_env_file(path):
 
 class Application:
     def __init__(self, *, checklist=None, model=None, allow_external=False,
-                 api_key=None, provider_factory=None, output_dir=None):
+                 api_key=None, provider_factory=None, output_dir=None, config=None, live_call_limit=None):
         self.checklist = checklist or load_checklist()
         self.model = model or os.environ.get("CQA_MODEL", "")
         self.api_key = os.environ.get("OPENAI_API_KEY", "") if api_key is None else api_key
         self.allow_external = allow_external
+        self.evaluation_config = config or EvaluationConfig(quote_policy="normalize_formatting")
+        self.live_call_limit = live_call_limit
+        self.live_calls = 0
         self.provider_factory = provider_factory or self._provider
         self.output_dir = Path(output_dir) if output_dir else ROOT / "outputs/app"
         if (ROOT / "outputs").resolve() not in self.output_dir.resolve().parents:
@@ -76,6 +79,7 @@ class Application:
         return {"default_provider": "mock", "model": self.model,
                 "openai_key_present": bool(self.api_key.strip()),
                 "external_synthetic_allowed": self.allow_external,
+                "live_calls_remaining": None if self.live_call_limit is None else max(0, self.live_call_limit - self.live_calls),
                 "checklist": self.checklist.model_dump(mode="json")}
 
     def conversation(self, conversation_id):
@@ -96,12 +100,22 @@ class Application:
         if not self.lock.acquire(blocking=False):
             raise BlockingIOError("An evaluation is running; wait before submitting another.")
         try:
+            if request.provider == "openai":
+                if self.live_call_limit is not None and self.live_calls >= self.live_call_limit:
+                    raise ValueError("Live call limit reached; no request sent.")
+                self.live_calls += 1  # Reserve before transport; failed calls are never automatically retried.
             result = evaluate(conversation, self.checklist, self.provider_factory(request.provider, model),
-                              EvaluationConfig(external_synthetic_allowed=self.allow_external))
+                              self.evaluation_config.model_copy(update={"external_synthetic_allowed": self.allow_external}))
             self.output_dir.mkdir(parents=True, exist_ok=True)
             with (self.output_dir / (result.evaluation_id + ".json")).open("x", encoding="utf-8") as handle:
                 handle.write(result.model_dump_json(indent=2) + "\n")
             return result
+        except EvaluationRejected as error:
+            self.output_dir.mkdir(parents=True, exist_ok=True)
+            target = self.output_dir / ("rejected-" + error.diagnostic["diagnostic_id"] + ".json")
+            with target.open("x", encoding="utf-8") as handle:
+                json.dump(error.diagnostic, handle, ensure_ascii=False, indent=2)
+            raise
         finally:
             self.lock.release()
 
@@ -164,6 +178,17 @@ def create_server(port=8765, application=None):
                 if path == "/api/conversations":
                     return self.reply(200, [{k: r[k] for k in ("conversation_id", "channel", "language")}
                                             for r in app.records])
+                if path.startswith("/api/diagnostics/"):
+                    identifier = path[len("/api/diagnostics/"):]
+                    if not re.fullmatch(r"[0-9a-f-]{36}", identifier):
+                        return self.reply(404, {"error": "Diagnostic not found"})
+                    target = app.output_dir / ("rejected-" + identifier + ".json")
+                    if not target.is_file():
+                        return self.reply(404, {"error": "Diagnostic not found"})
+                    diagnostic = parse_json(target.read_bytes())
+                    if diagnostic.get("conversation", {}).get("conversation_id") not in app.ids:
+                        return self.reply(404, {"error": "Diagnostic outside synthetic DEV"})
+                    return self.reply(200, diagnostic)
                 if path.startswith("/api/conversations/"):
                     conversation = app.conversation(unquote(path[len("/api/conversations/"):]))
                     return self.reply(200, conversation.model_dump(mode="json"))
@@ -195,6 +220,9 @@ def create_server(port=8765, application=None):
                 return self.reply(422, {"error": "Request or model output failed schema validation; no score returned"})
             except CheckBlocked:
                 return self.reply(422, {"error": "Evaluation blocked by a quality check; no score returned"})
+            except EvaluationRejected as error:
+                return self.reply(422, {"error": str(error), "diagnostic_id": error.diagnostic["diagnostic_id"],
+                                        "issues": error.diagnostic["issues"]})
             except ProviderError as error:
                 return self.reply(502, {"error": str(error)})
             except ValueError as error:
@@ -212,11 +240,16 @@ def main(argv=None):
     parser.add_argument("--checklist", type=Path)
     parser.add_argument("--env-file", type=Path, help="Ignored local env file; never served or logged")
     parser.add_argument("--allow-external-synthetic", action="store_true")
+    parser.add_argument("--max-output-tokens", type=int, default=8000)
+    parser.add_argument("--timeout-seconds", type=int, default=90)
+    parser.add_argument("--live-call-limit", type=int, help="Optional hard per-process cap, including failed attempts")
     args = parser.parse_args(argv)
     try:
         settings = load_env_file(args.env_file) if args.env_file else {}
         app = Application(checklist=load_checklist(args.checklist), model=args.model or settings.get("CQA_MODEL"),
-                          api_key=settings.get("OPENAI_API_KEY"), allow_external=args.allow_external_synthetic)
+                          api_key=settings.get("OPENAI_API_KEY"), allow_external=args.allow_external_synthetic,
+                          config=EvaluationConfig(quote_policy="normalize_formatting", max_output_tokens=args.max_output_tokens,
+                                                  timeout_seconds=args.timeout_seconds), live_call_limit=args.live_call_limit)
         server = create_server(args.port, app)
     except (OSError, ValueError):
         print("Cannot start local app: check port, dataset, checklist and local configuration.")

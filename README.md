@@ -2,8 +2,12 @@
 
 Accuracy, reproducibility and required end-to-end functions take priority over
 cosmetics. This workspace now includes a working modular Python evaluation baseline.
-No genuine external model evaluation has run. Read the [requirements](case/CQA_REQUIREMENTS.md)
+One genuine OpenAI response has been obtained and rejected by validation; no valid
+live quality total is established. Read the [requirements](case/CQA_REQUIREMENTS.md)
 and [scoring specification](case/CQA_SCORING_SPEC.md).
+
+Validation repairs, the 41/41 independent QA result and the exact single-call
+OpenAI outcome are documented in [the repair report](docs/VALIDATION_REPAIR_REPORT.md).
 
 ## Run the local browser application
 
@@ -61,7 +65,9 @@ It requires an authorized `OPENAI_API_KEY`, an explicit `--model`, and
 paste them into chat or source files. The adapter rechecks complete record content
 against the reviewed synthetic derivative before any network request. All five
 real calls are blocked from external evaluation; audio links are never exported.
-No live API credential was available in this implementation session.
+An authorized existing credential has now been used for one smoke request; its
+response failed validation. Current live attempts are capped at zero; see the
+repair report before authorizing another request.
 
 See [pipeline and contracts](docs/EVALUATION_ENGINE.md) and the
 [implementation report](docs/IMPLEMENTATION_REPORT.md). The layered baseline

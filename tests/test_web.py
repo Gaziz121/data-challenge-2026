@@ -135,7 +135,7 @@ class WebTests(unittest.TestCase):
         self.assertEqual(result["score"]["applicable_weight"], 85)
         self.assertEqual(calls, [("mock", ""), ("openai", "offline-model-v2")])
 
-    def test_invalid_model_output_rejected_not_saved(self):
+    def test_invalid_model_output_retained_without_scored_result(self):
         class BadMaker(MockProvider):
             def evaluate(self, *args):
                 return ProviderReply({"schema_version": "1.0", "decisions": []}, model="invalid-fixture")
@@ -143,7 +143,17 @@ class WebTests(unittest.TestCase):
         status, error = self.request("/api/evaluations", {"conversation_id": "p1-ru-001"})
         self.assertEqual(status, 422)
         self.assertNotIn("score", error)
-        self.assertFalse(self.app.output_dir.exists())
+        self.assertIn("diagnostic_id", error)
+        diagnostics = list(self.app.output_dir.glob("rejected-*.json"))
+        self.assertEqual(len(diagnostics), 1)
+        saved = json.loads(diagnostics[0].read_text())
+        self.assertEqual(saved["original_model_output"]["decisions"], [])
+        self.assertNotIn("score", saved)
+        status, retrieved = self.request("/api/diagnostics/" + error["diagnostic_id"])
+        self.assertEqual(status, 200)
+        self.assertEqual(retrieved["original_model_output"], saved["original_model_output"])
+        self.assertNotIn("score", retrieved)
+        self.assertEqual(self.request("/api/diagnostics/../../.env")[0], 404)
 
     def test_unknown_ids_bad_requests_and_no_private_file_serving(self):
         for path in ("/api/conversations/no-such-id", "/data/raw/DEV_conversations.json", "/.env.local", "/outputs/app/test.json", "/../STATUS.md"):
@@ -163,6 +173,21 @@ class WebTests(unittest.TestCase):
             self.assertEqual(self.request("/api/evaluations", {"conversation_id": "p1-ru-001"})[0], 409)
         finally:
             self.app.lock.release()
+
+    def test_live_call_cap_blocks_second_attempt_before_provider(self):
+        self.app.api_key, self.app.allow_external, self.app.live_call_limit = "unit-test-placeholder", True, 1
+        calls = []
+        def fixture(name, model):
+            calls.append(name)
+            return MockProvider()  # No network: test only the admission counter.
+        self.app.provider_factory = fixture
+        body = {"conversation_id": "p1-ru-001", "provider": "openai", "model": "offline-model"}
+        self.assertEqual(self.request("/api/evaluations", body)[0], 200)
+        status, error = self.request("/api/evaluations", body)
+        self.assertEqual(status, 422)
+        self.assertIn("limit reached", error["error"])
+        self.assertEqual(calls, ["openai"])
+        self.assertEqual(self.app.live_calls, 1)
 
     def test_env_file_reads_supported_values_without_expanding_shell(self):
         path = Path(self.folder.name) / ".env.local"

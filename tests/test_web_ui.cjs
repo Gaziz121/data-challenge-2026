@@ -1,6 +1,6 @@
 // DOM rendering regression tests; fixtures are not DEV labels or provider judgments.
 const assert = require('node:assert/strict');
-const {renderResult, responseText} = require('../web/app.js');
+const {renderResult, responseText, renderFailure} = require('../web/app.js');
 const transcript = require('../tools/dev_review/transcript.js');
 const checklist = require('../src/cqa/checklists/official-v1.json');
 
@@ -31,6 +31,14 @@ assert.match(texts(container),/N\/A — not applicable/);
 assert.match(texts(container),/N\/A reason: fixture allowed condition/);
 assert.match(texts(container),/sent-from-backend/);
 assert.match(texts(container),/<script>literal source<\/script>/); // Literal text, no innerHTML parsing.
+result.validated_evaluation=JSON.parse(JSON.stringify(result.model_evaluation));
+result.validated_evaluation.decisions[0].evidence[0].quote='Exact «source» span';
+result.evidence_repairs=[{criterion_id:'01',original_quote:'original fixture',source_quote:'Exact «source» span'}];
+renderResult(result,container,summary,()=>{});
+assert.equal(walk(container).find(n=>n.tagName==='blockquote').textContent,'Exact «source» span');
+assert.match(texts(container),/1 citation formatting repairs/);
+delete result.validated_evaluation; delete result.evidence_repairs;
+renderResult(result,container,summary,r=>reference=r);
 const evidenceButton = walk(container).find(n=>n.tagName==='button'); evidenceButton.onclick();
 assert.equal(reference.message_id,'m0001');
 assert.equal(evidenceButton.dataset.startMessageId,'m0001');
@@ -55,4 +63,12 @@ const article=walk(container).find(n=>n.id==='message-1');
 assert.equal(article.dataset.messageId,'m0001');
 assert.match(texts(container),/Original message ID: source-1/);
 assert.doesNotMatch(texts(container),/Original message ID: m0001/);
+renderFailure({run:{is_mock:false,provider:'openai',model_returned:'offline-fixture',provider_latency_ms:10,usage:{}},
+  checklist,issues:[{criterion_id:'02',message:'Fixture applicability contradiction'}],
+  original_model_output:result.model_evaluation},container,summary);
+assert.match(summary.textContent,/REAL OPENAI RESPONSE — VALIDATION FAILED/);
+assert.match(summary.textContent,/No accepted score or total/);
+assert.equal(walk(container).filter(n=>n.className==='result-card rejected-card').length,8);
+assert.match(texts(container),/Fixture applicability contradiction/);
+assert.doesNotMatch(texts(container),/83.33/);
 console.log('PASS: eight results, N/A reasons, backend-only totals, mock/LLM labeling, evidence targets, literal source text and shared transcript renderer.');

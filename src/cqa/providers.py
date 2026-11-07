@@ -137,6 +137,10 @@ class OpenAIProvider:
                 raise ValueError("Missing provider provenance")
             usage = response.get("usage") or {}
             counts = {key: usage[key] for key in ("input_tokens", "output_tokens", "total_tokens") if key in usage}
+            for field, detail, label in (("input_tokens_details", "cached_tokens", "cached_input_tokens"),
+                                         ("output_tokens_details", "reasoning_tokens", "reasoning_tokens")):
+                if isinstance(usage.get(field), dict) and detail in usage[field]:
+                    counts[label] = usage[field][detail]
             if any(type(v) is not int or v < 0 for v in counts.values()):
                 raise ValueError("Invalid token usage")
         except (ValueError, KeyError, TypeError, AttributeError):

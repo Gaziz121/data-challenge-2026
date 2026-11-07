@@ -24,6 +24,10 @@ machine. Inspect the filesystem including ignored paths before declaring absence
 | `src/git_preflight.py`, `GIT_WORKFLOW.md` | GIT TRACKED | Inspect Git layers and synchronize safely; not a filesystem material inventory |
 | `pyproject.toml`, `src/cqa/*.py` | IMPLEMENTATION / PRIVATE source | Modular baseline: strict v1 contracts, normalization, deterministic facts, atomic LLM evaluation, gates, extension checks, scoring, audit and CLI |
 | `src/cqa/checklists/official-v1.json` | IMPLEMENTATION / PRIVATE configuration | Source-grounded eight-criterion initial rubric, atomic questions, configurable N/A rules and consistency implications; not conversation labels |
+| `src/cqa/checklists/official-v2.json` | IMPLEMENTATION / PRIVATE configuration | Active default rubric with reviewed D02 implications, role/first-reply evidence policies and critical-category mappings; official weights/scales/N/A unchanged; v1 retained |
+| `src/cqa/evidence.py`, `tests/test_evidence_repairs.py` | IMPLEMENTATION / PRIVATE source | Opt-in quote-format matching to exact spans, preservation/diagnostic tests; no score changes or fuzzy semantic repairs |
+| `docs/VALIDATION_REPAIR_REPORT.md` | IMPLEMENTATION / PRIVATE documentation | Twelve confirmed fixes, unchanged independent QA results, exact live-call outcome/cost, changed-file manifest and remaining control-data/checklist gaps |
+| `outputs/app/live-smoke/`, `outputs/app/rejected-*.json` | GENERATED / LOCAL ONLY | One genuine OpenAI response, original and enriched diagnostics, usage/cost summary and browser screenshot; no accepted total; never staged |
 | `tests/*.py` | IMPLEMENTATION / PRIVATE source | Offline contract/scoring/provider/pipeline tests; hand-authored fixtures and DEV integrity/mock runs, never official labels |
 | `docs/EVALUATION_ENGINE.md`, `docs/IMPLEMENTATION_REPORT.md` | IMPLEMENTATION / PRIVATE documentation | Stable teammate interfaces, extension behavior, run instructions, file manifest, executed validation and limitations |
 | `outputs/cqa/` | GENERATED / LOCAL ONLY | Mock run JSON, schemas and verification summary; transcript-bearing files are never staged |

@@ -1,5 +1,14 @@
 # Modular evaluation baseline and contract v1
 
+Current repair note: engine 0.2.0 defaults to `official-v2.json` / rubric
+`2026-11-07.v2` and prompt `baseline-v2`. Configurable evidence policies and
+atomic/category consistency now close the 12 independent QA defects. Successful
+results preserve original `model_evaluation`, `validated_evaluation` and exact-span
+`evidence_repairs`. Rejected replies retain per-criterion diagnostics and no score.
+See [current repair/live-call report](VALIDATION_REPAIR_REPORT.md). Historical
+baseline behavior below remains useful context; optional formatting resolution
+does not weaken direct strict validation or change any response/weight.
+
 The Python entry point is `cqa.engine.evaluate(conversation, checklist, provider,
 config=None, checks=()) -> EvaluationResult`. No frontend or database is required.
 The authoritative initial scoring interpretation is `case/CQA_SCORING_SPEC.md`;

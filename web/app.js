@@ -36,7 +36,7 @@
         if (reference.quote !== null) parent.append(el("blockquote", reference.quote));
       }
     }
-    for (const decision of result.model_evaluation.decisions) {
+    for (const decision of (result.validated_evaluation || result.model_evaluation).decisions) {
       const criterion = definitions.get(decision.criterion_id), score = scores.get(decision.criterion_id);
       const card = el("article", undefined, "result-card"); card.dataset.criterionId = criterion.criterion_id;
       card.append(el("h3", `${criterion.criterion_id} · ${criterion.title}`), el("p", responseText(decision, criterion), "raw"));
@@ -56,18 +56,49 @@
       }
       card.append(atomic); container.append(card);
     }
+    if (result.evidence_repairs?.length) container.append(el("p",
+      `${result.evidence_repairs.length} citation formatting repairs are recorded with exact source spans. Original AI wording is preserved in the JSON/audit.`, "notice"));
     const audit = el("details", undefined, "audit"); audit.append(el("summary", "Run audit and review findings"));
     audit.append(el("pre", JSON.stringify({evaluation_id: result.evaluation_id, run: result.run,
-      check_outcomes: result.check_outcomes, audit: result.audit, revision_history: result.revision_history}, null, 2)));
+      check_outcomes: result.check_outcomes, audit: result.audit, revision_history: result.revision_history,
+      evidence_repairs: result.evidence_repairs, original_model_evaluation: result.model_evaluation}, null, 2)));
     container.append(audit);
   }
-  if (typeof module !== "undefined" && module.exports) {module.exports = {responseText, renderResult}; return;}
+  function renderFailure(diagnostic, container, summary) {
+    const doc = container.ownerDocument;
+    function el(tag, text, cls) {
+      const node = doc.createElement(tag); node.textContent = text;
+      if (cls) node.className = cls;
+      return node;
+    }
+    summary.textContent = `${diagnostic.run.is_mock ? "MOCK" : "REAL OPENAI RESPONSE"} — VALIDATION FAILED\n` +
+      `No accepted score or total. Original AI decisions below are unvalidated.\n` +
+      `${diagnostic.run.provider} · ${diagnostic.run.model_returned} · ${diagnostic.run.provider_latency_ms} ms\n` +
+      `Usage: ${JSON.stringify(diagnostic.run.usage)} · Checklist: ${diagnostic.checklist.version}`;
+    container.replaceChildren();
+    for (const issue of diagnostic.issues) container.append(el("p", `${issue.criterion_id || "Schema"}: ${issue.message}`, "error"));
+    const raw = diagnostic.original_model_output;
+    const decisions = raw && typeof raw === "object" && Array.isArray(raw.decisions) ? raw.decisions : [];
+    for (const decision of decisions) {
+      const card = doc.createElement("article"); card.className = "result-card rejected-card";
+      card.dataset.criterionId = decision.criterion_id;
+      const definition = diagnostic.checklist.criteria.find(c => c.criterion_id === decision.criterion_id);
+      card.append(el("h3", `${decision.criterion_id} · ${definition?.title || "Original AI decision"}`),
+        el("p", `Original response: ${String(decision.response)} — no accepted score`, "raw"),
+        el("p", String(decision.rationale || "")));
+      if (decision.na_reason) card.append(el("p", `Original N/A reason: ${decision.na_reason}`));
+      const details = doc.createElement("details");
+      details.append(el("summary", "Original atomic checks and evidence (unvalidated)"), el("pre", JSON.stringify(decision, null, 2)));
+      card.append(details); container.append(card);
+    }
+  }
+  if (typeof module !== "undefined" && module.exports) {module.exports = {responseText, renderResult, renderFailure}; return;}
   const $ = id => document.getElementById(id);
-  let records = [], config, current = null, result = null, busy = false, sequence = 0;
+  let records = [], config, current = null, result = null, rejected = null, busy = false, sequence = 0;
   async function api(path, options) {
     const response = await fetch(path, options);
     const value = await response.json();
-    if (!response.ok) throw new Error(value.error || "Local request failed.");
+    if (!response.ok) {const error = new Error(value.error || "Local request failed."); error.details = value; throw error;}
     return value;
   }
   function feedback(text, error = false) {$("feedback").textContent = text; $("feedback").className = error ? "status error" : "status";}
@@ -77,12 +108,13 @@
     $("mode").textContent = mock ? "MOCK mode — fixed test fixtures, not AI quality judgments." :
       "OpenAI selected — only a successful provider response is an LLM evaluation. Synthetic DEV only.";
     $("model").disabled = mock || busy;
-    const ready = mock || (config?.openai_key_present && config?.external_synthetic_allowed && $("model").value.trim());
+    const ready = mock || (config?.openai_key_present && config?.external_synthetic_allowed && config?.live_calls_remaining !== 0 && $("model").value.trim());
     $("evaluate").disabled = busy || !current || !ready;
-    if (!mock && !ready) feedback("OpenAI requires authorized server credentials, --allow-external-synthetic and an explicit model. No request has been sent.");
+    if (!mock && !ready) feedback(config?.live_calls_remaining === 0 ? "Live request budget is exhausted. No additional paid request can be sent." :
+      "OpenAI requires authorized server credentials, --allow-external-synthetic and an explicit model. No request has been sent.");
   }
   function clearResult() {
-    result = null; $("download").disabled = true;
+    result = null; rejected = null; $("download").disabled = true;
     $("results").replaceChildren(); $("run-summary").textContent = "No evaluation for this selection yet.";
   }
   async function selectConversation() {
@@ -126,16 +158,24 @@
       renderResult(result, $("results"), $("run-summary"), jump);
       $("download").disabled = false;
       feedback(result.run.is_mock ? "Mock fixture complete — no semantic quality assessment occurred." : "LLM evaluation complete — inspect evidence and review flags.");
-    } catch (error) {feedback(error.message, true); $("run-summary").textContent = "Evaluation failed. No score returned.";}
+    } catch (error) {
+      feedback(error.message, true); $("run-summary").textContent = "Evaluation failed. No score returned.";
+      if (error.details?.diagnostic_id) {
+        try {rejected = await api("/api/diagnostics/" + error.details.diagnostic_id);
+          renderFailure(rejected, $("results"), $("run-summary")); $("download").disabled = false;
+        } catch (_) {feedback("Evaluation failed; diagnostic remains saved on the server.", true);}
+      }
+    }
     finally {
       busy = false; for (const id of ["conversation", "language", "provider"]) $(id).disabled = false;
       $("results").setAttribute("aria-busy", "false"); updateMode();
     }
   };
   $("download").onclick = () => {
-    if (!result) return;
-    const url = URL.createObjectURL(new Blob([JSON.stringify(result, null, 2) + "\n"], {type: "application/json"}));
-    const link = document.createElement("a"); link.href = url; link.download = `cqa-${result.run.is_mock ? "mock" : "llm"}-${result.evaluation_id}.json`;
+    const saved = result || rejected; if (!saved) return;
+    const url = URL.createObjectURL(new Blob([JSON.stringify(saved, null, 2) + "\n"], {type: "application/json"}));
+    const link = document.createElement("a"); link.href = url;
+    link.download = `cqa-${rejected ? "rejected" : saved.run.is_mock ? "mock" : "llm"}-${saved.evaluation_id || saved.diagnostic_id}.json`;
     document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   $("language").onchange = filter; $("conversation").onchange = selectConversation;
@@ -144,7 +184,16 @@
     if ($("provider").value === "mock") feedback("Mock fixture selected. Click Evaluate to test the pipeline; no semantic assessment occurs.");
   };
   $("model").oninput = () => {clearResult(); updateMode();};
-  Promise.all([api("/api/config"), api("/api/conversations")]).then(([settings, data]) => {
+  Promise.all([api("/api/config"), api("/api/conversations")]).then(async ([settings, data]) => {
     config = settings; records = data; $("model").value = settings.model; filter();
+    const diagnosticId = new URL(window.location.href).searchParams.get("diagnostic");
+    if (diagnosticId) {
+      const diagnostic = await api("/api/diagnostics/" + encodeURIComponent(diagnosticId));
+      $("conversation").value = diagnostic.conversation.conversation_id;
+      await selectConversation();
+      $("provider").value = diagnostic.run.provider; updateMode();
+      rejected = diagnostic; renderFailure(diagnostic, $("results"), $("run-summary")); $("download").disabled = false;
+      feedback("Saved genuine response rejected by validation. No total and no new model request.", true);
+    }
   }).catch(error => feedback(error.message, true));
 })();
