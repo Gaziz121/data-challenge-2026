@@ -14,20 +14,35 @@ import re
 import threading
 from urllib.parse import unquote, urlsplit
 
-from pydantic import ValidationError
+from pydantic import Field, ValidationError, model_validator
 
 from .engine import CheckBlocked, EvaluationRejected, evaluate
-from .io import load_checklist, parse_json
+from .access import AccessDenied, ConversationInput, InputPolicy, ExportPolicy, dev_authorization
+from .checklists import ChecklistConflict, ChecklistRegistry
+from .io import digest, load_checklist, parse_json
 from .loader import ROOT, SHARED, load_conversation, read_dataset, require_approved_synthetic
 from .providers import MockProvider, OpenAIProvider, ProviderError
-from .schemas import Contract, EvaluationConfig
+from .schemas import AuditEvent, Checklist, Contract, Conversation, EvaluationConfig
 from typing import Literal, Optional
 
 
+class ChecklistReference(Contract):
+    checklist_id: str = Field(min_length=1)
+    version: str = Field(min_length=1)
+
+
 class EvaluationRequest(Contract):
-    conversation_id: str
+    conversation_id: Optional[str] = Field(default=None, min_length=1)
+    conversation: Optional[ConversationInput] = None
+    checklist: Optional[ChecklistReference] = None
     provider: Literal["mock", "openai"] = "mock"
     model: Optional[str] = None
+
+    @model_validator(mode="after")
+    def one_input(self):
+        if (self.conversation_id is None) == (self.conversation is None):
+            raise ValueError("Supply exactly one conversation_id or conversation")
+        return self
 
 
 def load_env_file(path):
@@ -53,7 +68,8 @@ def load_env_file(path):
 
 class Application:
     def __init__(self, *, checklist=None, model=None, allow_external=False,
-                 api_key=None, provider_factory=None, output_dir=None, config=None, live_call_limit=None):
+                 api_key=None, provider_factory=None, output_dir=None, config=None, live_call_limit=None,
+                 authorization_manifest=None, allow_external_authorized=False):
         self.checklist = checklist or load_checklist()
         self.model = model or os.environ.get("CQA_MODEL", "")
         self.api_key = os.environ.get("OPENAI_API_KEY", "") if api_key is None else api_key
@@ -65,6 +81,8 @@ class Application:
         self.output_dir = Path(output_dir) if output_dir else ROOT / "outputs/app"
         if (ROOT / "outputs").resolve() not in self.output_dir.resolve().parents:
             raise ValueError("Application output must remain under ignored outputs/")
+        self.input_policy = InputPolicy.from_path(authorization_manifest, allow_external=allow_external_authorized)
+        self.checklists = ChecklistRegistry(self.checklist, self.output_dir / "checklists")
         self.lock = threading.Lock()
         data, _ = read_dataset(SHARED)
         self.records = data["records"]
@@ -73,12 +91,14 @@ class Application:
         self.ids = {r["conversation_id"] for r in self.records}
 
     def _provider(self, name, model):
-        return MockProvider() if name == "mock" else OpenAIProvider(model, api_key=self.api_key)
+        return MockProvider() if name == "mock" else OpenAIProvider(
+            model, api_key=self.api_key, input_policy=ExportPolicy(self.input_policy, self.allow_external))
 
     def config(self):
         return {"default_provider": "mock", "model": self.model,
                 "openai_key_present": bool(self.api_key.strip()),
                 "external_synthetic_allowed": self.allow_external,
+                "external_authorized_allowed": self.input_policy.allow_external,
                 "live_calls_remaining": None if self.live_call_limit is None else max(0, self.live_call_limit - self.live_calls),
                 "checklist": self.checklist.model_dump(mode="json")}
 
@@ -88,15 +108,29 @@ class Application:
         return load_conversation(SHARED, conversation_id)
 
     def run(self, request):
-        conversation = self.conversation(request.conversation_id)
+        request = EvaluationRequest.model_validate(request.model_dump())
+        if request.conversation is not None:
+            try:
+                conversation = request.conversation.normalize()
+            except (ValueError, KeyError, TypeError):
+                raise ValueError("Supplied conversation failed normalization; no input evaluated") from None
+            authorization = self.input_policy.authorize(conversation, request.provider)
+        else:
+            conversation = self.conversation(request.conversation_id)
+            authorization = dev_authorization(conversation)
+        checklist = self.checklists.get(request.checklist) if request.checklist else self.checklist.model_copy(deep=True)
         model = request.model or self.model
         if request.provider == "openai":
-            if not self.allow_external:
+            if request.conversation is None and not self.allow_external:
                 raise ValueError("External evaluation disabled. Restart with --allow-external-synthetic.")
             if not self.api_key.strip():
                 raise ValueError("OPENAI_API_KEY is not configured; no request sent.")
             if not model or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}", model):
                 raise ValueError("Choose an explicit supported OpenAI model.")
+            authorization = authorization.model_copy(update={"permission": "external_openai"})
+        receipt = authorization.model_dump(mode="json")
+        authorization_event = AuditEvent(stage="input_authorization", component_version="manifest-v1",
+                                         outcome="passed", artifact_sha256=digest(receipt))
         if not self.lock.acquire(blocking=False):
             raise BlockingIOError("An evaluation is running; wait before submitting another.")
         try:
@@ -104,16 +138,21 @@ class Application:
                 if self.live_call_limit is not None and self.live_calls >= self.live_call_limit:
                     raise ValueError("Live call limit reached; no request sent.")
                 self.live_calls += 1  # Reserve before transport; failed calls are never automatically retried.
-            result = evaluate(conversation, self.checklist, self.provider_factory(request.provider, model),
+            result = evaluate(conversation, checklist, self.provider_factory(request.provider, model),
                               self.evaluation_config.model_copy(update={"external_synthetic_allowed": self.allow_external}))
-            self.output_dir.mkdir(parents=True, exist_ok=True)
-            with (self.output_dir / (result.evaluation_id + ".json")).open("x", encoding="utf-8") as handle:
+            result = result.model_copy(update={"run": result.run.model_copy(update={"input_authorization": authorization}),
+                                               "audit": [authorization_event] + result.audit})
+            self.output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+            target = self.output_dir / (result.evaluation_id + ".json")
+            with os.fdopen(os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w", encoding="utf-8") as handle:
                 handle.write(result.model_dump_json(indent=2) + "\n")
             return result
         except EvaluationRejected as error:
-            self.output_dir.mkdir(parents=True, exist_ok=True)
+            error.diagnostic["run"]["input_authorization"] = receipt
+            error.diagnostic["audit"].insert(0, authorization_event.model_dump(mode="json"))
+            self.output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
             target = self.output_dir / ("rejected-" + error.diagnostic["diagnostic_id"] + ".json")
-            with target.open("x", encoding="utf-8") as handle:
+            with os.fdopen(os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w", encoding="utf-8") as handle:
                 json.dump(error.diagnostic, handle, ensure_ascii=False, indent=2)
             raise
         finally:
@@ -140,6 +179,10 @@ def create_server(port=8765, application=None):
               "/human-review/": (human_page, "text/html; charset=utf-8")}
 
     class Handler(BaseHTTPRequestHandler):
+        def setup(self):
+            super().setup()
+            self.connection.settimeout(15)
+
         def log_message(self, format, *args):
             pass  # Do not log request bodies, conversation IDs or private errors.
 
@@ -175,6 +218,13 @@ def create_server(port=8765, application=None):
                     return self.send_body(200, target.read_bytes(), mime)
                 if path == "/api/config":
                     return self.reply(200, app.config())
+                if path == "/api/checklists":
+                    return self.reply(200, app.checklists.list())
+                if path.startswith("/api/checklists/"):
+                    identifier = path[len("/api/checklists/"):]
+                    if not re.fullmatch(r"[0-9a-f]{64}", identifier):
+                        return self.reply(404, {"error": "Checklist version not found"})
+                    return self.reply(200, app.checklists.by_hash(identifier).model_dump(mode="json"))
                 if path == "/api/conversations":
                     return self.reply(200, [{k: r[k] for k in ("conversation_id", "channel", "language")}
                                             for r in app.records])
@@ -186,34 +236,51 @@ def create_server(port=8765, application=None):
                     if not target.is_file():
                         return self.reply(404, {"error": "Diagnostic not found"})
                     diagnostic = parse_json(target.read_bytes())
-                    if diagnostic.get("conversation", {}).get("conversation_id") not in app.ids:
-                        return self.reply(404, {"error": "Diagnostic outside synthetic DEV"})
+                    conversation = Conversation.model_validate(diagnostic["conversation"])
+                    try:
+                        dev_authorization(conversation)
+                    except ValueError:
+                        try:
+                            app.input_policy.authorize(conversation)
+                        except AccessDenied:
+                            return self.reply(404, {"error": "Diagnostic not authorized"})
                     return self.reply(200, diagnostic)
                 if path.startswith("/api/conversations/"):
                     conversation = app.conversation(unquote(path[len("/api/conversations/"):]))
                     return self.reply(200, conversation.model_dump(mode="json"))
                 return self.reply(404, {"error": "Not found"})
-            except LookupError:
-                return self.reply(404, {"error": "Conversation not found in synthetic DEV"})
+            except LookupError as error:
+                return self.reply(404, {"error": str(error)})
             except Exception:
                 return self.reply(500, {"error": "Local input unavailable or invalid; inspect configuration"})
 
         def do_POST(self):
             if not self.valid_host() or self.headers.get("Origin") != "http://" + self.headers.get("Host", ""):
                 return self.reply(403, {"error": "Same-origin local request required"})
-            if self.path != "/api/evaluations":
+            if self.path not in ("/api/evaluations", "/api/checklists"):
                 return self.reply(404, {"error": "Not found"})
             if self.headers.get("Content-Type", "").split(";")[0] != "application/json":
                 return self.reply(415, {"error": "JSON required"})
             try:
-                length = int(self.headers.get("Content-Length", "0"))
-                if not 0 < length <= 4096:
+                lengths = self.headers.get_all("Content-Length", [])
+                if len(lengths) != 1 or not re.fullmatch(r"[0-9]{1,10}", lengths[0]):
                     return self.reply(413, {"error": "Invalid request size"})
-                request = EvaluationRequest.model_validate(parse_json(self.rfile.read(length)))
+                length = int(lengths[0])
+                maximum = 1024 * 1024 if self.path == "/api/evaluations" else 256 * 1024
+                if not 0 < length <= maximum or self.headers.get("Transfer-Encoding") is not None:
+                    return self.reply(413, {"error": "Invalid request size"})
+                body = parse_json(self.rfile.read(length))
+                if self.path == "/api/checklists":
+                    return self.reply(201, app.checklists.save(Checklist.model_validate(body)))
+                request = EvaluationRequest.model_validate(body)
                 result = app.run(request)
                 return self.reply(200, result.model_dump(mode="json"))
-            except LookupError:
-                return self.reply(404, {"error": "Conversation not found in synthetic DEV"})
+            except LookupError as error:
+                return self.reply(404, {"error": str(error)})
+            except AccessDenied as error:
+                return self.reply(403, {"error": str(error)})
+            except ChecklistConflict as error:
+                return self.reply(409, {"error": str(error)})
             except BlockingIOError:
                 return self.reply(409, {"error": "An evaluation is already running"})
             except ValidationError:
@@ -240,6 +307,8 @@ def main(argv=None):
     parser.add_argument("--checklist", type=Path)
     parser.add_argument("--env-file", type=Path, help="Ignored local env file; never served or logged")
     parser.add_argument("--allow-external-synthetic", action="store_true")
+    parser.add_argument("--authorization-manifest", type=Path, help="Owner-provisioned, content-bound local approvals")
+    parser.add_argument("--allow-external-authorized", action="store_true", help="Opt in to provider exports explicitly approved in the manifest")
     parser.add_argument("--max-output-tokens", type=int, default=8000)
     parser.add_argument("--timeout-seconds", type=int, default=90)
     parser.add_argument("--live-call-limit", type=int, help="Optional hard per-process cap, including failed attempts")
@@ -248,6 +317,8 @@ def main(argv=None):
         settings = load_env_file(args.env_file) if args.env_file else {}
         app = Application(checklist=load_checklist(args.checklist), model=args.model or settings.get("CQA_MODEL"),
                           api_key=settings.get("OPENAI_API_KEY"), allow_external=args.allow_external_synthetic,
+                          authorization_manifest=args.authorization_manifest,
+                          allow_external_authorized=args.allow_external_authorized,
                           config=EvaluationConfig(quote_policy="normalize_formatting", max_output_tokens=args.max_output_tokens,
                                                   timeout_seconds=args.timeout_seconds), live_call_limit=args.live_call_limit)
         server = create_server(args.port, app)

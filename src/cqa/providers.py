@@ -67,19 +67,21 @@ class MockProvider:
 class OpenAIProvider:
     """Responses API with strict JSON Schema, no SDK, no retries, no stored response.
 
-    A transport can be injected for offline HTTP contract tests. The synthetic gate
-    still runs before the transport, so tests also exercise the export boundary.
+    A transport can be injected for offline HTTP contract tests. Default access
+    remains exact approved DEV; an explicit content-bound policy can authorize
+    other transcripts. Both gates run before transport.
     """
     name = "openai"
     is_mock = False
     ENDPOINT = "https://api.openai.com/v1/responses"
 
-    def __init__(self, model, api_key=None, transport=None):
+    def __init__(self, model, api_key=None, transport=None, input_policy=None):
         if not isinstance(model, str) or not model.strip():
             raise ProviderError("An explicit structured-output-capable model is required")
         self.model = model
         self._key = api_key if api_key is not None else os.environ.get("OPENAI_API_KEY", "")
         self._transport = transport or self._post
+        self._input_policy = input_policy
 
     def _post(self, payload, timeout):
         request = urllib.request.Request(
@@ -97,7 +99,10 @@ class OpenAIProvider:
             raise ProviderError("OpenAI transport failed or returned invalid JSON; details withheld") from None
 
     def evaluate(self, conversation, checklist, request, config):
-        require_approved_synthetic(conversation, config.external_synthetic_allowed)
+        if self._input_policy is None:
+            require_approved_synthetic(conversation, config.external_synthetic_allowed)
+        else:
+            self._input_policy.authorize(conversation, "openai")
         if not self._key or not self._key.strip():
             raise ProviderError("OPENAI_API_KEY is not configured; no request sent")
         # Rebuild from validated inputs: a caller cannot inject a different transcript

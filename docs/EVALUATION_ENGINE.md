@@ -1,6 +1,6 @@
 # Modular evaluation baseline and contract v1
 
-Current core note: engine 0.3.0 defaults to `official-v2.json` / rubric
+Current core note: engine 0.4.0 defaults to `official-v2.json` / rubric
 `2026-11-07.v2`, prompt `baseline-v3` and active model-output schema `1.1`.
 Atomic checks precede the response in the actual serialized provider schema;
 applicability questions precede other questions in the model input. Legacy
@@ -163,12 +163,17 @@ incomplete output and invalid structured results fail explicitly, with raw
 provider bodies/private values withheld from CLI error messages. A structured
 result still needs factual and semantic review.
 
-External calls require explicit run opt-in AND exact content membership in the
+The default/CLI policy requires explicit run opt-in AND exact content membership in the
 reviewed 60-chat derivative with its pinned file hash. Changing a channel/ID does
 not bypass the check. Full-DEV synthetic records pass the same content comparison;
 all five real calls and altered/unreviewed records fail before transport. This
-baseline adapter is intentionally restricted to that authorized dataset; future
-control data or new synthetic sources need a separately reviewed export policy.
+default policy remains restricted to that authorized dataset. The HTTP backend can
+explicitly supply `InputPolicy`/`ExportPolicy` for new transcripts. These require
+owner-provisioned, expiring exact-content grants and separate provider export
+opt-in; unapproved private data is denied before transport. They do not authorize
+audio retrieval/export or certify organizer consent. See the internal
+[backend contract](BACKEND_CONTRACT.md) for manifests, supplied conversation JSON
+and saved checklist version selection. No new model call was made in this pass.
 
 Each result records provider, requested/returned model, engine/Python/Pydantic
 versions, checklist snapshot/version/hash, input ID/source hashes, full prompt

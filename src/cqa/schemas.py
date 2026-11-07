@@ -291,6 +291,15 @@ class EvidenceRepair(Contract):
     policy: Literal["formatting-v1"] = "formatting-v1"
 
 
+class InputAuthorization(Contract):
+    policy_version: Literal["1.0"] = "1.0"
+    data_class: Literal["synthetic_test", "organizer_control", "organizer_dev"]
+    source: Literal["approved_dev", "local_manifest"]
+    conversation_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    authorization_reference: str
+    permission: Literal["local_evaluation", "external_openai"]
+
+
 class RunMetadata(Contract):
     engine_version: str
     python_version: str
@@ -307,6 +316,7 @@ class RunMetadata(Contract):
     prompt_sha256: str
     checklist_sha256: str
     configuration: EvaluationConfig
+    input_authorization: Optional[InputAuthorization] = None
 
 
 class DecisionRevision(Contract):

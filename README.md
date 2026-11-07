@@ -9,12 +9,15 @@ and [scoring specification](case/CQA_SCORING_SPEC.md).
 Validation repairs, the 41/41 independent QA result and the exact single-call
 OpenAI outcome are documented in [the repair report](docs/VALIDATION_REPAIR_REPORT.md).
 
-The current core is engine 0.3.0 / prompt `baseline-v3`, with atomic-first model
+The current core is engine 0.4.0 / prompt `baseline-v3`, with atomic-first model
 output schema 1.1 and historical 1.0 reading. See the
 [readiness audit](docs/CORE_READINESS_AUDIT.md) and
 [implemented backend contract](docs/BACKEND_CONTRACT.md) before frontend work.
-New local conversations work through Python; the HTTP/OpenAI paths still restrict
-input to the reviewed 60 synthetic DEV chats.
+The backend accepts new chat/voice transcripts using owner-provisioned,
+content-bound approvals and explicit provider export permissions. Existing DEV-ID
+requests remain supported. Checklists can be saved as immutable versions and
+selected per evaluation; see the backend contract for exact JSON and safe startup.
+The readiness audit records the earlier `b5702b1` snapshot.
 
 ## Run the local browser application
 
@@ -71,7 +74,9 @@ It requires an authorized `OPENAI_API_KEY`, an explicit `--model`, and
 `--allow-external-synthetic`. Obtain credentials through secure key setup; never
 paste them into chat or source files. The adapter rechecks complete record content
 against the reviewed synthetic derivative before any network request. All five
-real calls are blocked from external evaluation; audio links are never exported.
+real calls remain blocked by that default CLI policy; audio links are never exported.
+The HTTP backend has a separate explicit, content-bound authorization policy for
+new synthetic/control transcripts; no request can authorize its own data export.
 An authorized existing credential has now been used for one smoke request; its
 response failed validation. Current live attempts are capped at zero; see the
 repair report before authorizing another request.

@@ -1,7 +1,7 @@
 # Implemented backend contract for the frontend teammate
 
 Source: `src/cqa/web.py`, `schemas.py`, `loader.py`, `engine.py`, `scoring.py`.
-Engine 0.3.0 / prompt `baseline-v3`. This describes implemented source after
+Engine 0.4.0 / prompt `baseline-v3`. This describes implemented source after
 backend restart, not a promised future API. No frontend code changed in this task.
 
 ## Versions and request boundary
@@ -18,15 +18,65 @@ backend restart, not a promised future API. No frontend code changed in this tas
 | `GET /api/config` | Default provider, model, key-presence boolean (never key), external opt-in, remaining per-process live-call count/null, complete active checklist |
 | `GET /api/conversations` | Array of approved DEV `{conversation_id, channel, language}` metadata |
 | `GET /api/conversations/{id}` | Normalized Conversation below; only approved cached DEV IDs |
-| `POST /api/evaluations` | ID + optional provider/model -> new EvaluationResult, or explicit error |
-| `GET /api/diagnostics/{id}` | Retained rejected output with model/run/input/checklist/criterion issues; only named local synthetic diagnostics |
+| `POST /api/evaluations` | Exactly one DEV ID or authorized supplied conversation, optional checklist reference/provider/model -> new EvaluationResult |
+| `GET /api/checklists` | Registered checklist IDs/versions/content SHA256 |
+| `GET /api/checklists/{sha256}` | Full registered Checklist by content hash |
+| `POST /api/checklists` | Validate/save a full Checklist; immutable ID/version, returns 201 reference/hash |
+| `GET /api/diagnostics/{id}` | Retained rejected output; exact approved DEV content or currently authorized supplied input only |
 
-There is no conversation-upload endpoint, checklist CRUD/version-selection
-endpoint, result-history GET, appeal/override endpoint or organizer control fetch.
-Do not send a conversation or checklist object in POST `/api/evaluations`:
-those extra fields return 422. The current local app is single-process,
-loopback-only, unauthenticated, and has no cross-origin CORS API for a separately
-hosted frontend. Same-origin integration or a later reviewed adapter is needed.
+The local app remains single-process, loopback-only and same-origin; it is not an
+internet service. POST requires `Origin: http://127.0.0.1:<port>` (or matching
+localhost Host). No CORS, remote login, result-history GET, appeal endpoint or
+organizer control fetch is implemented. No frontend code changed.
+
+## Content authorization for supplied input
+
+New input requires a matching owner-provisioned **local** manifest, even for mock.
+Request bodies cannot grant approval or set the data class. Unknown/private input
+returns 403 before provider construction, call-budget reservation or result storage.
+The owner must verify the actual data-use permission before adding a grant:
+
+- `synthetic_test`: reviewed fictional test content.
+- `organizer_control`: content whose local processing is organizer-authorized.
+- `organizer_dev`: provided real DEV transcripts, distinct from control data.
+- Unapproved private content: no grant, denied. It cannot be promoted by a request.
+
+Save the `conversation` object below in an ignored local file (for example
+`restricted/new-input.json`), then fingerprint it without exporting its contents:
+
+```sh
+PYTHONPATH=src python3 -m cqa.access restricted/new-input.json
+```
+
+The fingerprint binds the normalized messages, source IDs/order/timestamps, group,
+channel/language and raw-record hash. Only the dataset-file/envelope byte hash is
+excluded, so equivalent re-imports work. The raw-record hash also binds the audio
+field; audio URLs are never fetched or included in normalized/model output.
+
+For the exact fictional example below, a local-only approval manifest is:
+
+```json
+{"schema_version":"1.0","grants":[{"conversation_sha256":"63bb6b7329d08ded8d9a9e997b41c36b4058443053f0a3bfc7048e31297974e2","data_class":"synthetic_test","authorization_reference":"owner-approved-fictional-example","external_providers":[],"expires_at":"2030-01-01T00:00:00Z"}]}
+```
+
+Store approvals outside Git, e.g. `restricted/input-approvals.json`. Use a suitable
+expiry and a short nonsecret approval reference, never a signed access URL. The
+manifest is an owner's permission record, not independently verified organizer
+consent. It is snapshotted at startup: restart to replace/revoke grants; expiry is
+checked on every evaluation, provider export and diagnostic read.
+
+```sh
+PYTHONPATH=src python3 -m cqa.web --port 8765 --live-call-limit 0 \
+  --authorization-manifest restricted/input-approvals.json
+```
+
+External export additionally requires `external_providers:["openai"]` on that
+exact grant, `--allow-external-authorized`, an authorized key, explicit model and
+remaining budget. None is enabled by the example. The original DEV-ID path keeps
+its exact-content check and separate `--allow-external-synthetic` opt-in. The
+OpenAI adapter defaults to the original gate unless explicitly constructed with
+an input policy, and rechecks authorization before transport. No paid calls or
+credential loading occurred in this implementation pass.
 
 ## Input shapes: Python ingress versus HTTP
 
@@ -58,7 +108,7 @@ exported in normalized/results contracts; voice timestamps are not player offset
 Evidence IDs join within this conversation, so use conversation ID + local message
 ID together; local `m0000` repeats in another conversation.
 
-Checklist input is Python/startup configuration, not a POST field:
+A default checklist can still be selected at startup:
 
 ```sh
 PYTHONPATH=src python3 -m cqa.web --checklist path/to/saved-checklist.json --live-call-limit 0
@@ -69,6 +119,13 @@ ID/title/instructions, binary/discrete/critical kind, integer weight, levels and
 anchors, nullable N/A condition/rule, atomic questions, consistency implications
 and evidence policy. A rule binds a question ID to a yes/no N/A trigger; question
 references must match the definitions. Categories remain the official three.
+POST `/api/checklists` accepts the full existing Checklist contract, saves it under
+ignored `outputs/app/checklists/`, and returns `{checklist_id, version, sha256}`
+with HTTP 201. Reposting identical content is safe; different content under the
+same ID/version returns 409. Saved snapshots have identity and content checksums
+and survive restart. There is no update/delete route: save a new version instead.
+Evaluation resolves a private checklist snapshot before invoking the engine.
+
 Full schemas can be generated from the actual code:
 
 ```sh
@@ -97,10 +154,25 @@ Content-Length: 62
 {"conversation_id":"p1-ru-001","provider":"mock","model":null}
 ```
 
-Only `conversation_id` is required. Provider defaults to mock; model defaults to
-the server setting when needed. OpenAI needs explicit supported model, authorized
-server credentials, export opt-in and remaining call budget; new input is still
-blocked by exact approved-membership policy. No automatic retry or mock fallback.
+That DEV-ID request remains compatible. Alternatively supply our internal
+conversation contract and an optional saved checklist reference:
+
+```json
+{"conversation":{"dataset_group_id":"INTERNAL_EXAMPLE","record":{"conversation_id":"new-en-001","channel":"agent chat","language":"EN","audio_url":null,"transcript":[{"message_id":"turn-1","timestamp":"00:00","speaker":"client","text":"Where is Help?"},{"message_id":"turn-2","timestamp":"00:01","speaker":"operator","text":"Hello, I am Alex. Open Help. Goodbye."}]}},"checklist":{"checklist_id":"freedom-cqa-initial","version":"2026-11-07.v2"},"provider":"mock"}
+```
+
+Exactly one `conversation_id` or `conversation` is required. `checklist` selects an
+existing ID/version; omission uses the startup default. Provider defaults to mock,
+model to the server setting. `record` uses the known DEV chat/voice structure:
+`channel:"agent chat"` or `"voice call"`; roles client/operator/bot/system;
+nonempty timestamp/text, optional source `message_id`. RU/KZ/EN use the same path.
+Extra/unmapped fields and unknown roles fail closed. New input is returned in the
+result, not added to the DEV selector or human-label workflow.
+
+No automatic paid retry or mock fallback. This is our **internal** request shape,
+not a claim about organizer control payloads. A future organizer adapter must
+verify access/data-use permission, map the actual envelope/roles, retain source
+provenance, and provision explicit content approvals.
 
 Successful HTTP 200 contains these actual keys, all unmodified from the engine:
 
@@ -114,9 +186,10 @@ Minimal **excerpt**, not a complete response or schema-valid fixture:
 {"schema_version":"1.0","status":"mock_only","model_evaluation":{"schema_version":"1.1"},"score":{"total_score":"0.00","applicable_weight":100,"critical_violation":false},"run":{"provider":"mock","is_mock":true}}
 ```
 
-The complete audit-generated example is local-only at
-`outputs/readiness-audit/full-mock-result.json`; this is a fixed fixture, never
-a quality judgment. Produce a full fresh HTTP result with the mock request above.
+The complete verified supplied-input example is local-only at
+`outputs/control-backend-verification/documented-response.json`, with its request
+beside it. It is a fixed mock fixture, never a quality judgment. Produce a fresh
+HTTP result using the request and owner-approved local manifest above.
 
 Each criterion decision contains all of:
 
@@ -155,6 +228,9 @@ contributions. HALF_UP tie-breaking is a recorded local convention.
 
 `run` includes engine/Python/Pydantic versions, provider/model, mock flag, UTC
 time, latencies, response ID, optional usage, prompt/checklist hashes and config.
+`run.input_authorization` records the data class, source policy, exact conversation
+fingerprint, permission and owner reference. An authorization event is also added
+to the audit. Historical/direct-core results may have this optional field null.
 Result status is mock_only, needs_review or structurally_valid. These are not
 accuracy certifications; review results still carry provisional raw decisions
 and a calculated total. A critical flag does not currently auto-escalate status.
@@ -162,16 +238,18 @@ and a calculated total. A critical flag does not currently auto-escalate status.
 ## Re-evaluation and errors
 
 Repeating POST with the same ID generates a new evaluation ID and retains a
-separate result; it does not overwrite a human label. To change checklist version,
-reconfigure/restart the current server (or pass another Checklist to the Python
-core). There is no HTTP `checklist_version` selector or deduplicating result cache.
+separate result; it does not overwrite a human label. To change the checklist, save a new full Checklist with POST `/api/checklists`,
+then pass `"checklist":{"checklist_id":"...","version":"..."}` in the next
+evaluation request. No restart is needed. Results retain full checklist snapshots,
+version/content hash and distinct evaluation IDs; earlier results remain intact.
+There is no deduplicating result cache.
 
 | HTTP status | Meaning |
 | --- | --- |
-| 403 | Wrong Host or missing/foreign Origin |
+| 403 | Wrong Host/Origin; supplied input missing/expired approval or provider export denied |
 | 404 | Unknown route/conversation/diagnostic |
-| 409 | Another evaluation is running |
-| 413 / 415 | Body not 1..4096 bytes / Content-Type is not JSON |
+| 409 | Another evaluation is running, or checklist ID/version already has different content |
+| 413 / 415 | Evaluation body outside 1..1048576 bytes, checklist outside 1..262144 bytes, invalid framing / Content-Type is not JSON |
 | 422 | Invalid request/config, quality-check block or rejected model output |
 | 502 | Provider transport/refusal/incomplete-output failure |
 | 500 | Local/processing failure with private details withheld |

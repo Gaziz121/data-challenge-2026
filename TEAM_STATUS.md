@@ -165,6 +165,27 @@ future work.
 - Highest blockers: authorized unseen-input ingestion/export path, demonstrated
   live/semantic reliability, and frontend-facing dynamic-checklist delivery.
 
+## Authorized-input and checklist backend delivery
+
+- Engine 0.4.0 retains prompt baseline-v3, model-output 1.1 and the existing scorer,
+  evidence gates and default rubric. No frontend or independent QA files changed.
+- POST /api/evaluations accepts either the compatible DEV conversation_id or an
+  internal supplied chat/voice record. New content requires a matching, unexpired
+  owner-provisioned local grant: synthetic_test, organizer_control or organizer_dev. Unknown
+  private input is denied. External export also needs an exact provider grant and
+  separate runtime opt-in; original exact-DEV export policy remains the default.
+- POST /api/checklists saves immutable ID/version snapshots; GET lists/retrieves
+  them. Evaluation can select an explicit saved checklist version without restart.
+  Old results/snapshots are retained. Unsupported scales/categories still reject.
+- Verification: application97 run/96 passed/one expected original local-file skip;
+  original independent41 and replay15 all pass; both Node suites pass. Fourteen new
+  tests include unseen RU/KZ/EN, new criterion, changed weight/version, denied
+  export/tampering, exact evidence and all five actual local voice transcripts.
+  No paid calls, API-key loading, organizer API fetch or human labels produced.
+- Organizer access/payload mapping and genuine semantic reliability remain
+  unverified. The manifest records owner-reviewed permission; it does not certify
+  organizer consent. See docs/BACKEND_CONTRACT.md for internal JSON/setup.
+
 ## Private synchronization policy
 
 Use live Git preflight/fetch and history comparison, not this snapshot, to verify
