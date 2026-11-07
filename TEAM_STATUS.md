@@ -248,6 +248,20 @@ future work.
   no accepted genuine quality total. Scope citations and event chronology validate
   locators, not truth; complaint/identity/product semantics need reviewed labels.
 
+## Proposals pending review (not executed)
+
+- Aibek's proposals are in `docs/PROPOSAL_COURSE_METHODS.md` (snapshot `6481390`).
+  Nothing there is implemented; no calls, labels or production changes were made.
+- Highest priority: a bounded repair loop on validation failure, an owner decision
+  on a labeled provisional result for control runs, and a live smoke run on about
+  10 DEV chats to measure the real rejection rate. All four recorded genuine
+  responses were rejected, and the documented runs used only `p1-ru-001`.
+- Benchmark design: many KZ/EN chats adapt RU scenarios. Group splits and
+  cross-validation by scenario to avoid leakage; the example mapping is in the doc
+  and still needs human confirmation.
+- Agreed with Gaziz: Aibek builds a separate experimental evaluator locally, to be
+  compared on the same labels and folds. It has no results yet.
+
 ## Private synchronization policy
 
 Use live Git preflight/fetch and history comparison, not this snapshot, to verify
