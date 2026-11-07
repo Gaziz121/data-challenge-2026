@@ -3,7 +3,7 @@
 This is the team's authoritative onboarding and work-ownership guide. Read it
 before choosing a branch. Technical contracts remain in the linked documents;
 original organizer materials remain authoritative for competition requirements.
-Snapshot: **November 7, 2026, Asia/Almaty**. Engine checked: `f4599f0`; independent
+Snapshot: **November 7, 2026, Asia/Almaty**. Engine checked: `6481390`; independent
 QA checked: `3ff9c76`. Branch tips can advance; inspect Git before relying on this
 snapshot. [TEAM_STATUS.md](TEAM_STATUS.md) records the concise shared status.
 
@@ -11,6 +11,13 @@ For the reasoning behind the implementation, read
 [Architecture Decisions](docs/ARCHITECTURE_DECISIONS.md). For five measurable
 future trials, existing synthetic collections and the safe scenario/label
 contribution workflow, read [Experiment Backlog](docs/EXPERIMENT_BACKLOG.md).
+
+For daily branch/PR/conflict steps and which safeguards GitHub actually enforces,
+read [Git collaboration workflow](GIT_WORKFLOW.md#four-person-daily-workflow).
+The owner explicitly confirms PUBLIC visibility and authorizes reviewed safe
+documentation publication. Latest remote integration is `6481390` (0.6.1);
+setup/test evidence below is refreshed to that commit. This branch contains only
+documentation changes on older source; run the integration clone, not this branch.
 
 ## 1. What we must deliver
 
@@ -33,7 +40,8 @@ dialogue input → evaluation with per-criterion reasons/evidence and total → 
 - Final handoff requires a **separate sanitized public GitHub repository** and a
   five-minute defense. The guide describes control release at hour 23 and code
   stop at hour 24; exact event start/deadline and presentation logistics still need
-  confirmation. Keep this development repository private.
+  confirmation. The owner has intentionally made this repository public; final
+  submission scope/redistribution remains a separate decision. Do not change settings.
 
 Read [requirements and user-relayed clarifications](case/CQA_REQUIREMENTS.md),
 [exact scoring specification](case/CQA_SCORING_SPEC.md), and the three reviewed
@@ -43,16 +51,16 @@ accuracy thresholds, factual policies or an official development answer key.
 
 ## 2. Choose the correct code
 
-Private remote: `https://github.com/Gaziz121/data-challenge-2026.git`.
+Repository: `https://github.com/Gaziz121/data-challenge-2026.git`.
 Successful fetch and remote-head inspection confirmed these published branches:
 
 | Branch | Observed tip | Use |
 | --- | --- | --- |
 | `main` | `207b23f` | Shared materials/setup baseline; lacks the current engine/app |
 | `codex/cqa-evaluation-engine` | `ebcab33` | Original engine baseline; superseded for app development |
-| `codex/local-mvp-integration` | `f4599f0` | Current shared engine 0.5.0, backend, browser MVP and human viewer |
+| `codex/local-mvp-integration` | `6481390` | Current engine 0.6.1, compatibility v3 and opt-in atomic v4, backend, browser MVP and human viewer |
 | `feature/cqa-independent-qa` | `3ff9c76` | Claude's independent `qa/` tests, scenarios, replay and Accuracy Lab |
-| `codex/team-handoff-docs-20261107` | Local documentation branch | This guide and navigation changes; **not pushed** |
+| `codex/team-handoff-docs-20261107` | Documentation-only branch based on `f4599f0` | This guide/navigation; proposed PR targets integration, no engine merge |
 
 The QA branch descends from the original engine baseline. Its bundled `src/` is
 older than integration; use its `qa/` against a pinned integration engine as below.
@@ -70,11 +78,9 @@ Owner's Mac worktrees (paths are not teammate prerequisites):
 | `data-challenge-2026-independent-qa` | Claude's QA worktree; preserve independent tests |
 | `data-challenge-2026-team-handoff-docs` | Isolated documentation worktree based on `f4599f0` |
 
-A final read-only status check found in-progress `src/cqa/schemas.py` changes
-and untracked `src/cqa/atomic.py` in the active integration worktree. These are
-**local-only engine work**, excluded from `f4599f0` and this verification. Do not
-copy them or assume they are available to teammates; the engine owner will publish
-a reviewed version. The original dirty viewer/docs files also remain untouched.
+The engine owner has now published `5d256ac` and `6481390`; they are no longer
+local-only. This audit tested an archive of `6481390`, leaving the active worktree
+untouched. The original dirty viewer/docs files also remain preserved.
 
 Local working files, local commits, cached `origin/*` and actual remote heads are
 different states. Use `git status`, `git worktree list`, `git branch -avv`,
@@ -84,11 +90,13 @@ rebase someone else's work to make setup easier.
 
 ## 3. First setup and safe run
 
-Prerequisites: private GitHub access, Git, Python **3.9+** with venv/pip, and Node
+Prerequisites: Git, Python **3.9+** with venv/pip, and Node
 to run the two JavaScript tests. Verified here: Python 3.9.6, Pydantic 2.13.5,
 Node 26.8.1. No npm install, frontend build, database, API key or raw DEV is needed
 for the mock application and synthetic-data tests. These commands target macOS/
 Linux shells; choose a new empty destination, never an existing owner's checkout.
+Public cloning needs no invitation; accepted write access is needed to push a
+branch in this repository. Two write invitations remain pending.
 
 ```sh
 git clone --branch codex/local-mvp-integration --single-branch https://github.com/Gaziz121/data-challenge-2026.git freedom-cqa
@@ -105,9 +113,10 @@ PYTHONPATH=src python3 -B -m cqa.web --port 8765 --live-call-limit 0
 ```
 
 Read `CLAUDE.md`, the [file map](PROJECT_FILE_MAP.md) and team status after cloning.
-If HEAD differs from `f4599f0`, review the newer changes with the integration owner;
-the verification counts here apply to that pinned snapshot. Until this docs branch
-is approved/published, a clone of integration will not contain this new guide.
+If HEAD differs from `6481390`, review the newer changes with the integration owner;
+the verification counts here apply to that pinned snapshot. The integration clone
+will contain this guide only after the documentation PR is accepted; this docs
+branch is not an engine upgrade.
 
 Open <http://127.0.0.1:8765/>. Select a synthetic RU/KZ/EN conversation, evaluate
 with **MOCK**, inspect evidence and download the result. Mock scores are fixed
@@ -115,6 +124,11 @@ test fixtures, not quality judgments. Human Review opens separately at
 <http://127.0.0.1:8765/human-review/>. Stop with Ctrl+C; choose another port if
 8765 is occupied. Running from the repository root is required: editable source
 expects the tracked data and web/viewer assets alongside it.
+
+For the opt-in atomic path on integration 0.6.1, stop the default server and use
+`PYTHONPATH=src python3 -B -m cqa.web --port 8765 --checklist src/cqa/checklists/official-v4.json --live-call-limit 0`.
+Atomic mock facts may be unresolved and intentionally produce no quality total.
+See the atomic contract before changing frontend result rendering.
 
 `.env.local` is optional and ignored. Only an owner-authorized live run needs
 `OPENAI_API_KEY` and an explicit model (`CQA_MODEL` or `--model`). Have the owner
@@ -138,7 +152,7 @@ PYTHONPATH=src python3 -B -m cqa list
 PYTHONPATH=src python3 -B -m cqa schema result
 ```
 
-At `f4599f0`: **108 Python tests, 106 passed, two expected skips** without local raw
+At `6481390`: **127 Python tests, 125 passed, two expected skips** without local raw
 DEV; both Node suites pass. The skipped loader and authorized-voice checks need
 the local-only original. Do not remove the skips or substitute synthetic chats
 and claim real-call coverage. Once permitted raw DEV is provisioned at its mapped
@@ -156,13 +170,13 @@ git clone --branch feature/cqa-independent-qa --single-branch https://github.com
 cd ../freedom-cqa-qa
 git rev-parse HEAD
 mkdir -p tmp
-mkdir tmp/engine-f4599f0
+mkdir tmp/engine-6481390
 set -o pipefail
-git -C "$CQA_ENGINE_ROOT" archive f4599f07a7b2623e24b48dbac8b1c9f4dbe47cbd src data/shared | tar -x -C tmp/engine-f4599f0
-export PYTHONPATH="$(pwd)/tmp/engine-f4599f0/src"
+git -C "$CQA_ENGINE_ROOT" archive 6481390de7f4bd1905b79168c54b600642dc7ef7 src data/shared | tar -x -C tmp/engine-6481390
+export PYTHONPATH="$(pwd)/tmp/engine-6481390/src"
 python3 -B -c 'import cqa; print(cqa.__file__)'
 python3 -B -m unittest discover -t . -s qa -v
-python3 -B -m qa.lab demo --engine-commit f4599f07a7b2623e24b48dbac8b1c9f4dbe47cbd
+python3 -B -m qa.lab demo --engine-commit 6481390de7f4bd1905b79168c54b600642dc7ef7
 ```
 
 Use a new snapshot directory for a new engine commit; do not overwrite a prior
@@ -182,9 +196,10 @@ Keep `proposed_unreviewed` AI scenario labels, `team_human` judgments, disputed
 cells and ambiguous cells distinct. Mock/test-double cells are not assessed as
 model accuracy. Tune on calibration; use frozen holdout only for the designated
 final check with `--holdout-confirm`, and record exposure. A DEV benchmark split
-is proposed, not adopted/labeled. Lab predates v3 conditional rules/coverage:
-passing tests do not prove independent checks of those new fields. Workstream D
-must review that compatibility before using Lab to certify a new engine change.
+is proposed, not adopted/labeled. Lab predates v3 rule/coverage additions and v4 wire 1.2/projection semantics.
+These 81 tests and the demo use compatibility mode; they do not independently
+certify the atomic-v4 path. D must review raw-wire/projection handling and new
+fields before using Lab to certify that mode.
 
 ## 5. What exists and how it connects
 
@@ -196,17 +211,19 @@ HTTP wraps this same pipeline. Lab reads saved artifacts independently.
 | --- | --- |
 | `src/cqa/loader.py`, `schemas.py` | Strict known DEV shape; preserve text/order/timestamps/source IDs and bot/system context; normalize local message IDs. New organizer envelopes still need mapping. |
 | `checklists/official-v3.json`, `checklists.py`, `preprocessing.py` | Active rubric `2026-11-07.v3`, structural facts and immutable checklist versions; v1/v2 retained. Supports configurable IDs/questions/integer weights/zero-based integer levels/N/A, not arbitrary categories or fractional/nonzero-minimum scales. |
-| `prompt.py`, `providers.py`, `engine.py` | Engine 0.5.0, prompt `baseline-v4`, atomic-first model output 1.1; historical 1.0 reader, mock and real Responses adapter. No independent second-model checker. |
+| `prompt.py`, `providers.py`, `engine.py` | Engine 0.6.1; compatibility default `baseline-v4`/rubric v3/output 1.1 and historical 1.0 reading. Mock and real adapter; no independent second-model checker. |
+| `atomic.py`, `atomic_prompt.py`, `checklists/official-v4.json`, `tests/test_atomic_path.py` on integration | Opt-in `atomic-v2`/wire 1.2: facts-only C01/C02/C03/C05/C08, configured backend-derived decisions and all-criterion applicability; C04/C06/C07 applicable judgments remain discretionary. Raw provider output and criterion review origins preserved; unresolved/conflicting facts block totals. |
 | `validation.py`, `evidence.py`, `decision_rules.py`, `coverage.py` | Strict field/applicability/atomic/evidence checks; optional formatting-only quote resolution; configured conditional agreement and negative critical scope coverage. Blocks contradictions, retains original reply, never replaces a model answer. Locator coverage does not prove semantic truth. |
 | `scoring.py` | Exact arithmetic; weighted 01–07, permitted N/A redistribution, two-decimal final total. Critical 08 is a separate flag, with no invented penalty/cap. HALF_UP is a documented local rounding convention. |
 | `web.py`, `access.py`, `docs/BACKEND_CONTRACT.md` | Loopback API, content-bound expiring input approvals, separate provider export permissions, checklist save/select, retained rejection diagnostics. No organizer API fetch or production hosting. |
 | `web/`, `tools/dev_review/` | Runnable browser MVP and separate blank human-label viewer; no checklist-editor or appeal/reviewer execution UI. |
 | QA branch `qa/`, `qa/lab/` | Adversarial/replay tests, synthetic scenarios, independent checks, paired offline artifact comparison. AI proposals and scripted demos are not official/human reference answers. |
 
-See [engine internals](docs/EVALUATION_ENGINE.md) for pipeline detail. Two genuine
-provider responses are recorded as rejected in the repair history; **no accepted
-live quality total or semantic accuracy has been established**. This documentation
-pass made no provider calls. `structurally_valid` means gates passed, not that an
+See [engine internals](docs/EVALUATION_ENGINE.md) for compatibility detail and
+the [published atomic contract](https://github.com/Gaziz121/data-challenge-2026/blob/6481390de7f4bd1905b79168c54b600642dc7ef7/docs/BACKEND_CONTRACT.md#atomic-first-contract-engine061-explicit-rubric-v4)
+for the opt-in path. Historical provider failures, including the atomic-v1 run,
+remain rejected; **no accepted live quality total or semantic accuracy is recorded**.
+This documentation audit made no provider calls. `structurally_valid` means gates passed, not that an
 answer is factually correct. Appeals/revision contracts exist; execution is incomplete.
 
 ## 6. Frontend teammate: integrate through the contract
@@ -255,7 +272,7 @@ adjudicated automatically. Preserve source/dataset/rubric hashes and evidence.
 
 | Material | Available from clone? / action |
 | --- | --- |
-| 60 synthetic chats, RU=30/KZ=15/EN=15; 882 messages | Yes: `data/shared/DEV_synthetic_60.json`; private-team use only |
+| 60 synthetic chats, RU=30/KZ=15/EN=15; 882 messages | Yes: `data/shared/DEV_synthetic_60.json`; already public; organizer redistribution permission unverified |
 | Team-safe organizer PDFs, specs, engine/app/viewer source | Yes on integration; safe PDFs omit signed API access |
 | QA/Lab source, synthetic scenarios and replay fixtures | Yes on QA branch; separate from integration |
 | Full 65-record DEV, RU=35/KZ=15/EN=15, including five real RU calls | No: owner-provisioned `data/raw/DEV_conversations.json`; includes restricted transcripts/signed audio links |
@@ -267,8 +284,9 @@ material again. Full originals exist in the owner's checkout; they are deliberat
 absent here. Do not copy them into Git. New organizer control input needs verified
 access/payload mapping and a matching local grant even for HTTP mock evaluation.
 Requests cannot self-authorize. External model export additionally needs explicit
-provider permission, runtime opt-in, key/model and budget. Never publish this repo's
-private history, full DEV, signed URLs, human evidence or secrets. Ignore rules
+provider permission, runtime opt-in, key/model and budget. The repository is now
+public by owner decision; never add full DEV, signed URLs, human evidence, secrets
+or other restricted material. Public read access is not organizer redistribution permission. Ignore rules
 are not an upload review; inspect exact staged contents and outgoing history.
 
 ## 8. Four workstreams and file ownership
@@ -283,7 +301,7 @@ engine session retains ownership of production evaluation changes.
 | **A. AI Evaluation Engine and semantic accuracy** | Improve valid live decisions and rubric fidelity; deliver versioned prompt/checklist changes plus reproducible baseline/candidate evidence. Acceptance: engine + unchanged independent regressions pass; retain rejections; evaluate identical inputs with reviewed labels and report regressions/coverage. Paid tests require separate budget authorization. | `src/cqa/` evaluation modules, versioned rubric JSON, core `tests/test_*.py`. Excludes C's files below. Depends on D's independent labels/Lab and approved factual policy sources; notify B/C of contract changes. |
 | **B. Frontend and UX — teammate owner** | Complete checklist editing, new-input UX, evidence/rejection states and then appeal/reviewer screens when supported. Acceptance: RU/KZ/EN flow on mock, immutable checklist save/select/re-evaluate, exact source jumps, backend totals, explicit errors, independent human labels preserved; Node UI checks pass. | `web/`, `tests/test_web_ui.cjs`. Depends on C's API; request endpoint/asset additions rather than editing backend/core. `tools/dev_review/transcript.js` is shared with D; coordinate before editing. |
 | **C. Backend integration, organizer control API and deployment** | Implement verified organizer adapter and permitted ingestion; define missing appeal/history services with A/B; design and verify deployment. Acceptance: unseen permitted RU/KZ/EN chat/voice works without ID lookup, denied input/export stays denied, checklist snapshots and provenance survive, loopback protection remains until reviewed replacement. Deployment needs tested access/privacy controls, persistence and operational instructions. | `src/cqa/web.py`, `access.py`, `checklists.py`, `tests/test_web.py`, `tests/test_control_backend.py`, `docs/BACKEND_CONTRACT.md`; new organizer/deployment files by agreement. Depends on organizer access/schema/permissions, A's contracts and B's needs. |
-| **D. QA, Accuracy Lab, reproducibility and final submission** | Maintain independent gates, review v3 Lab compatibility, collect separate human labels, freeze calibration/holdout, compare candidates, assemble sanitized submission and defense. Acceptance: pinned engine+QA runs; source hashes/counts and disputed/unresolved denominators reported; no scripted accuracy claims; public export passes human review and runnable setup. | QA branch `qa/`; `tools/dev_review/` and viewer tests on integration-derived branch; onboarding/status/file map and final docs. Depends on language-competent reviewers, A's saved runs, C's permitted control workflow; publication requires explicit approval. |
+| **D. QA, Accuracy Lab, reproducibility and final submission** | Maintain independent gates, review v3/v4 Lab compatibility, collect separate human labels, freeze calibration/holdout, compare candidates, assemble sanitized submission and defense. Acceptance: pinned engine+QA runs; source hashes/counts and disputed/unresolved denominators reported; no scripted accuracy claims; public export passes human review and runnable setup. | QA branch `qa/`; `tools/dev_review/` and viewer tests on integration-derived branch; onboarding/status/file map and final docs. Depends on language-competent reviewers, A's saved runs, C's permitted control workflow; publication requires explicit approval. |
 
 `schemas.py`, `loader.py`, `pyproject.toml`, `.gitignore` and scoring semantics are
 cross-stream contracts: A coordinates changes with C and D before editing; B uses
@@ -305,8 +323,8 @@ claims that missing features or deployment are complete.
    app work. C reviews integration; A reviews semantics; D checks reproducibility.
    QA-only PRs can target `feature/cqa-independent-qa` until an integration PR is
    agreed. No automatic merges/rebases or duplicate copying of engine trees.
-4. Recommended integration sequence: approve/publish this docs-only branch and
-   review its PR against integration; separately review Claude's **`qa/` additions**
+4. Recommended integration sequence: review this docs-only PR against latest
+   integration (`6481390` at audit); separately review Claude's **`qa/` additions**
    for integration, preserving independent fixtures and provenance. Do not replace
    newer engine source with the QA branch's baseline. C chooses the integration
    method after testing the then-current engine; no merge has been performed here.
@@ -314,8 +332,9 @@ claims that missing features or deployment are complete.
    public submission is a separate sanitized export/repository after explicit
    authorization, never a visibility change or push of private history.
 
-Confirm private-repository access for each teammate; this audit verified the
-owner's Git access, not all four accounts.
+Public read access is available. Owner plus one collaborator have accepted write
+access; two write invitations remain pending. Each teammate should verify their
+own branch/PR workflow after accepting, with named ownership agreed first.
 
 Immediate blockers to the complete competition workflow: semantic reliability
 and factual-policy evidence; human labels/frozen DEV benchmark; organizer control
@@ -323,4 +342,5 @@ access/schema/consent and adapter; checklist-editor and appeal/reviewer executio
 deployment/access/persistence decisions; confirmed timing and named owners/backup.
 QA/Lab and engine code are obtainable now, but are not unified on one branch.
 Mock app/frontend work can proceed independently with no secrets or raw DEV.
-This docs branch must be published after approval before teammates can clone it.
+Documentation publication is explicitly authorized; C should review the PR and
+latest engine contract before accepting it. No merge is performed by this audit.

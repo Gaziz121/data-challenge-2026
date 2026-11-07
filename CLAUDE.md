@@ -4,6 +4,12 @@ Team onboarding and work ownership: [TEAM_START_HERE.md](TEAM_START_HERE.md).
 Use it as the single setup entry point; retain the discovery and safety protocol
 below. Historical reports are evidence for their named snapshots, not live status.
 
+Owner decision, November 7, 2026: the existing repository is intentionally PUBLIC.
+Reviewed public-safe documentation publication is authorized. Do not change
+visibility, permissions or rulesets; do not upload restricted data, secrets or
+reviewer outputs. Earlier PRIVATE-only statements describe the prior sharing
+scope and do not override this explicit owner decision.
+
 ## Mandatory Workspace Discovery and Source-of-Truth Protocol
 
 - **Local workspace is not GitHub.** Git-tracked files are only a subset of files
@@ -53,10 +59,10 @@ below. Historical reports are evidence for their named snapshots, not live statu
 - Do not blindly pull, reset, clean, stash, rebase, merge divergent history,
   force-push, or overwrite work. Ask before consequential recovery operations.
   Remote creation/uploads require authorization for the destination and content.
-  Current authorization permits reviewed safe material in the existing PRIVATE
-  repository; do not ask again for that same approved scope. New sensitive
-  material or public publication needs a separate decision. Keep the private
-  development repo private and never copy its private history into a public repo.
+  Current authorization permits reviewed public-safe documentation in the existing
+  PUBLIC repository; do not ask again for that same approved scope. New sensitive
+  material or additional publication scope needs a separate decision. Do not
+  change repository visibility/settings or redistribute restricted private history.
 - Before coding, use the reverse-engineering procedure in `ANALYSIS.md`. Confirm
   the objective, scoring, deliverables, deadline, AI rules, and confidentiality.
   Separate official requirements from justified analytical preferences. Prioritize

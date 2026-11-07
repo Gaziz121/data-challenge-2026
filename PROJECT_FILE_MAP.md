@@ -1,15 +1,17 @@
 # Project file map - inspect disk as well as Git
 
 Updated: 2026-11-07. Paths are relative to the current project root. This inventory
-is tracked. Start with [TEAM_START_HERE.md](TEAM_START_HERE.md) for onboarding. It
+is tracked. Repository visibility is PUBLIC by explicit owner decision; original
+PRIVATE labels below describe the earlier material-review scope, not verified
+organizer public-redistribution permission. Start with [TEAM_START_HERE.md](TEAM_START_HERE.md) for onboarding. It
 does not promise that LOCAL ONLY files exist on every teammate's
 machine. Inspect the filesystem including ignored paths before declaring absence.
 `git ls-files` and default ignore-aware search are incomplete material inventories.
 
 | Expected path | Status | Purpose, authority and how to read |
 | --- | --- | --- |
-| `TEAM_START_HERE.md` | GIT TRACKED on documentation branch (not yet pushed) | Authoritative four-person onboarding: clone/setup/tests, workstream ownership, branch/QA split, API routing and handoff blockers |
-| `docs/ARCHITECTURE_DECISIONS.md`, `docs/EXPERIMENT_BACKLOG.md` | GIT TRACKED on documentation branch (not yet pushed) | Code-grounded choices/trade-offs and Socrates concept status; proposed measurable trials, synthetic/QA inventory, provenance/label/split contribution rules; no new scenarios or experiments executed |
+| `TEAM_START_HERE.md` | GIT TRACKED on documentation branch | Authoritative four-person onboarding: clone/setup/tests, workstream ownership, branch/QA split, API routing and handoff blockers |
+| `docs/ARCHITECTURE_DECISIONS.md`, `docs/EXPERIMENT_BACKLOG.md` | GIT TRACKED on documentation branch | Code-grounded choices/trade-offs and Socrates concept status; proposed measurable trials, synthetic/QA inventory, provenance/label/split contribution rules; no new scenarios or experiments executed |
 | `README.md`, `CLAUDE.md`, this file | GIT TRACKED | Setup, mandatory discovery and material routing; read each session |
 | `TEAM_STATUS.md` | GIT TRACKED | Sanitized shared snapshot; read each session; not the detailed evidence ledger |
 | `STATUS.md` | LOCAL ONLY | Owner's detailed status/evidence; read if available, never upload wholesale |
@@ -48,9 +50,9 @@ machine. Inspect the filesystem including ignored paths before declaring absence
 | `tests/test_web.py`, `tests/test_web_ui.cjs` | IMPLEMENTATION / PRIVATE source | Backend HTTP/N/A/provider/export-boundary checks and DOM rendering/identity regressions; no live API calls |
 | `docs/LOCAL_MVP.md` | IMPLEMENTATION / PRIVATE historical documentation | Initial local integration and verification log; current startup is in TEAM_START_HERE.md and API contract in docs/BACKEND_CONTRACT.md |
 | `outputs/app/` | GENERATED / LOCAL ONLY | Saved evaluation JSON and browser QA, separate from manual human exports |
-| Active integration `src/cqa/schemas.py` changes and `src/cqa/atomic.py` | IN-PROGRESS / LOCAL ONLY changes at final audit; schema base is tracked, atomic file untracked | Owned by the concurrent engine session; excluded from pinned `f4599f0` verification and this documentation commit; recheck Git before relying on availability |
-| `qa/` on `feature/cqa-independent-qa` (`../data-challenge-2026-independent-qa/qa/` on owner Mac) | PUSHED / SEPARATE BRANCH at `3ff9c76`; not present on integration | Independent tests/report/checker/replay/scenarios; 81 tests pass against pinned integration `f4599f0`; QA branch bundles older baseline engine, so use explicit engine snapshot |
-| `qa/lab/` on `feature/cqa-independent-qa` | PUSHED / PRIVATE offline experiment at `3ff9c76` | Artifact ingestion, independent checks, baseline/candidate comparison, human JSON import and frozen synthetic splits; demo is scripted, semantic accuracy unmeasured; v3 rule/coverage compatibility still needs review |
+| Integration `6481390` (includes `5d256ac`): atomic.py, atomic_prompt.py, rubric v4, atomic tests and contract changes | PUSHED on integration; engine code is not included in this docs branch | Engine 0.6.1 / atomic-v2 / wire 1.2 opt-in; compatibility default v3. Fresh offline 127 tests: 125 pass/two absent-raw skips; owner worktree untouched |
+| `qa/` on `feature/cqa-independent-qa` (`../data-challenge-2026-independent-qa/qa/` on owner Mac) | PUSHED / SEPARATE BRANCH at `3ff9c76`; not present on integration | Independent tests/report/checker/replay/scenarios; 81 tests pass against pinned integration `6481390`; QA branch bundles older baseline engine, so use explicit engine snapshot |
+| `qa/lab/` on `feature/cqa-independent-qa` | PUSHED / PRIVATE offline experiment at `3ff9c76` | Artifact ingestion, independent checks, baseline/candidate comparison, human JSON import and frozen synthetic splits; demo is scripted, semantic accuracy unmeasured; v3 rule/coverage and v4 wire/projection compatibility still need review |
 | `ANALYSIS.md` | GIT TRACKED | Reverse engineering, deep analysis, evidence and final-file checks |
 | `src/`, `notebooks/` | GIT TRACKED files only after review | Development files available on disk may be uncommitted; inspect local paths and Git status |
 | `data/processed/`, other `data/`, `outputs/`, `deliverables/`, `tmp/`, caches | GENERATED / LOCAL ONLY by default | Derived evidence, artifacts and temporary review files; may still be sensitive; inspect filenames before contents |
@@ -91,7 +93,9 @@ supplement `c45f733de706c0e4793b1221d6d8e9d425c898063b712da2088c8a3dcb5d2c12`.
 Safe copies remove annotations/actions/source metadata, retain page content, and
 were inspected for embedded credentials. Originals are never overwritten.
 
-The user authorized reviewed safe materials for this PRIVATE team repository.
+Earlier safe-material review covered PRIVATE team sharing. The owner has now
+authorized this reviewed public-safe documentation branch in the existing PUBLIC
+repository; no repository-setting change is authorized.
 No explicit prohibition on this private-team sharing was found in supplied
 organizer materials. This is not public redistribution permission. Keep real
 calls, signed URLs, full DEV, local evidence and credentials outside Git. Future

@@ -1,6 +1,7 @@
 # Experiment backlog and synthetic-scenario contributions
 
-**Proposals, not executed experiments.** Baseline: engine `f4599f0`; QA/Lab
+**Proposals, not executed experiments.** Publication baseline: engine `6481390`
+(0.6.1; v3 compatibility default, v4 atomic opt-in); QA/Lab
 `3ff9c76`. No new conversations or labels were generated for this documentation.
 Use [onboarding](../TEAM_START_HERE.md#4-tests-and-reproducibility) for pinned-engine
 QA setup, [architecture decisions](ARCHITECTURE_DECISIONS.md) for current limits,
@@ -9,8 +10,10 @@ and [Lab instructions][lab] for artifact ingestion/comparison commands.
 ## Run contract before spending or tuning
 
 A owns engine/prompt changes; D owns independent references/splits and Lab review.
-First review Lab compatibility with v3 conditional rules and per-atomic coverage:
-its existing passing tests do not independently cover every new field. Freeze a
+First review Lab compatibility with v3 conditional rules/per-atomic coverage and
+v4 wire 1.2: `model_evaluation` is a normalized projection in atomic mode; raw
+provider output is `original_provider_output`. Existing Lab tests/default-mode
+demos do not independently validate that path or its review-origin fields. Freeze a
 small permitted input set, checklist, labels and split before comparing changes.
 The [20-case DEV plan](../case/CQA_REQUIREMENTS.md#4-proposed-lightweight-human-reviewed-dev-benchmark)
 is still a proposal; five-call coverage requires separately provisioned real DEV.
@@ -39,7 +42,7 @@ All are pending; priorities reflect dependencies, not official judging weights.
 | Priority / owner | Question and controlled comparison | Measurement / decision evidence |
 | --- | --- | --- |
 | **E1 — criterion-specific semantic accuracy (A+D)** | Establish reviewed reference cells and a baseline before optimizing. Inspect C03 identity, C04 factual completeness, C05 conditional empathy and C08 critical errors first; retain reporting for all eight criteria. Test one criterion's wording/evidence instruction at a time, with approved policy sources for factual judgments. | Exact raw-response match by criterion; N/A confusion; C08 misses/false alarms with positive support; source-support audit; total MAE only where all weighted labels are resolved. Save independent human rationale and exclusions. This enables the later trials. |
-| **E2 — atomic-first evaluation (A+D)** | Existing baseline already emits atomics before response. On a future isolated experiment branch, compare one prompt/schema-order ablation while holding checklist, gates, model and inputs fixed. Version/hash both request formats. Do not combine this with a new rubric or full rule-derived scoring. | Applicability/atomic/response contradiction counts per attempt, rejection rate, exact match and usage/latency. Existing serialization tests prove order, not its benefit. Historical replies with different prompts/rubrics cannot isolate this effect. |
+| **E2 — atomic-first evaluation (A+D)** | Compatibility v3 already emits atomics before response; opt-in v4 derives selected responses from facts. On a future isolated experiment branch, compare one prompt/schema-order ablation while holding checklist, gates, model and inputs fixed. Version/hash both request formats. Do not combine this with a new rubric or full rule-derived scoring. | Applicability/atomic/response contradiction counts per attempt, rejection rate, exact match and usage/latency. Existing serialization tests prove order, not its benefit. Historical replies with different prompts/rubrics cannot isolate this effect. |
 | **E3 — RU/KZ/EN robustness (A+D, language reviewers)** | Compare baseline/candidate within each language using the same reviewed cases. Add only a few missing failure modes; separately review any meaning-preserving language variants. Keep variants of one source in the same split. | Per-language exact match and valid-output coverage, N/A/C08 confusion, evidence fidelity and reviewed error categories. Report small KZ support explicitly; do not infer voice robustness or equal language difficulty from chat results. |
 | **E4 — adversarial counterfactuals (D+A)** | Use existing minimal edits before proposing new ones: remove introduction/farewell, alter verification/disclosure order, or challenge role attribution/in-transcript instructions. Compare each allowed base/variant pair on its target criterion; leave unrelated content unchanged. | Paired expected response flips, monotonicity violations, collateral changes in untargeted criteria, evidence validity and rejection counts. A pair with rejected output is a validity failure, not a successful semantic flip. Keep reviewed expected relations separate from ambiguous proposals. |
 | **E5 — targeted Maker/Checker (A+D; C for authorization)** | After E1, trial a checker only on predeclared risky C03/C04/C08 or unknown/review cases, versus maker alone on identical inputs. Have the checker first assess source/checklist/approved facts without seeing the maker answer, then compare findings. Save proposals separately; never auto-apply them. | Detection recall on human-confirmed maker errors, finding precision, false alarms/correct-answer change proposals, residual error rate, routed fraction, added calls/tokens/latency. Adoption requires a reviewed benefit within budget. Current hooks allow findings; rejected-output checking needs a separate planned path because post-validation hooks do not run on rejected replies. |
@@ -109,8 +112,8 @@ Counts below were calculated from committed files at the baseline above.
    offline Lab demo using onboarding instructions. No production change or model
    call is needed to review a scenario proposal.
 7. **Review confidentiality before staging named files.** Only reviewed fictional
-   text or permitted derivatives of the shared synthetic chats belong in a private
-   QA PR. Exclude real-call paraphrases, customer identifiers, signed URLs, keys,
+   text or permitted derivatives may enter a public QA PR only after public-sharing
+   permission and content review; private-team approval alone is insufficient. Exclude real-call paraphrases, customer identifiers, signed URLs, keys,
    raw/control transcripts, reviewer evidence exports and generated run artifacts.
    Keep those outside Git; `.gitignore` is not a content review. Scenario approval
    does not grant external-provider export permission. Apply the separate

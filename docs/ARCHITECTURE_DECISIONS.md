@@ -1,12 +1,25 @@
 # Architecture decisions
 
 Checked against committed engine **`f4599f0`** (0.5.0 / `baseline-v4` / rubric v3)
-and independent QA **`3ff9c76`**, November 7, 2026. Concurrent uncommitted engine
-work is excluded. This records the reasoning supported by code and existing
+and independent QA **`3ff9c76`**, November 7, 2026. Refreshed publication checkpoint:
+**`6481390` / engine 0.6.1** adds the opt-in atomic path below; default v3 retains
+the compatibility behavior. No active worktree was changed. This records the reasoning supported by code and existing
 reports; it does not claim a complete historical design debate or proven accuracy.
 Use [onboarding](../TEAM_START_HERE.md) for commands and ownership, the
 [backend contract](BACKEND_CONTRACT.md) for HTTP details, and the
 [experiment backlog](EXPERIMENT_BACKLOG.md) for proposed measurements.
+
+## New published atomic path
+
+[atomic.py][atomic] validates facts, evidence roles/chronology and derives configured
+C01/C02/C03/C05/C08 responses; every criterion's applicability is backend-owned.
+C04/C06 and applicable C07 retain model judgment. [atomic_prompt.py][atomic-prompt]
+compiles the hand-authored rubric into wire 1.2 with explicit sources and scope
+plans; it does not invent questions from arbitrary criterion prose. Raw wire
+output, normalized decisions and review origins remain separate. Unsolicited
+judgments conflict rather than being silently replaced. [Atomic tests][atomic-tests]
+cover these boundaries, not semantic correctness. This advances the earlier
+check-only design; it is not an independent Maker/Checker or accepted-appeal system.
 
 ## Implemented choices, rationale and trade-offs
 
@@ -33,10 +46,10 @@ older audit to the committed snapshot above.
 | Idea | Implemented | Still proposed / unproven |
 | --- | --- | --- |
 | Atomic-first reasoning | Applicability/conditional triggers serialized first; `atomic_checks` precedes `response` in the actual model schema. | Automatic rubric-to-atomic compiler; controlled evidence that ordering improves semantic accuracy. |
-| Rule-derived judgments | Configured implications, applicability and category checks; explicit conditional binary agreement assessment. | Complete response derivation for every criterion. Production does not import QA's hardcoded C01/C07 rule map or overwrite responses with derived answers. |
+| Rule-derived judgments | Compatibility checks plus opt-in v4 backend derivation from validated facts for configured atomic criteria and all applicability. | Discretionary anchors and semantic fact truth remain model/human work. No hardcoded QA rule map is imported; raw judgments are preserved and conflicts rejected. |
 | Evidence-based verification | Exact quotes/roles/locators, traceable formatting resolution, source-ID coverage and retained diagnostics. | Semantic entailment, product-policy truth and independent proof that the model inspected every message. |
 | Targeted Maker/Checker | Snapshot/finding hooks, audit and original-output preservation are foundations. | A second independent inference, risk routing, automatic correction or accepted reviewer-revision execution. The ordinary pipeline has one primary provider evaluation. |
-| Adversarial counterfactual evaluation | Independent [scenario harness][harness] and offline [Accuracy Lab][lab], with grouped splits and proposed labels. | Measured real-model robustness, human-reviewed scenario references and full independent v3 rule/coverage checks. Scripted demos demonstrate mechanics only. |
+| Adversarial counterfactual evaluation | Independent [scenario harness][harness] and offline [Accuracy Lab][lab], with grouped splits and proposed labels. | Measured real-model robustness, human-reviewed scenario references and independent v3/v4 wire, projection and coverage checks. Scripted demos demonstrate mechanics only. |
 
 ## Alternatives excluded or deferred
 
@@ -60,3 +73,7 @@ responses, not an accepted live quality total.
 [lab]: https://github.com/Gaziz121/data-challenge-2026/tree/3ff9c764aa941f71820462de806cd42d99a22c90/qa/lab
 [lab-tests]: https://github.com/Gaziz121/data-challenge-2026/blob/3ff9c764aa941f71820462de806cd42d99a22c90/qa/test_lab.py
 [harness]: https://github.com/Gaziz121/data-challenge-2026/blob/3ff9c764aa941f71820462de806cd42d99a22c90/qa/harness.py
+
+[atomic]: https://github.com/Gaziz121/data-challenge-2026/blob/6481390de7f4bd1905b79168c54b600642dc7ef7/src/cqa/atomic.py
+[atomic-prompt]: https://github.com/Gaziz121/data-challenge-2026/blob/6481390de7f4bd1905b79168c54b600642dc7ef7/src/cqa/atomic_prompt.py
+[atomic-tests]: https://github.com/Gaziz121/data-challenge-2026/blob/6481390de7f4bd1905b79168c54b600642dc7ef7/tests/test_atomic_path.py
