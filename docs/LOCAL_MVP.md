@@ -1,5 +1,11 @@
 # First runnable local CQA application
 
+> Historical local-MVP integration log. Setup, API limits, live-call counts and QA
+> status below describe earlier milestones. For current onboarding use
+> [TEAM_START_HERE.md](../TEAM_START_HERE.md); for implemented routes and permissions
+> use [BACKEND_CONTRACT.md](BACKEND_CONTRACT.md). Always pass `--live-call-limit 0`
+> for onboarding: the server default is not a zero-call cap.
+
 Current repair milestone: all 12 reported defects are fixed (independent QA
 41/41). Exactly one genuine OpenAI response was returned but failed validation;
 the MVP now displays retained rejected decisions without a total. The current

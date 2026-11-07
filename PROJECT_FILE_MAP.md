@@ -1,12 +1,17 @@
 # Project file map - inspect disk as well as Git
 
 Updated: 2026-11-07. Paths are relative to the current project root. This inventory
-is tracked; it does not promise that LOCAL ONLY files exist on every teammate's
+is tracked. Repository visibility is PUBLIC by explicit owner decision; original
+PRIVATE labels below describe the earlier material-review scope, not verified
+organizer public-redistribution permission. Start with [TEAM_START_HERE.md](TEAM_START_HERE.md) for onboarding. It
+does not promise that LOCAL ONLY files exist on every teammate's
 machine. Inspect the filesystem including ignored paths before declaring absence.
 `git ls-files` and default ignore-aware search are incomplete material inventories.
 
 | Expected path | Status | Purpose, authority and how to read |
 | --- | --- | --- |
+| `TEAM_START_HERE.md` | GIT TRACKED on documentation branch | Authoritative four-person onboarding: clone/setup/tests, workstream ownership, branch/QA split, API routing and handoff blockers |
+| `docs/ARCHITECTURE_DECISIONS.md`, `docs/EXPERIMENT_BACKLOG.md` | GIT TRACKED on documentation branch | Code-grounded choices/trade-offs and Socrates concept status; proposed measurable trials, synthetic/QA inventory, provenance/label/split contribution rules; no new scenarios or experiments executed |
 | `README.md`, `CLAUDE.md`, this file | GIT TRACKED | Setup, mandatory discovery and material routing; read each session |
 | `TEAM_STATUS.md` | GIT TRACKED | Sanitized shared snapshot; read each session; not the detailed evidence ledger |
 | `STATUS.md` | LOCAL ONLY | Owner's detailed status/evidence; read if available, never upload wholesale |
@@ -32,10 +37,10 @@ machine. Inspect the filesystem including ignored paths before declaring absence
 | `tests/test_output_contract.py` | IMPLEMENTATION / PRIVATE tests | R1/R3/R4: complete independent diagnostics, serialized output-schema ordering, N/A descriptions, applicability-first input, legacy output reading and order-sensitive prompt hashes; offline only |
 | `src/cqa/access.py`, `src/cqa/checklists.py`, `tests/test_control_backend.py` | IMPLEMENTATION / PRIVATE source and offline tests | Internal chat/voice ingress, expiring content-bound owner grants, explicit provider opt-in; immutable checklist save/version selection and re-evaluation; RU/KZ/EN/voice, security and regression fixtures |
 | `restricted/input-approvals.json`, `outputs/app/checklists/` | LOCAL ONLY / owner provisioned or generated | Optional permission manifest and saved version snapshots; ignored, never served as files or staged |
-| `docs/CORE_READINESS_AUDIT.md`, `docs/BACKEND_CONTRACT.md` | IMPLEMENTATION / PRIVATE documentation | Verified unseen-input/dynamic-checklist matrix, actual backend request/response contract, code-grounded concept inventory and three competition blockers |
+| `docs/CORE_READINESS_AUDIT.md`, `docs/BACKEND_CONTRACT.md` | IMPLEMENTATION / PRIVATE documentation | Historical readiness audit versus current implemented backend contract; use onboarding for current readiness and the contract for exact HTTP behavior |
 | `outputs/readiness-audit/` | GENERATED / LOCAL ONLY | Read-only offline probe results, fictional normalized input, full mock response, active schema and replay diagnostics; no paid calls or human labels |
 | `docs/VALIDATION_REPAIR_REPORT.md` | IMPLEMENTATION / PRIVATE documentation | Twelve confirmed fixes, unchanged independent QA results, exact live-call outcome/cost, changed-file manifest and remaining control-data/checklist gaps |
-| `outputs/app/live-smoke/`, `outputs/app/rejected-*.json` | GENERATED / LOCAL ONLY | One genuine OpenAI response, original and enriched diagnostics, usage/cost summary and browser screenshot; no accepted total; never staged |
+| `outputs/app/live-smoke/`, `outputs/app/rejected-*.json` | GENERATED / LOCAL ONLY | Genuine responses and retained diagnostics, usage summaries and screenshots; two rejected responses recorded in repair history, no accepted live total; never staged |
 | `tests/*.py` | IMPLEMENTATION / PRIVATE source | Offline contract/scoring/provider/pipeline tests; hand-authored fixtures and DEV integrity/mock runs, never official labels |
 | `src/cqa/repair.py`, `src/cqa/strict_schema.py`, `tests/test_schema_reliability.py`, `tools/reliability_measure.py`, `docs/RELIABILITY_REPORT.md` | IMPLEMENTATION / PRIVATE source/tests/docs on `feature/cqa-atomic-reliability` | Opt-in atomic-v3 schema-constrained completeness, disabled-by-default bounded repair, strict-schema guard, offline baseline/candidate measurement; no accuracy claim |
 | `src/cqa/checklists/official-v5.json`, `tests/test_checklist_v5.py` | IMPLEMENTATION / PRIVATE configuration DRAFT | v4 with only the C06 waiting fact rephrased (06.q4); weights/levels/anchors/N/A unchanged; not default; needs team review |
@@ -47,13 +52,16 @@ machine. Inspect the filesystem including ignored paths before declaring absence
 | `outputs/dev_review/` | GENERATED / LOCAL ONLY | Offline HTML snapshot, QA artifacts and separate `team_human` downloads; never official Ground Truth |
 | `src/cqa/web.py`, `web/index.html`, `web/app.js`, `web/app.css` | IMPLEMENTATION / PRIVATE source | Loopback HTTP adapter to existing engine, conversation selector, transcript/evidence/results UI; no new scorer |
 | `tests/test_web.py`, `tests/test_web_ui.cjs` | IMPLEMENTATION / PRIVATE source | Backend HTTP/N/A/provider/export-boundary checks and DOM rendering/identity regressions; no live API calls |
-| `docs/LOCAL_MVP.md` | IMPLEMENTATION / PRIVATE documentation | Startup, secure model readiness, endpoint contract, preservation/commit scope and actual verification |
+| `docs/LOCAL_MVP.md` | IMPLEMENTATION / PRIVATE historical documentation | Initial local integration and verification log; current startup is in TEAM_START_HERE.md and API contract in docs/BACKEND_CONTRACT.md |
 | `outputs/app/` | GENERATED / LOCAL ONLY | Saved evaluation JSON and browser QA, separate from manual human exports |
 | `../data-challenge-2026-independent-qa/qa/` | SEPARATE WORKTREE / tracked on `feature/cqa-independent-qa` | Independent tests/report/checker/replay at `10647cf`, unchanged and not imported into production; original 41 plus new 15 tests pass against corrected core |
 | `src/cqa_results/`, `tests/test_results_submission.py`, `docs/RESULTS_SUBMISSION_RUNBOOK.md` | IMPLEMENTATION / source on `feature/cqa-results-export` | Official results.json (appendix JSON 1.0) batch runner, exporter, independent strict validator, owner grant drafting, public-URL verification, offline dry runs and final-hour runbook; engine unchanged |
 | `results/dev/results.json`, `results/prod/results.json` | REQUIRED SUBMISSION FILES (not yet created) | Official appendix deliverables; produced only by `cqa_results.export` from genuine runs, then committed/pushed to the submitted public URL |
 | `CQA_Student_Guide_Appendix_Results.pdf` (owner Downloads) | LOCAL ONLY original | Authoritative organizer results-format appendix, 3 pages; read before changing export/validation rules |
 | `data/raw/PROD_control.json`, `outputs/submission/`, `outputs/submission-dryrun/`, `restricted/*-approvals.json` | LOCAL ONLY / GENERATED | Future control API response bytes, per-conversation engine outcomes, dry-run files and owner grants; transcript-bearing or permission records, never staged |
+| Integration `6481390` (includes `5d256ac`): atomic.py, atomic_prompt.py, rubric v4, atomic tests and contract changes | PUSHED on integration; engine code is not included in this docs branch | Engine 0.6.1 / atomic-v2 / wire 1.2 opt-in; compatibility default v3. Fresh offline 127 tests: 125 pass/two absent-raw skips; owner worktree untouched |
+| `qa/` on `feature/cqa-independent-qa` (`../data-challenge-2026-independent-qa/qa/` on owner Mac) | PUSHED / SEPARATE BRANCH at `3ff9c76`; not present on integration | Independent tests/report/checker/replay/scenarios; 81 tests pass against pinned integration `6481390`; QA branch bundles older baseline engine, so use explicit engine snapshot |
+| `qa/lab/` on `feature/cqa-independent-qa` | PUSHED / PRIVATE offline experiment at `3ff9c76` | Artifact ingestion, independent checks, baseline/candidate comparison, human JSON import and frozen synthetic splits; demo is scripted, semantic accuracy unmeasured; v3 rule/coverage and v4 wire/projection compatibility still need review |
 | `ANALYSIS.md` | GIT TRACKED | Reverse engineering, deep analysis, evidence and final-file checks |
 | `src/`, `notebooks/` | GIT TRACKED files only after review | Development files available on disk may be uncommitted; inspect local paths and Git status |
 | `data/processed/`, other `data/`, `outputs/`, `deliverables/`, `tmp/`, caches | GENERATED / LOCAL ONLY by default | Derived evidence, artifacts and temporary review files; may still be sensitive; inspect filenames before contents |
@@ -94,7 +102,9 @@ supplement `c45f733de706c0e4793b1221d6d8e9d425c898063b712da2088c8a3dcb5d2c12`.
 Safe copies remove annotations/actions/source metadata, retain page content, and
 were inspected for embedded credentials. Originals are never overwritten.
 
-The user authorized reviewed safe materials for this PRIVATE team repository.
+Earlier safe-material review covered PRIVATE team sharing. The owner has now
+authorized this reviewed public-safe documentation branch in the existing PUBLIC
+repository; no repository-setting change is authorized.
 No explicit prohibition on this private-team sharing was found in supplied
 organizer materials. This is not public redistribution permission. Keep real
 calls, signed URLs, full DEV, local evidence and credentials outside Git. Future

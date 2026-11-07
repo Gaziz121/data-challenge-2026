@@ -1,4 +1,15 @@
-# Freedom Broker CQA Hackathon - private development workspace
+# Freedom Broker CQA Hackathon — team development workspace
+
+**[Start here: four-person team onboarding](TEAM_START_HERE.md).**
+The guide is the single setup/ownership entry point. See
+[Git collaboration and actual safeguards](GIT_WORKFLOW.md#four-person-daily-workflow),
+[architecture decisions](docs/ARCHITECTURE_DECISIONS.md) and
+[experiment/scenario backlog](docs/EXPERIMENT_BACKLOG.md).
+
+Owner decision, November 7: this repository is intentionally **public**.
+Only reviewed public-safe documentation is authorized in this handoff; raw DEV,
+real calls, keys, approvals and reviewer outputs remain excluded. Organizer
+redistribution rights for already-tracked derivatives are not certified by this audit.
 
 Accuracy, reproducibility and required end-to-end functions take priority over
 cosmetics. This workspace now includes a working modular Python evaluation baseline.
@@ -39,7 +50,7 @@ output and decision origins are retained separately from the normalized projecti
 From this checkout with the existing Python/Pydantic dependency available:
 
 ```sh
-PYTHONPATH=src python3 -m cqa.web --port 8765
+PYTHONPATH=src python3 -m cqa.web --port 8765 --live-call-limit 0
 ```
 
 Open [the local application](http://127.0.0.1:8765/), select a synthetic DEV
@@ -99,7 +110,8 @@ repair report before authorizing another request.
 See [pipeline and contracts](docs/EVALUATION_ENGINE.md) and the
 [implementation report](docs/IMPLEMENTATION_REPORT.md). The layered baseline
 supports future verifiers and audit-preserving revisions; it does not yet implement
-appeals, a frontend, a second LLM, or measured scoring accuracy.
+appeal/reviewer execution, a second LLM, or measured scoring accuracy. A browser
+MVP is implemented; the full competition workflow remains incomplete.
 
 ## Start every session with filesystem discovery
 
@@ -140,30 +152,15 @@ team labels must identify themselves as `team_human`.
 
 ## New teammate setup
 
-1. Obtain private repository access and run `gh repo clone Gaziz121/data-challenge-2026`
-   into your chosen local directory. Do not clone over the owner's existing work.
-   Confirm `pwd` and `git status`, then follow the discovery steps above.
-2. Read the inventory, team status, requirements, scoring spec and team-safe PDFs.
-   The shared chat JSON is available immediately. Python 3.9+ is sufficient for
-   the two stdlib preparation/checking utilities. The evaluation engine additionally
-   requires Pydantic 2; see the baseline instructions above.
-3. For full DEV/voice/API access, first inspect local expected paths. If absent,
-   obtain the original JSON and PDFs from the integration owner through an
-   organizer-permitted handoff. Store the full JSON at
-   `data/raw/DEV_conversations.json` and PDFs at the inventory paths; never stage
-   them. The owner also retains originals in Downloads. A clone does not fetch
-   these files, real calls, local `STATUS.md`, or signed API access.
-4. Create only needed local folders: `data/raw`, `data/processed`, `notebooks`,
-   `outputs`, `deliverables`. Empty folders are not stored by Git. Keep credentials
-   in ignored local configuration, never source files, commit text or URLs.
-5. Assign one owner per notebook/workstream and one integration owner. Use short
-   branches and review for consequential shared changes. This setup does not
-   itself authorize external AI/API calls or application implementation.
+Follow [TEAM_START_HERE.md](TEAM_START_HERE.md), which selects the integration
+branch rather than default main, creates an isolated environment, upgrades old
+pip, and provides exact mock/test/QA commands. Public cloning needs no invitation;
+pushing in-repository branches requires accepted write access. Two write
+invitations remain pending at the collaboration audit.
 
-The original guide's GET button is intentionally inactive in the shared PDF.
-Obtain approved API access separately; do not copy signed links into Git, issues,
-chat logs or documentation. A teammate lacking a LOCAL ONLY file is not evidence
-that the material never existed.
+The detailed runtime notes here include historical baseline milestones. Use the
+[current backend contract](docs/BACKEND_CONTRACT.md) and onboarding version
+checkpoint before assuming an older limitation or live-call count is current.
 
 ## Local human conversation review
 
@@ -206,9 +203,11 @@ has the full procedure. The local `STATUS.md` is the detailed evidence record;
 Other materials/data remain excluded. Ignore rules do not untrack existing files
 or prevent uploads: review the exact staged manifest and content before pushing.
 
-Keep this development repository **PRIVATE**. Final submission requires a separate
-sanitized PUBLIC repository after a later approval. Do not change this repository's
-visibility or copy its private Git history into the future public repository.
+The owner intentionally made this repository **PUBLIC**. Do not change its
+visibility, permissions or rulesets in this workstream. Public access does not
+authorize restricted inputs or new data uploads. Final submission scope and any
+separate repository remain an owner decision; review content and history before
+any further redistribution.
 
 ## Adaptable execution gates
 

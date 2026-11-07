@@ -1,5 +1,11 @@
 # Evaluation-core readiness audit
 
+> Historical engine 0.3.0 readiness audit. Later integration commits implement
+> authorized supplied-input ingestion and immutable checklist save/select; the
+> unseen-input limitations below belong to the audited snapshot. Use
+> [team onboarding](../TEAM_START_HERE.md) and the
+> [current backend contract](BACKEND_CONTRACT.md) for present behavior.
+
 2026-11-07, Asia/Almaty. Core fixes: `9ee9605` on
 `codex/local-mvp-integration`, from `f84d364`. Workstream B changed no production
 code. No paid calls, credential loading, UI changes or rule-derivation system.

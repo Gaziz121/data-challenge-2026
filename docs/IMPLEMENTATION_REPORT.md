@@ -1,5 +1,9 @@
 # First CQA Evaluation Engine — implementation report
 
+> Historical initial-engine report (`ebcab33`). Its implementation limits and
+> verification counts describe that milestone. Use [team onboarding](../TEAM_START_HERE.md)
+> and the [current backend contract](BACKEND_CONTRACT.md) for present setup/behavior.
+
 Date: 2026-11-07, Asia/Almaty. Base: `207b23f`. Feature branch:
 `codex/cqa-evaluation-engine`. Main is not merged. Use live Git state for the
 current commit/synchronization; this report does not claim a cached ref is fresh.
