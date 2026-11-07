@@ -1317,6 +1317,127 @@ body > .cqa-app {
   color: var(--cqa-accent);
 }
 
+/* ===================================================================== 11b. Appeal outcome, dialogue fragment, editor tools */
+/* Revised total on the evaluation card (original stays in the hero). */
+.cqa-app .cqa-hero-revised {
+  grid-column: 1 / -1;
+  margin: var(--cqa-s2) 0 0;
+  padding: var(--cqa-s1) var(--cqa-s2);
+  font-family: var(--cqa-mono);
+  font-size: var(--cqa-fs-sm);
+  font-weight: 700;
+  color: var(--cqa-review);
+  background: var(--cqa-review-soft);
+  border-radius: var(--cqa-radius-sm);
+}
+/* Appeal state on a criterion card. */
+.cqa-app .cqa-appeal-note {
+  margin: 0 0 var(--cqa-s2);
+  padding: var(--cqa-s1) var(--cqa-s2);
+  font-size: var(--cqa-fs-xs);
+  font-weight: 600;
+  color: var(--cqa-accent);
+  background: var(--cqa-accent-soft);
+  border-left: 3px solid var(--cqa-accent);
+  border-radius: var(--cqa-radius-sm);
+}
+.cqa-app .cqa-appeal-note[data-state="revised"] {
+  color: var(--cqa-review);
+  background: var(--cqa-review-soft);
+  border-left-color: var(--cqa-review);
+}
+.cqa-app .cqa-appeal-note[data-state="upheld"] {
+  color: var(--cqa-yes);
+  background: var(--cqa-yes-soft);
+  border-left-color: var(--cqa-yes);
+}
+/* What the reviewer sees inside an appeal card. */
+.cqa-app .cqa-fragment {
+  margin: var(--cqa-s2) 0;
+  padding: var(--cqa-s2) var(--cqa-s3);
+  background: var(--cqa-surface-muted);
+  border: 1px solid var(--cqa-border);
+  border-radius: var(--cqa-radius-sm);
+}
+.cqa-app .cqa-fragment:empty {
+  display: none;
+}
+.cqa-app .cqa-disputed {
+  margin: 0;
+  font-family: var(--cqa-mono);
+  font-size: var(--cqa-fs-sm);
+  font-weight: 700;
+}
+.cqa-app .cqa-fragment .cqa-block-label {
+  margin-top: var(--cqa-s2);
+}
+.cqa-app .cqa-fragment blockquote {
+  margin: 2px 0 var(--cqa-s2);
+  padding: 6px var(--cqa-s3);
+  font-size: var(--cqa-fs-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--cqa-surface);
+  border-left: 3px solid var(--cqa-accent-line);
+}
+/* Small inline action that reads as a link. */
+.cqa-app .cqa-link-button {
+  min-height: 0;
+  padding: 0 2px;
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--cqa-accent);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.cqa-app .cqa-link-button:hover:not(:disabled) {
+  color: var(--cqa-accent-hover);
+  background: none;
+}
+/* Checklist editor tools. */
+.cqa-app .cqa-editor-summary {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cqa-s2) var(--cqa-s3);
+}
+.cqa-app .cqa-editor-summary > p {
+  margin: 0;
+}
+.cqa-app .cqa-criterion-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--cqa-s2) var(--cqa-s4);
+  margin: var(--cqa-s1) 0 var(--cqa-s2);
+  padding-bottom: var(--cqa-s2);
+  border-bottom: 1px dashed var(--cqa-border);
+}
+.cqa-app .cqa-criterion-tools .cqa-remove {
+  margin-left: auto;
+  min-height: 30px;
+  padding: 2px 10px;
+  font-size: var(--cqa-fs-xs);
+  color: var(--cqa-no);
+  border-color: #f1b8b2;
+}
+.cqa-app .cqa-criterion-tools .cqa-remove:hover:not(:disabled) {
+  color: var(--cqa-critical-ink);
+  background: var(--cqa-no);
+  border-color: var(--cqa-no);
+}
+.cqa-app .cqa-rule {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.cqa-app #editor-feedback .cqa-link-button {
+  margin-left: var(--cqa-s1);
+}
+
 /* ===================================================================== 12. Narrow containers (850 px) */
 @container cqa (max-width: 850px) {
   .cqa-app .cqa-header,

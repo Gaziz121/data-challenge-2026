@@ -391,6 +391,45 @@
     if (!view) return;
     renderComparison(view, result.checklist, $("comparison"));
     $("appeals").replaceChildren(...(view.appeals.length ? view.appeals.map(appealCard) : [el("p", "No appeals.", "empty")]));
+    markAppeals(view);
+  }
+  // The evaluation card also shows the appeal outcome: original stays, decision and final result are added.
+  function markAppeals(view) {
+    const hero = $("results").querySelector(".cqa-score-hero");
+    hero?.querySelector(".cqa-hero-revised")?.remove();
+    if (hero && view.revised_score) hero.append(el("p", `Revised after appeal: ${view.revised_score.total_score ?? "not calculated"} / 100 · critical ${
+      view.revised_score.critical_violation ? "yes" : "no"} · original ${view.original_score.total_score ?? "not calculated"} kept`, "cqa-hero-revised"));
+    for (const card of $("results").querySelectorAll(".result-card[data-criterion-id]")) {
+      card.querySelector(".cqa-appeal-note")?.remove();
+      const appeal = [...view.appeals].reverse().find(a => a.criterion_id === card.dataset.criterionId);
+      if (!appeal) continue;
+      const note = el("p", appeal.decision ? `Appeal ${appeal.state}: ${appeal.decision.reviewer} ${appeal.decision.outcome === "change" ? "changed" : "confirmed"} ` +
+        `${appeal.original_response} → final ${appeal.decision.final_response}. Reason: ${appeal.decision.reason}` :
+        `Appeal open (requested ${appeal.requested_response ?? "review"}): ${appeal.explanation}`, "cqa-appeal-note");
+      note.dataset.state = appeal.state; card.querySelector("h3").after(note);
+    }
+  }
+  // What the reviewer needs next to the appeal: the disputed score, its rationale and the cited dialogue fragment.
+  function appealFragment(appeal) {
+    const box = el("div", undefined, "cqa-fragment");
+    const decision = (result.validated_evaluation || result.model_evaluation).decisions.find(d => d.criterion_id === appeal.criterion_id);
+    const criterion = criterionOf(appeal.criterion_id), score = result.score.criteria.find(c => c.criterion_id === appeal.criterion_id);
+    if (!decision || !criterion) return box;
+    box.append(el("p", `Disputed score: ${responseText(decision, criterion)}${criterion.kind === "critical" ? " (separate flag)" :
+      ` · points ${score.earned_points} of effective weight ${score.effective_weight}`}`, "cqa-disputed"), el("p", decision.rationale, "notice"),
+      el("p", "Dialogue fragment cited by the evaluation", "cqa-block-label"));
+    const messages = new Map(result.conversation.messages.map(m => [m.message_id, m]));
+    for (const reference of decision.evidence.slice(0, 3)) {
+      const first = messages.get(reference.kind === "quote" ? reference.message_id : reference.start_message_id);
+      const last = messages.get(reference.kind === "quote" ? reference.message_id : reference.end_message_id);
+      const show = el("button", "Show in transcript", "cqa-link-button"); show.type = "button";
+      show.onclick = () => {showTab("evaluation"); jump(reference);};
+      const label = el("p", reference.kind === "quote" ? `Turn ${first ? first.source_index + 1 : "?"} · ${first?.source_speaker ?? ""} ` :
+        `Checked turns ${first ? first.source_index + 1 : "?"}–${last ? last.source_index + 1 : "?"} (${reference.kind}) `, "meta");
+      label.append(show);
+      box.append(label, reference.kind === "quote" ? el("blockquote", reference.quote) : el("p", reference.explanation, "notice"));
+    }
+    return box;
   }
   function criterionOf(id) {return result.checklist.criteria.find(c => c.criterion_id === id);}
   function responseOptions(select, criterion, blankLabel) {
@@ -407,10 +446,10 @@
     const card = el("article", undefined, `result-card appeal ${appeal.state}`);
     card.append(el("h3", `${appeal.criterion_id} · ${appeal.state.toUpperCase()}`),
       el("p", `Original response: ${appeal.original_response} · requested: ${appeal.requested_response ?? "—"} · by ${appeal.submitted_by} at ${appeal.submitted_at}`, "meta"),
-      el("p", appeal.explanation));
+      el("p", `Appellant's comment: ${appeal.explanation}`), appealFragment(appeal));
     if (appeal.decision) {
       card.append(el("p", `Reviewer ${appeal.decision.reviewer}: ${appeal.decision.outcome} → final ${appeal.decision.final_response} (${appeal.decision.decided_at})`, "raw"),
-        el("p", appeal.decision.reason, "notice"));
+        el("p", `Reviewer's reason: ${appeal.decision.reason}`, "notice"));
     } else {
       const form = el("div", undefined, "form-grid");
       const outcome = el("select"); outcome.append(new Option("Confirm original", "confirm"), new Option("Change decision", "change"));
@@ -418,6 +457,11 @@
       const reason = el("textarea"); reason.placeholder = "Reviewer reason (required)"; reason.maxLength = 4000;
       const submit = el("button", "Record reviewer decision"); submit.type = "button";
       submit.onclick = async () => {
+        const missing = !$("reviewer-name").value.trim() ? $("reviewer-name") : !$("reviewer-key").value ? $("reviewer-key") : !reason.value.trim() ? reason : null;
+        if (missing) {
+          feedback(`${missing === reason ? "A reviewer reason" : missing.id === "reviewer-name" ? "Reviewer name" : "Reviewer key"} is required to record a decision.`, true);
+          missing.focus(); return;
+        }
         try {
           const body = {reviewer: $("reviewer-name").value.trim(), outcome: outcome.value, reason: reason.value.trim(),
             new_response: outcome.value === "change" ? JSON.parse(value.value) : null};
@@ -441,6 +485,11 @@
   $("appeal-form").onsubmit = async event => {
     event.preventDefault();
     if (!result) return;
+    const missing = !$("appeal-name").value.trim() ? $("appeal-name") : !$("appeal-explanation").value.trim() ? $("appeal-explanation") : null;
+    if (missing) {
+      feedback(missing.id === "appeal-name" ? "Your name is required to submit an appeal." : "An explanation is required to submit an appeal.", true);
+      missing.focus(); return;
+    }
     try {
       const requested = $("appeal-requested").value;
       const out = await post(`/api/evaluations/${result.evaluation_id}/appeals`, {criterion_id: $("appeal-criterion").value,
