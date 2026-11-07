@@ -121,17 +121,7 @@
   function showTranscript() {
     $("conversation-title").textContent = current.conversation_id;
     $("conversation-meta").textContent = `${current.language} · ${current.channel} · ${current.transcript.length} messages · source order`;
-    const fragment = document.createDocumentFragment();
-    current.transcript.forEach((m, index) => {
-      const article = el("article", undefined, `message ${["client","operator","bot","system"].includes(m.speaker) ? m.speaker : ""}`);
-      article.id = `message-${index}`;
-      article.append(el("div", m.speaker, "speaker"), el("div",
-        `Index ${index} · Original message ID: ${originalId(m) === null ? "not provided" : originalId(m)} · Timestamp: ${m.timestamp ?? "not provided"}`, "meta"),
-        el("div", m.text, "message-text"));
-      fragment.append(article);
-    });
-    $("transcript").replaceChildren(fragment);
-    $("transcript").scrollTop = 0;
+    window.CqaTranscript.render($("transcript"), current);
   }
   function showForm() {
     const form = $("review-form"); form.replaceChildren();

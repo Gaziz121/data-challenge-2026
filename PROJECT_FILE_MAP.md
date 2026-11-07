@@ -27,9 +27,13 @@ machine. Inspect the filesystem including ignored paths before declaring absence
 | `tests/*.py` | IMPLEMENTATION / PRIVATE source | Offline contract/scoring/provider/pipeline tests; hand-authored fixtures and DEV integrity/mock runs, never official labels |
 | `docs/EVALUATION_ENGINE.md`, `docs/IMPLEMENTATION_REPORT.md` | IMPLEMENTATION / PRIVATE documentation | Stable teammate interfaces, extension behavior, run instructions, file manifest, executed validation and limitations |
 | `outputs/cqa/` | GENERATED / LOCAL ONLY | Mock run JSON, schemas and verification summary; transcript-bearing files are never staged |
-| `tools/dev_review/` | LOCAL IMPLEMENTATION / PRIVATE source | Standalone stdlib builder, offline transcript viewer, manual rubric and reviewer instructions; no engine imports or AI scores |
-| `tests/test_dev_review.py`, `tests/test_dev_review.cjs` | LOCAL IMPLEMENTATION / PRIVATE source | Dataset-preservation and human-label export/resume checks; fictional scoring fixtures only |
+| `tools/dev_review/` | GIT TRACKED / PRIVATE source on integration branch | Preserved standalone human viewer/builder/rubric plus shared read-only `transcript.js`; no engine imports or AI scores |
+| `tests/test_dev_review.py`, `tests/test_dev_review.cjs` | GIT TRACKED / PRIVATE source on integration branch | Dataset-preservation and human-label export/resume checks; fictional scoring fixtures only |
 | `outputs/dev_review/` | GENERATED / LOCAL ONLY | Offline HTML snapshot, QA artifacts and separate `team_human` downloads; never official Ground Truth |
+| `src/cqa/web.py`, `web/index.html`, `web/app.js`, `web/app.css` | IMPLEMENTATION / PRIVATE source | Loopback HTTP adapter to existing engine, conversation selector, transcript/evidence/results UI; no new scorer |
+| `tests/test_web.py`, `tests/test_web_ui.cjs` | IMPLEMENTATION / PRIVATE source | Backend HTTP/N/A/provider/export-boundary checks and DOM rendering/identity regressions; no live API calls |
+| `docs/LOCAL_MVP.md` | IMPLEMENTATION / PRIVATE documentation | Startup, secure model readiness, endpoint contract, preservation/commit scope and actual verification |
+| `outputs/app/` | GENERATED / LOCAL ONLY | Saved evaluation JSON and browser QA, separate from manual human exports |
 | `ANALYSIS.md` | GIT TRACKED | Reverse engineering, deep analysis, evidence and final-file checks |
 | `src/`, `notebooks/` | GIT TRACKED files only after review | Development files available on disk may be uncommitted; inspect local paths and Git status |
 | `data/processed/`, other `data/`, `outputs/`, `deliverables/`, `tmp/`, caches | GENERATED / LOCAL ONLY by default | Derived evidence, artifacts and temporary review files; may still be sensitive; inspect filenames before contents |

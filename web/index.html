@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CQA · local evaluation</title>
+<link rel="stylesheet" href="/app.css">
+<script defer src="/transcript.js"></script>
+<script defer src="/app.js"></script>
+<header>
+  <h1>CQA · local evaluation</h1>
+  <p>Synthetic DEV conversations · Evidence and deterministic scoring</p>
+  <a href="/human-review/" target="_blank" rel="noopener noreferrer">Open independent human review in a separate tab</a>
+</header>
+<div id="mode" class="mode">MOCK mode — fixed test fixtures, not AI quality judgments.</div>
+<div class="toolbar">
+  <label>Language<select id="language"><option value="">All languages</option><option>RU</option><option>KZ</option><option>EN</option></select></label>
+  <label>Conversation<select id="conversation" disabled></select></label>
+  <label>Provider<select id="provider"><option value="mock">Mock fixture</option><option value="openai">OpenAI LLM</option></select></label>
+  <label>Model<input id="model" placeholder="Explicit OpenAI model" disabled autocomplete="off"></label>
+  <button id="evaluate" disabled>Evaluate</button>
+  <button id="download" disabled>Download evaluation JSON</button>
+</div>
+<div class="status" id="feedback" role="status" aria-live="polite">Loading synthetic DEV…</div>
+<main class="workspace">
+  <section class="panel" aria-label="Original transcript">
+    <div class="panel-heading"><h2 id="conversation-title">Transcript</h2><p id="conversation-meta" class="meta"></p>
+      <div class="legend"><span>Client</span><span>Operator</span><span>Bot</span><span>System</span></div>
+      <p class="notice">Original wording and timestamps. Indexes are local evidence locators.</p>
+    </div>
+    <div id="transcript" class="scroll"></div>
+  </section>
+  <section class="panel" aria-label="Evaluation results">
+    <div class="panel-heading"><h2>Evaluation results</h2><p id="run-summary">Select a conversation, then click Evaluate.</p>
+      <p class="notice">Human labels stay separate. This page never fills or imports team_human assessments.</p>
+    </div>
+    <div id="results" class="scroll" aria-busy="false"><p class="empty">No evaluation yet.</p></div>
+  </section>
+</main>
+</html>

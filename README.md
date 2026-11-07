@@ -5,6 +5,31 @@ cosmetics. This workspace now includes a working modular Python evaluation basel
 No genuine external model evaluation has run. Read the [requirements](case/CQA_REQUIREMENTS.md)
 and [scoring specification](case/CQA_SCORING_SPEC.md).
 
+## Run the local browser application
+
+From this checkout with the existing Python/Pydantic dependency available:
+
+```sh
+PYTHONPATH=src python3 -m cqa.web --port 8765
+```
+
+Open [the local application](http://127.0.0.1:8765/), select a synthetic DEV
+conversation and click **Evaluate**. RU/KZ/EN are supported. The application calls
+the existing engine and shows eight results, reasons, N/A conditions, atomic
+checks, clickable evidence, deterministic points/total and audit metadata.
+The default is visibly labeled **MOCK**, a fixed wiring fixture without semantic
+assessment. Result JSON is saved under ignored `outputs/app/` and can be downloaded.
+
+**Independent human review** opens in a separate tab with blank manual forms and
+its existing `team_human` JSON/CSV/resume workflow. No AI score is copied into a
+human assessment. Both screens reuse the viewer's read-only transcript renderer.
+
+The integration branch is `codex/local-mvp-integration`, in the separate worktree
+`/Users/User/data-challenge-2026-integration` on the owner's Mac. The original
+checkout and its unfinished viewer files remain preserved; main is unchanged.
+See [local MVP setup, API and verification](docs/LOCAL_MVP.md), including the exact
+steps to enable authorized OpenAI access without changing scoring code.
+
 ## Run the evaluation baseline
 
 From the project root, use Python 3.9+ with `pydantic>=2.11,<3` (verified with

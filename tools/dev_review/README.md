@@ -5,6 +5,12 @@ one self-contained HTML file using only the standard library. The generated page
 has no external assets, APIs, server, browser autosave, or evaluation-engine imports.
 It is a calibration aid, separate from `src/cqa/` and its outputs.
 
+The integrated localhost application serves this same independent page at
+`/human-review/`. Its only shared UI source is `transcript.js`, a read-only renderer
+with no labels, scoring, storage, network or engine imports. The builder still
+embeds everything into one offline HTML file. AI evaluation results never enter
+this page or its `team_human` exports.
+
 From the repository root:
 
 ```sh

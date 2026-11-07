@@ -59,10 +59,14 @@ A clone intentionally lacks originals, real calls, signed access and local statu
 
 ## Required next work, not yet executed
 
+The local browser integration below supersedes the earlier plan to build the
+first frontend. Full appeals/reviewer execution and advanced experiments remain
+future work.
+
 - Configure authorized API access/model through secure setup and run the first
   genuine synthetic evaluation; inspect evidence and factual uncertainty before
   interpreting its scores. Then separately authorize the human-reviewed benchmark.
-- A frontend, appeals/reviewer workflow, application of explicit revisions,
+- A complete production frontend, appeals/reviewer workflow, application of explicit revisions,
   criterion-specific verifiers, second LLM, risk routing and synthetic laboratory
   remain future work. The baseline supplies contracts and testable extension points.
 - A 20-case human-reviewed DEV benchmark is proposed: 12 calibration, 8 internal
@@ -74,6 +78,27 @@ A clone intentionally lacks originals, real calls, signed access and local statu
   and some policy/rounding/voice edge cases remain unspecified. See requirements.
 - No genuine external LLM evaluation, deployment or public repository has been
   created. Mock outputs are not predictions or human benchmark labels.
+
+## First runnable local MVP
+
+- Branch `codex/local-mvp-integration`, separate integration worktree. Engine base
+  `ebcab33` reused; viewer source/tests/docs preserved in commit `f03d823` before
+  integration. Original checkout/viewer outputs are unchanged; main stays `207b23f`.
+- Start `PYTHONPATH=src python3 -m cqa.web --port 8765`, then open localhost.
+  Conversation selection -> existing engine POST endpoint -> eight criterion
+  cards, atomic checks, evidence jumps, N/A reasons and deterministic total works.
+- Separate `/human-review/` keeps its original manual JSON/CSV/resume workflow.
+  Only a read-only transcript renderer is shared; AI results never populate labels.
+- Actual browser checks passed RU/KZ/EN source fidelity, eight results, scope
+  jumps, evaluation download, missing-credential gating, blank human forms, real
+  JSON/CSV downloads, reload/resume and human evidence navigation. QA human
+  responses remained unscored. No browser console errors were observed.
+- Combined Python suite: 66 tests, 65 passed, one expected skip for full DEV voice
+  data intentionally absent from the integration worktree. Original checkout's
+  56-test suite passed with no skips. Both JavaScript suites passed.
+- No real LLM call: no authorized key available. Existing real adapter and model
+  selection are wired; tests use injected offline transport only. No scoring/core
+  contract change. See `docs/LOCAL_MVP.md`; no accuracy claim or public deployment.
 
 ## Synchronization and publication
 

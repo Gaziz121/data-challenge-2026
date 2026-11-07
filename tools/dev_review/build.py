@@ -37,7 +37,8 @@ def build(output):
         "records": records,
     }
     html = (HERE / "viewer.html").read_text(encoding="utf-8")
-    html = html.replace("/* REVIEW_SCRIPT */", (HERE / "viewer.js").read_text(encoding="utf-8"))
+    scripts = (HERE / "transcript.js").read_text(encoding="utf-8") + "\n" + (HERE / "viewer.js").read_text(encoding="utf-8")
+    html = html.replace("/* REVIEW_SCRIPT */", scripts)
     html = html.replace("<!-- REVIEW_DATA -->", embedded_json(payload))
     output = Path(output).resolve()
     # Keep generated output in its own directory, never overwrite inputs or source.
