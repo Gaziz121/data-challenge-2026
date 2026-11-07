@@ -290,7 +290,7 @@ future work.
   no accepted genuine quality total. Scope citations and event chronology validate
   locators, not truth; complaint/identity/product semantics need reviewed labels.
 
-## Synchronization policy
+## Private synchronization policy
 
 Use live Git preflight/fetch and history comparison, not this snapshot, to verify
 current synchronization. Maintain one authoritative `main` and deliberate review.
