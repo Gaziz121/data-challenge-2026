@@ -22,6 +22,11 @@ machine. Inspect the filesystem including ignored paths before declaring absence
 | `data/shared/DEV_synthetic_60.json` | GIT TRACKED (GENERATED derivative) | Partial DEV: 60 unchanged synthetic chats, RU=30/KZ=15/EN=15; no real call records/content/links; never treat as full DEV |
 | `src/prepare_shared_chats.py` | GIT TRACKED | Reproduce/check the approved subset from the local full original; no network or quality scoring |
 | `src/git_preflight.py`, `GIT_WORKFLOW.md` | GIT TRACKED | Inspect Git layers and synchronize safely; not a filesystem material inventory |
+| `pyproject.toml`, `src/cqa/*.py` | IMPLEMENTATION / PRIVATE source | Modular baseline: strict v1 contracts, normalization, deterministic facts, atomic LLM evaluation, gates, extension checks, scoring, audit and CLI |
+| `src/cqa/checklists/official-v1.json` | IMPLEMENTATION / PRIVATE configuration | Source-grounded eight-criterion initial rubric, atomic questions, configurable N/A rules and consistency implications; not conversation labels |
+| `tests/*.py` | IMPLEMENTATION / PRIVATE source | Offline contract/scoring/provider/pipeline tests; hand-authored fixtures and DEV integrity/mock runs, never official labels |
+| `docs/EVALUATION_ENGINE.md`, `docs/IMPLEMENTATION_REPORT.md` | IMPLEMENTATION / PRIVATE documentation | Stable teammate interfaces, extension behavior, run instructions, file manifest, executed validation and limitations |
+| `outputs/cqa/` | GENERATED / LOCAL ONLY | Mock run JSON, schemas and verification summary; transcript-bearing files are never staged |
 | `ANALYSIS.md` | GIT TRACKED | Reverse engineering, deep analysis, evidence and final-file checks |
 | `src/`, `notebooks/` | GIT TRACKED files only after review | Development files available on disk may be uncommitted; inspect local paths and Git status |
 | `data/processed/`, other `data/`, `outputs/`, `deliverables/`, `tmp/`, caches | GENERATED / LOCAL ONLY by default | Derived evidence, artifacts and temporary review files; may still be sensitive; inspect filenames before contents |

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cqa-evaluation-engine"
+version = "0.1.0"
+description = "Evidence-first, versioned CQA evaluation baseline"
+requires-python = ">=3.9"
+dependencies = ["pydantic>=2.11,<3"]
+
+[project.scripts]
+cqa = "cqa.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["cqa*"]
+
+[tool.setuptools.package-data]
+cqa = ["checklists/*.json"]

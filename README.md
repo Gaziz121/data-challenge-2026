@@ -1,9 +1,47 @@
 # Freedom Broker CQA Hackathon - private development workspace
 
 Accuracy, reproducibility and required end-to-end functions take priority over
-cosmetics. This is a shared development workspace; no CQA application or external
-model evaluation has been built. Read the [requirements](case/CQA_REQUIREMENTS.md)
+cosmetics. This workspace now includes a working modular Python evaluation baseline.
+No genuine external model evaluation has run. Read the [requirements](case/CQA_REQUIREMENTS.md)
 and [scoring specification](case/CQA_SCORING_SPEC.md).
+
+## Run the evaluation baseline
+
+From the project root, use Python 3.9+ with `pydantic>=2.11,<3` (verified with
+Python 3.9.6 and Pydantic 2.13.5). An optional editable install is
+`python3 -m pip install -e .`; otherwise the commands below use `PYTHONPATH=src`.
+
+```sh
+PYTHONPATH=src python3 -m cqa list
+PYTHONPATH=src python3 -m cqa evaluate --id p1-ru-001 --output outputs/example-001.json
+PYTHONPATH=src python3 -m cqa evaluate --id p1-ru-002 --output outputs/example-002.json
+PYTHONPATH=src python3 -B -m unittest discover -s tests -v
+PYTHONPATH=src python3 -m cqa schema result
+```
+
+The default provider is a deterministic **mock fixture**, not a quality evaluator.
+Its fixed lowest scores test wiring only; every decision requires review. Outputs
+include source-grounded locators, atomic checks, facts, validation/scoring stages
+and reproducibility metadata. Existing output files are preserved. CLI evaluation
+files must stay under ignored `outputs/`, since they contain transcript evidence.
+
+Use `--data data/raw/DEV_conversations.json` for the full local dataset or
+`--checklist path/to/versioned-checklist.json` for a changed checklist. New criteria,
+atomic questions, weights, scales, N/A rules and basic consistency implications
+are configuration, not Python branches keyed to the eight initial criterion IDs.
+
+The real OpenAI adapter uses strict structured output through the Responses API.
+It requires an authorized `OPENAI_API_KEY`, an explicit `--model`, and
+`--allow-external-synthetic`. Obtain credentials through secure key setup; never
+paste them into chat or source files. The adapter rechecks complete record content
+against the reviewed synthetic derivative before any network request. All five
+real calls are blocked from external evaluation; audio links are never exported.
+No live API credential was available in this implementation session.
+
+See [pipeline and contracts](docs/EVALUATION_ENGINE.md) and the
+[implementation report](docs/IMPLEMENTATION_REPORT.md). The layered baseline
+supports future verifiers and audit-preserving revisions; it does not yet implement
+appeals, a frontend, a second LLM, or measured scoring accuracy.
 
 ## Start every session with filesystem discovery
 
@@ -49,8 +87,8 @@ team labels must identify themselves as `team_human`.
    Confirm `pwd` and `git status`, then follow the discovery steps above.
 2. Read the inventory, team status, requirements, scoring spec and team-safe PDFs.
    The shared chat JSON is available immediately. Python 3.9+ is sufficient for
-   the two stdlib preparation/checking utilities. No application runtime or
-   dependencies have been installed or prescribed by this setup.
+   the two stdlib preparation/checking utilities. The evaluation engine additionally
+   requires Pydantic 2; see the baseline instructions above.
 3. For full DEV/voice/API access, first inspect local expected paths. If absent,
    obtain the original JSON and PDFs from the integration owner through an
    organizer-permitted handoff. Store the full JSON at

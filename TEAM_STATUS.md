@@ -21,13 +21,36 @@ A clone intentionally lacks originals, real calls, signed access and local statu
   before declaring materials missing. The tracked file map is maintained when
   important paths or sharing status change.
 - Utility scripts inspect Git state and reproduce/check the shared subset.
-  No dependencies were installed and no application was implemented.
+
+## Working evaluation baseline
+
+- Implementation is isolated on `codex/cqa-evaluation-engine`; main is unchanged.
+  See `docs/IMPLEMENTATION_REPORT.md` for the exact file manifest and verification.
+- Python/Pydantic v1 contracts cover normalized conversations, configurable
+  checklists/atomic questions, decisions, quote/scope evidence, deterministic scores,
+  audit stages, check findings and future explicit decision revisions.
+- Functional layers: normalization -> structural facts/applicability constraints ->
+  optional pre-checks -> atomic primary evaluation -> schema/evidence/consistency
+  validation -> optional verification checks -> exact deterministic scoring -> result.
+- Checks return info/review/block findings. They cannot replace the original model
+  decision or silently alter scores. A useful agent-presence check ships in baseline.
+- All 53 tests pass, including 2,592 weighted-response combinations independently
+  checked against Decimal arithmetic, all 60 synthetic chat mock runs, and local
+  mock-only handling/export blocking for all five real-call transcripts.
+- Real OpenAI Responses adapter is implemented and tested with injected offline
+  transport. No usable credential was found in the environment/project env files;
+  no genuine LLM call occurred. No paid service/resource was created.
+- No source dataset/PDF was changed, and no real-call content/audio link was sent
+  externally. CLI artifacts stay ignored under outputs. No accuracy established.
 
 ## Required next work, not yet executed
 
-- Confirm owners, runtime/model choice and the next authorized development scope.
-  Build genuine evaluation of unseen inputs, configurable chat/call checklists,
-  evidence-linked results and an appeal/reviewer workflow once authorized.
+- Configure authorized API access/model through secure setup and run the first
+  genuine synthetic evaluation; inspect evidence and factual uncertainty before
+  interpreting its scores. Then separately authorize the human-reviewed benchmark.
+- A frontend, appeals/reviewer workflow, application of explicit revisions,
+  criterion-specific verifiers, second LLM, risk routing and synthetic laboratory
+  remain future work. The baseline supplies contracts and testable extension points.
 - A 20-case human-reviewed DEV benchmark is proposed: 12 calibration, 8 internal
   holdout. No IDs selected, human labels assigned or model predictions generated.
   Full voice coverage needs separate local-call access. Future labels must say
@@ -35,8 +58,8 @@ A clone intentionally lacks originals, real calls, signed access and local statu
 - Top-50 selection prioritizes scoring accuracy on 10 unseen API transcripts.
   Exact accuracy metric, numerical selection weights, control API group/access
   and some policy/rounding/voice edge cases remain unspecified. See requirements.
-- No application, external LLM evaluation, deployment or public repository has
-  been created. Nothing here is a claim of measured scoring accuracy.
+- No genuine external LLM evaluation, deployment or public repository has been
+  created. Mock outputs are not predictions or human benchmark labels.
 
 ## Synchronization and publication
 
