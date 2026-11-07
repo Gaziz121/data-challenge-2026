@@ -156,7 +156,7 @@ Created: `src/cqa/checklists/official-v2.json`, `src/cqa/evidence.py`,
 `tests/test_evidence_repairs.py`, `docs/VALIDATION_REPAIR_REPORT.md`.
 
 Modified: `pyproject.toml`; `src/cqa/__init__.py`, `engine.py`, `io.py`, `prompt.py`,
-`providers.py`, `schemas.py`, `validation.py`, `web.py`; `web/app.js`;
+`providers.py`, `schemas.py`, `validation.py`, `web.py`; `web/app.js`, `web/app.css`;
 `tests/helpers.py`, `test_scoring.py`, `test_web.py`, `test_web_ui.cjs`;
 `README.md`, `PROJECT_FILE_MAP.md`, `TEAM_STATUS.md`, `docs/EVALUATION_ENGINE.md`,
 `docs/LOCAL_MVP.md`. The ignored original `STATUS.md` receives the evidence record.
