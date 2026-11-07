@@ -1,0 +1,119 @@
+{
+  "isSuccess": true,
+  "error": "",
+  "data": {
+    "dataset_group_id": "DEMO_FICTIONAL_NOT_ORGANIZER",
+    "total_records": 3,
+    "records": [
+      {
+        "conversation_id": "demo-ru-001",
+        "channel": "agent chat",
+        "language": "RU",
+        "audio_url": null,
+        "transcript": [
+          {
+            "timestamp": "00:00",
+            "speaker": "bot",
+            "text": "Здравствуйте! Опишите, пожалуйста, ваш вопрос."
+          },
+          {
+            "timestamp": "00:02",
+            "speaker": "client",
+            "text": "Не могу найти, где посмотреть комиссию за сделки."
+          },
+          {
+            "timestamp": "00:04",
+            "speaker": "system",
+            "text": "Чат передан оператору."
+          },
+          {
+            "timestamp": "00:06",
+            "speaker": "operator",
+            "text": "Здравствуйте! Меня зовут Мария. Комиссию можно посмотреть в приложении: Профиль → Тарифы."
+          },
+          {
+            "timestamp": "00:08",
+            "speaker": "client",
+            "text": "Нашёл, спасибо."
+          },
+          {
+            "timestamp": "00:10",
+            "speaker": "operator",
+            "text": "Рада помочь! Если появятся вопросы — пишите, пожалуйста. Хорошего дня!"
+          }
+        ]
+      },
+      {
+        "conversation_id": "demo-kz-voice-001",
+        "channel": "voice call",
+        "language": "KZ",
+        "audio_url": null,
+        "transcript": [
+          {
+            "timestamp": "00:00",
+            "speaker": "system",
+            "text": "Қоңырау басталды."
+          },
+          {
+            "timestamp": "00:02",
+            "speaker": "operator",
+            "text": "Сәлеметсіз бе, мен Айгүлмін, қалай көмектесе аламын?"
+          },
+          {
+            "timestamp": "00:04",
+            "speaker": "client",
+            "text": "Шотты қалай толтыруға болады?"
+          },
+          {
+            "timestamp": "00:06",
+            "speaker": "operator",
+            "text": "Қосымшада «Толтыру» бөлімін ашып, сомасын енгізіңіз."
+          },
+          {
+            "timestamp": "00:08",
+            "speaker": "client",
+            "text": "Түсінікті, рақмет."
+          },
+          {
+            "timestamp": "00:10",
+            "speaker": "operator",
+            "text": "Тағы сұрақтарыңыз бар ма? Сау болыңыз!"
+          }
+        ]
+      },
+      {
+        "conversation_id": "demo-en-001",
+        "channel": "agent chat",
+        "language": "EN",
+        "audio_url": null,
+        "transcript": [
+          {
+            "timestamp": "00:00",
+            "speaker": "client",
+            "text": "My withdrawal has been pending for three days, this is frustrating."
+          },
+          {
+            "timestamp": "00:02",
+            "speaker": "operator",
+            "text": "Hello, I am Daniel. I understand the delay is frustrating, let me check."
+          },
+          {
+            "timestamp": "00:04",
+            "speaker": "operator",
+            "text": "Your request is in final review; it will be completed within one business day."
+          },
+          {
+            "timestamp": "00:06",
+            "speaker": "client",
+            "text": "Ok."
+          },
+          {
+            "timestamp": "00:08",
+            "speaker": "operator",
+            "text": "Is there anything else I can help with? Have a good day!"
+          }
+        ]
+      }
+    ]
+  }
+}

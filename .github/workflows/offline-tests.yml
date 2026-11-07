@@ -1,0 +1,39 @@
+name: offline-tests
+
+# Offline only: no secrets, no API keys, no paid calls. Restricted data (full DEV-65,
+# real calls, controls) is never in the repository, so tests that need it skip here.
+on:
+  push:
+    branches: [main, "integration/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install the single runtime dependency
+        run: python -m pip install "pydantic==2.13.5"
+      - name: Production tests
+        run: PYTHONPATH=src python -B -m unittest discover -t . -s tests -v
+      - name: Independent QA and Accuracy Lab tests
+        run: PYTHONPATH=src python -B -m unittest discover -t . -s qa
+      - name: Frontend and human-viewer JavaScript tests
+        run: |
+          node tests/test_web_ui.cjs
+          node tests/test_dev_review.cjs
+      - name: Official results.json dry run (synthetic DEV-65 / invented PROD-10)
+        run: PYTHONPATH=src python -B -m cqa_results.dryrun --out outputs/ci-dryrun
+      - name: Final-hour rehearsal (fictional controls, production checklist + prompt)
+        run: PYTHONPATH=src python -B -m cqa_results.rehearsal --out outputs/ci-rehearsal

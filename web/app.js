@@ -1,4 +1,4 @@
-/* Integration UI: consumes the existing EvaluationResult contract, never computes scores. */
+/* Integration UI: consumes the backend contracts and never computes scores itself. */
 (function () {
   "use strict";
   function responseText(decision, criterion) {
@@ -7,27 +7,47 @@
     if (criterion.kind === "critical") return decision.response === "yes" ? "Yes — critical violation flagged" : "No listed violation flagged";
     return decision.response === "yes" ? "Yes" : "No";
   }
-  function renderResult(result, container, summary, onEvidence) {
+  function permittedResponses(criterion) {
+    const values = criterion.kind === "discrete" ? criterion.levels.slice() : ["yes", "no"];
+    if (criterion.na_condition !== null && criterion.na_condition !== undefined) values.push("N/A");
+    return values;
+  }
+  function turnNumbers(conversation) {
+    const map = new Map();
+    for (const m of conversation?.messages || []) map.set(m.message_id, m.source_index + 1);
+    return map;
+  }
+  function runLabel(run) {
+    if (run.provider === "replay") return "REPLAY of a recorded genuine model reply — no new model call; mock-flagged, never submittable";
+    return run.is_mock ? "MOCK FIXTURE — not a quality judgment" : "LLM evaluation — semantic accuracy not independently verified";
+  }
+  function factory(container) {
     const doc = container.ownerDocument;
-    function el(tag, text, cls) {
+    return function el(tag, text, cls) {
       const node = doc.createElement(tag);
       if (text !== undefined) node.textContent = text;
       if (cls) node.className = cls;
       return node;
-    }
+    };
+  }
+  function renderResult(result, container, summary, onEvidence) {
+    const el = factory(container);
     const mock = result.run.is_mock;
-    summary.textContent = `${mock ? "MOCK FIXTURE — not a quality judgment" : "LLM evaluation — semantic accuracy not independently verified"}\n` +
-      `Total${mock ? " (fixture)" : ""}: ${result.score.total_score ?? "not calculated"} / 100 · Critical flag: ${result.score.critical_violation ? "yes" : "no"}\n` +
+    summary.textContent = `${runLabel(result.run)}\n` +
+      `Total${mock ? " (fixture/replay)" : ""}: ${result.score.total_score ?? "not calculated"} / 100 · Critical flag: ${result.score.critical_violation ? "yes" : "no"}\n` +
       `${result.run.provider} · ${result.run.model_returned} · ${result.run.latency_ms} ms · ${result.status}\n` +
       `Checklist: ${result.checklist.version} · Usage: ${JSON.stringify(result.run.usage)}`;
     container.replaceChildren();
     const scores = new Map(result.score.criteria.map(c => [c.criterion_id, c]));
     const definitions = new Map(result.checklist.criteria.map(c => [c.criterion_id, c]));
+    const turns = turnNumbers(result.conversation);
     function evidenceList(evidence, parent) {
       for (const reference of evidence) {
         const links = el("div", undefined, "evidence-links");
         const ids = reference.kind === "quote" ? [reference.message_id] : [reference.start_message_id, reference.end_message_id];
-        const button = el("button", reference.kind === "quote" ? `Message ${ids[0]}` : `${reference.kind}: ${ids[0]}–${ids[1]}`);
+        const label = ids.map(id => turns.has(id) ? `turn ${turns.get(id)}` : id).join("–");
+        const button = el("button", reference.kind === "quote" ? `Message ${ids[0]}${turns.has(ids[0]) ? " · " + label : ""}` :
+          `${reference.kind}: ${ids[0]}–${ids[1]}${turns.size ? " · " + label : ""}`);
         button.type = "button";
         button.dataset.startMessageId = ids[0];
         button.dataset.endMessageId = ids[ids.length - 1];
@@ -65,71 +85,110 @@
     container.append(audit);
   }
   function renderFailure(diagnostic, container, summary) {
-    const doc = container.ownerDocument;
-    function el(tag, text, cls) {
-      const node = doc.createElement(tag); node.textContent = text;
-      if (cls) node.className = cls;
-      return node;
-    }
+    const el = factory(container);
     summary.textContent = `${diagnostic.run.is_mock ? "MOCK" : "REAL OPENAI RESPONSE"} — VALIDATION FAILED\n` +
       `No accepted score or total. Original AI decisions below are unvalidated.\n` +
       `${diagnostic.run.provider} · ${diagnostic.run.model_returned} · ${diagnostic.run.provider_latency_ms} ms\n` +
       `Usage: ${JSON.stringify(diagnostic.run.usage)} · Checklist: ${diagnostic.checklist.version}`;
     container.replaceChildren();
+    container.append(el("p", "Why: the engine refuses to score output whose facts, evidence or rules do not validate. " +
+      "In the official export this conversation becomes status=error with the reason below — never a zero score.", "notice"));
     for (const issue of diagnostic.issues) container.append(el("p", `${issue.criterion_id || "Schema"}: ${issue.message}`, "error"));
     const raw = diagnostic.original_model_output;
-    const decisions = raw && typeof raw === "object" && Array.isArray(raw.decisions) ? raw.decisions : [];
-    for (const decision of decisions) {
-      const card = doc.createElement("article"); card.className = "result-card rejected-card";
+    const legacy = raw && typeof raw === "object" && Array.isArray(raw.decisions) ? raw.decisions : [];
+    const atomic = raw && typeof raw === "object" && Array.isArray(raw.criteria) ? raw.criteria : [];
+    const states = new Map((diagnostic.criterion_reviews || []).map(r => [r.criterion_id, r.state]));
+    for (const decision of legacy.length ? legacy : atomic) {
+      const card = el("article", undefined, "result-card rejected-card");
       card.dataset.criterionId = decision.criterion_id;
       const definition = diagnostic.checklist.criteria.find(c => c.criterion_id === decision.criterion_id);
+      const response = legacy.length ? decision.response : decision.judgment?.response ?? "derived from atomic facts";
       card.append(el("h3", `${decision.criterion_id} · ${definition?.title || "Original AI decision"}`),
-        el("p", `Original response: ${String(decision.response)} — no accepted score`, "raw"),
-        el("p", String(decision.rationale || "")));
+        el("p", `Original response: ${String(response)} — no accepted score${states.has(decision.criterion_id) ? " · state " + states.get(decision.criterion_id) : ""}`, "raw"),
+        el("p", String(decision.rationale || decision.judgment?.rationale || "")));
       if (decision.na_reason) card.append(el("p", `Original N/A reason: ${decision.na_reason}`));
-      const details = doc.createElement("details");
+      const details = doc(container).createElement("details");
       details.append(el("summary", "Original atomic checks and evidence (unvalidated)"), el("pre", JSON.stringify(decision, null, 2)));
       card.append(details); container.append(card);
     }
   }
-  if (typeof module !== "undefined" && module.exports) {module.exports = {responseText, renderResult, renderFailure}; return;}
+  function doc(container) {return container.ownerDocument;}
+  function renderComparison(view, checklist, container) {
+    const el = factory(container);
+    container.replaceChildren();
+    const original = view.original_score, revised = view.revised_score;
+    container.append(el("p", `Original total: ${original.total_score ?? "not calculated"} · critical ${original.critical_violation ? "yes" : "no"}` +
+      (revised ? `  →  Revised total: ${revised.total_score ?? "not calculated"} · critical ${revised.critical_violation ? "yes" : "no"}` :
+        "  ·  No reviewer change applied; the original total stands."), "raw"));
+    const table = el("table", undefined, "comparison");
+    const head = el("tr"); for (const h of ["Criterion", "Original", "Revised", "Weight"]) head.append(el("th", h));
+    table.append(head);
+    for (const criterion of checklist.criteria) {
+      const row = el("tr");
+      const a = view.original_responses[criterion.criterion_id], b = view.revised_responses[criterion.criterion_id];
+      row.append(el("td", `${criterion.criterion_id} · ${criterion.title}`), el("td", String(a)),
+        el("td", String(b), a === b ? undefined : "changed"), el("td", criterion.kind === "critical" ? "flag" : String(criterion.weight)));
+      table.append(row);
+    }
+    container.append(table);
+  }
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = {responseText, renderResult, renderFailure, permittedResponses, renderComparison, runLabel};
+    return;
+  }
+
   const $ = id => document.getElementById(id);
-  let records = [], config, current = null, result = null, rejected = null, busy = false, sequence = 0;
+  const el = factory(document.body);
+  let records = [], config, checklists = [], current = null, pasted = null, result = null, rejected = null;
+  let busy = false, sequence = 0, editing = null;
   async function api(path, options) {
     const response = await fetch(path, options);
     const value = await response.json();
-    if (!response.ok) {const error = new Error(value.error || "Local request failed."); error.details = value; throw error;}
+    if (!response.ok) {const error = new Error(value.error || "Local request failed."); error.details = value; error.status = response.status; throw error;}
     return value;
   }
+  function post(path, body, headers = {}) {
+    return api(path, {method: "POST", headers: {"Content-Type": "application/json", ...headers}, body: JSON.stringify(body)});
+  }
   function feedback(text, error = false) {$("feedback").textContent = text; $("feedback").className = error ? "status error" : "status";}
+  function selectedChecklist() {
+    const [checklist_id, version] = $("checklist").value.split("\u0000");
+    return checklist_id ? {checklist_id, version} : null;
+  }
   function updateMode() {
-    const mock = $("provider").value === "mock";
+    const provider = $("provider").value, mock = provider !== "openai";
     $("mode").className = mock ? "mode" : "mode live";
-    $("mode").textContent = mock ? "MOCK mode — fixed test fixtures, not AI quality judgments." :
-      "OpenAI selected — only a successful provider response is an LLM evaluation. Synthetic DEV only.";
+    $("mode").textContent = provider === "mock" ? "MOCK mode — fixed test fixtures, not AI quality judgments. Atomic checklists (v4–v6) reject mock facts by design." :
+      provider === "replay" ? "REPLAY — re-validates a recorded genuine reply (p1-ru-001, checklist v5). No new model call." :
+      "OpenAI selected — only a successful provider response is an LLM evaluation.";
     $("model").disabled = mock || busy;
-    const ready = mock || (config?.openai_key_present && config?.external_synthetic_allowed && config?.live_calls_remaining !== 0 && $("model").value.trim());
-    $("evaluate").disabled = busy || !current || !ready;
+    const ready = mock || (config?.openai_key_present && (config?.external_synthetic_allowed || config?.external_authorized_allowed) &&
+      config?.live_calls_remaining !== 0 && $("model").value.trim());
+    $("evaluate").disabled = busy || !(current || pasted) || !ready;
     if (!mock && !ready) feedback(config?.live_calls_remaining === 0 ? "Live request budget is exhausted. No additional paid request can be sent." :
-      "OpenAI requires authorized server credentials, --allow-external-synthetic and an explicit model. No request has been sent.");
+      "OpenAI requires authorized server credentials, an external-export opt-in and an explicit model. No request has been sent.");
   }
   function clearResult() {
     result = null; rejected = null; $("download").disabled = true;
     $("results").replaceChildren(); $("run-summary").textContent = "No evaluation for this selection yet.";
+    renderAppealsPanel(null);
+  }
+  function showConversation(conversation) {
+    current = conversation; pasted = null;
+    $("conversation-title").textContent = conversation.conversation_id;
+    $("conversation-meta").textContent = `${conversation.language} · ${conversation.channel} · ${conversation.messages.length} messages · source order`;
+    window.CqaTranscript.render($("transcript"), conversation);
   }
   async function selectConversation() {
     const requestSequence = ++sequence;
-    current = null; clearResult(); updateMode(); $("transcript").replaceChildren();
+    current = null; pasted = null; clearResult(); updateMode(); $("transcript").replaceChildren();
     const id = $("conversation").value;
     if (!id) return;
     try {
       const loaded = await api("/api/conversations/" + encodeURIComponent(id));
       if (requestSequence !== sequence) return;
-      current = loaded;
-      $("conversation-title").textContent = loaded.conversation_id;
-      $("conversation-meta").textContent = `${loaded.language} · ${loaded.channel} · ${loaded.messages.length} messages · source order`;
-      window.CqaTranscript.render($("transcript"), loaded);
-      feedback("Transcript loaded. Evaluation has not run."); updateMode();
+      showConversation(loaded);
+      feedback("Transcript loaded. Evaluation has not run."); updateMode(); loadHistory();
     } catch (error) {if (requestSequence === sequence) feedback(error.message, true);}
   }
   function filter() {
@@ -139,61 +198,272 @@
     selectConversation();
   }
   function jump(reference) {
+    if (!current) return;
     const start = reference.kind === "quote" ? reference.message_id : reference.start_message_id;
     const end = reference.kind === "quote" ? start : reference.end_message_id;
     const a = current.messages.findIndex(m => m.message_id === start), b = current.messages.findIndex(m => m.message_id === end);
     $("transcript").querySelectorAll(".highlight").forEach(node => node.classList.remove("highlight"));
-    for (let i = a; i <= b; i++) $(`message-${i}`).classList.add("highlight");
-    $(`message-${a}`).scrollIntoView({block: "nearest"});
+    for (let i = a; i <= b; i++) $(`message-${i}`)?.classList.add("highlight");
+    $(`message-${a}`)?.scrollIntoView({block: "nearest"});
+  }
+  function showResult(value) {
+    result = value; rejected = null;
+    if (!current || current.conversation_id !== value.conversation.conversation_id || pasted) showConversation(value.conversation);
+    renderResult(value, $("results"), $("run-summary"), jump);
+    $("download").disabled = false;
+    loadAppeals();
+  }
+  function showRejected(diagnostic) {
+    rejected = diagnostic; result = null;
+    if (!current || current.conversation_id !== diagnostic.conversation.conversation_id) showConversation(diagnostic.conversation);
+    renderFailure(diagnostic, $("results"), $("run-summary")); $("download").disabled = false;
+    renderAppealsPanel(null);
   }
   $("evaluate").onclick = async () => {
-    if (busy || !current) return;
+    if (busy || !(current || pasted)) return;
     busy = true; clearResult(); updateMode();
-    for (const id of ["conversation", "language", "provider"]) $(id).disabled = true;
+    for (const id of ["conversation", "language", "provider", "checklist"]) $(id).disabled = true;
     $("results").setAttribute("aria-busy", "true"); feedback("Evaluation running…");
     try {
-      result = await api("/api/evaluations", {method: "POST", headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({conversation_id: current.conversation_id, provider: $("provider").value,
-          model: $("provider").value === "mock" ? null : $("model").value.trim()})});
-      renderResult(result, $("results"), $("run-summary"), jump);
-      $("download").disabled = false;
-      feedback(result.run.is_mock ? "Mock fixture complete — no semantic quality assessment occurred." : "LLM evaluation complete — inspect evidence and review flags.");
+      const body = {provider: $("provider").value, model: $("provider").value === "openai" ? $("model").value.trim() : null};
+      if (pasted) body.conversation = pasted; else body.conversation_id = current.conversation_id;
+      const checklist = selectedChecklist(); if (checklist) body.checklist = checklist;
+      showResult(await post("/api/evaluations", body));
+      feedback(result.run.provider === "replay" ? "Recorded genuine reply re-validated and scored — no new model call." :
+        result.run.is_mock ? "Mock fixture complete — no semantic quality assessment occurred." : "LLM evaluation complete — inspect evidence and review flags.");
     } catch (error) {
-      feedback(error.message, true); $("run-summary").textContent = "Evaluation failed. No score returned.";
+      feedback(error.status === 403 ? `${error.message} — supplied input needs an owner approval manifest (see TEAM_START_HERE.md).` : error.message, true);
+      $("run-summary").textContent = "Evaluation failed. No score returned.";
       if (error.details?.diagnostic_id) {
-        try {rejected = await api("/api/diagnostics/" + error.details.diagnostic_id);
-          renderFailure(rejected, $("results"), $("run-summary")); $("download").disabled = false;
-        } catch (_) {feedback("Evaluation failed; diagnostic remains saved on the server.", true);}
+        try {showRejected(await api("/api/diagnostics/" + error.details.diagnostic_id));}
+        catch (_) {feedback("Evaluation failed; diagnostic remains saved on the server.", true);}
       }
     }
     finally {
-      busy = false; for (const id of ["conversation", "language", "provider"]) $(id).disabled = false;
-      $("results").setAttribute("aria-busy", "false"); updateMode();
+      busy = false; for (const id of ["conversation", "language", "provider", "checklist"]) $(id).disabled = false;
+      $("results").setAttribute("aria-busy", "false"); updateMode(); loadHistory();
     }
   };
   $("download").onclick = () => {
     const saved = result || rejected; if (!saved) return;
     const url = URL.createObjectURL(new Blob([JSON.stringify(saved, null, 2) + "\n"], {type: "application/json"}));
     const link = document.createElement("a"); link.href = url;
-    link.download = `cqa-${rejected ? "rejected" : saved.run.is_mock ? "mock" : "llm"}-${saved.evaluation_id || saved.diagnostic_id}.json`;
+    link.download = `cqa-${rejected ? "rejected" : saved.run.provider}-${saved.evaluation_id || saved.diagnostic_id}.json`;
     document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+  $("paste-load").onclick = () => {
+    try {
+      const value = JSON.parse($("paste-json").value);
+      if (!value?.record?.transcript?.length) throw new Error("JSON needs record.transcript with at least one turn.");
+      clearResult(); current = null; pasted = value;
+      $("conversation-title").textContent = `${value.record.conversation_id} (supplied)`;
+      $("conversation-meta").textContent = `${value.record.language} · ${value.record.channel} · ${value.record.transcript.length} turns · not yet normalized`;
+      window.CqaTranscript.render($("transcript"), value.record);
+      feedback("Supplied transcript shown. Click Evaluate; the server checks the owner approval first."); updateMode();
+    } catch (error) {feedback(`Invalid conversation JSON: ${error.message}`, true);}
+  };
+
+  // History
+  async function loadHistory() {
+    const all = $("history-all").checked, id = current?.conversation_id;
+    try {
+      const rows = await api("/api/evaluations" + (!all && id ? "?conversation_id=" + encodeURIComponent(id) : ""));
+      $("history").replaceChildren(...(rows.length ? rows.map(historyRow) : [emptyRow("No saved evaluations yet.")]));
+    } catch (error) {$("history").replaceChildren(emptyRow(error.message));}
+  }
+  function emptyRow(text) {const tr = el("tr"); const td = el("td", text, "empty"); td.colSpan = 8; tr.append(td); return tr;}
+  function historyRow(row) {
+    const tr = el("tr");
+    const status = row.kind === "rejected" ? `rejected (${row.issues} issues)` : row.status;
+    const appeals = row.kind === "rejected" ? "—" : `${row.appeals_open} open · ${row.appeals_revised} revised`;
+    tr.append(el("td", (row.started_at || "").replace("T", " ").slice(0, 19)), el("td", row.conversation_id),
+      el("td", row.checklist_version), el("td", `${row.provider} · ${row.model}`), el("td", status),
+      el("td", row.total_score ?? "—"), el("td", appeals));
+    const td = el("td"), open = el("button", "Open"); open.type = "button";
+    open.onclick = async () => {
+      try {
+        if (row.kind === "rejected") showRejected(await api("/api/diagnostics/" + row.evaluation_id));
+        else showResult(await api("/api/evaluations/" + row.evaluation_id));
+        feedback(`Loaded saved ${row.kind} ${row.evaluation_id}. No new evaluation was run.`);
+      } catch (error) {feedback(error.message, true);}
+    };
+    td.append(open); tr.append(td); return tr;
+  }
+  $("history-refresh").onclick = loadHistory; $("history-all").onchange = loadHistory;
+
+  // Appeals
+  function renderAppealsPanel(view) {
+    const enabled = Boolean(result);
+    for (const id of ["appeal-criterion", "appeal-requested", "appeal-submit"]) $(id).disabled = !enabled;
+    if (!enabled) {
+      $("comparison").replaceChildren(el("p", rejected ? "Rejected evaluations have no accepted score to appeal; re-evaluate instead." :
+        "Open an accepted evaluation to see appeals.", "empty"));
+      $("appeals").replaceChildren(el("p", "No appeals.", "empty"));
+      $("appeal-criterion").replaceChildren(); $("appeal-requested").replaceChildren();
+      return;
+    }
+    const keep = $("appeal-criterion").value;
+    $("appeal-criterion").replaceChildren(...result.checklist.criteria.map(c => new Option(`${c.criterion_id} · ${c.title}`, c.criterion_id)));
+    if (keep && result.checklist.criteria.some(c => c.criterion_id === keep)) $("appeal-criterion").value = keep;
+    fillRequested();
+    if (!view) return;
+    renderComparison(view, result.checklist, $("comparison"));
+    $("appeals").replaceChildren(...(view.appeals.length ? view.appeals.map(appealCard) : [el("p", "No appeals.", "empty")]));
+  }
+  function criterionOf(id) {return result.checklist.criteria.find(c => c.criterion_id === id);}
+  function responseOptions(select, criterion, blankLabel) {
+    const options = permittedResponses(criterion).map(v => new Option(String(v), JSON.stringify(v)));
+    if (blankLabel) options.unshift(new Option(blankLabel, ""));
+    select.replaceChildren(...options);
+  }
+  function fillRequested() {
+    const criterion = criterionOf($("appeal-criterion").value);
+    if (criterion) responseOptions($("appeal-requested"), criterion, "(no specific request)");
+  }
+  $("appeal-criterion").onchange = fillRequested;
+  function appealCard(appeal) {
+    const card = el("article", undefined, `result-card appeal ${appeal.state}`);
+    card.append(el("h3", `${appeal.criterion_id} · ${appeal.state.toUpperCase()}`),
+      el("p", `Original response: ${appeal.original_response} · requested: ${appeal.requested_response ?? "—"} · by ${appeal.submitted_by} at ${appeal.submitted_at}`, "meta"),
+      el("p", appeal.explanation));
+    if (appeal.decision) {
+      card.append(el("p", `Reviewer ${appeal.decision.reviewer}: ${appeal.decision.outcome} → final ${appeal.decision.final_response} (${appeal.decision.decided_at})`, "raw"),
+        el("p", appeal.decision.reason, "notice"));
+    } else {
+      const form = el("div", undefined, "form-grid");
+      const outcome = el("select"); outcome.append(new Option("Confirm original", "confirm"), new Option("Change decision", "change"));
+      const value = el("select"); responseOptions(value, criterionOf(appeal.criterion_id));
+      const reason = el("textarea"); reason.placeholder = "Reviewer reason (required)"; reason.maxLength = 4000;
+      const submit = el("button", "Record reviewer decision"); submit.type = "button";
+      submit.onclick = async () => {
+        try {
+          const body = {reviewer: $("reviewer-name").value.trim(), outcome: outcome.value, reason: reason.value.trim(),
+            new_response: outcome.value === "change" ? JSON.parse(value.value) : null};
+          const out = await post(`/api/appeals/${appeal.appeal_id}/decision`, body, {"X-CQA-Reviewer-Key": $("reviewer-key").value});
+          renderAppealsPanel(out.view); loadHistory();
+          feedback(out.view.revised_score ? `Reviewer decision recorded. Revised total ${out.view.revised_score.total_score}; original ${out.view.original_score.total_score} kept.` :
+            "Reviewer confirmed the original decision.");
+        } catch (error) {feedback(error.message, true);}
+      };
+      const l1 = el("label", "Outcome"), l2 = el("label", "New response (if changed)"), l3 = el("label", "Reason");
+      l1.append(outcome); l2.append(value); l3.append(reason); l3.className = "wide";
+      form.append(l1, l2, l3, submit); card.append(form);
+    }
+    return card;
+  }
+  async function loadAppeals() {
+    if (!result) return renderAppealsPanel(null);
+    try {renderAppealsPanel(await api(`/api/evaluations/${result.evaluation_id}/appeals`));}
+    catch (error) {feedback(error.message, true);}
+  }
+  $("appeal-form").onsubmit = async event => {
+    event.preventDefault();
+    if (!result) return;
+    try {
+      const requested = $("appeal-requested").value;
+      const out = await post(`/api/evaluations/${result.evaluation_id}/appeals`, {criterion_id: $("appeal-criterion").value,
+        submitted_by: $("appeal-name").value.trim(), explanation: $("appeal-explanation").value.trim(),
+        requested_response: requested ? JSON.parse(requested) : null});
+      $("appeal-explanation").value = ""; renderAppealsPanel(out.view); loadHistory();
+      feedback("Appeal submitted. A reviewer (different person, with the reviewer key) must confirm or change it.");
+    } catch (error) {feedback(error.message, true);}
+  };
+
+  // Checklists
+  async function loadChecklists(select) {
+    checklists = await api("/api/checklists");
+    const option = c => new Option(`${c.checklist_id} · ${c.version}`, `${c.checklist_id}\u0000${c.version}`);
+    const keep = $("checklist").value || `${config.checklist.checklist_id}\u0000${config.checklist.version}`;
+    $("checklist").replaceChildren(...checklists.map(option));
+    $("checklist").value = select || keep;
+    const base = $("editor-base").value;
+    $("editor-base").replaceChildren(...checklists.map(c => new Option(`${c.checklist_id} · ${c.version}`, c.sha256)));
+    if (base) $("editor-base").value = base;
+  }
+  async function loadEditor() {
+    try {
+      editing = await api("/api/checklists/" + $("editor-base").value);
+      $("editor-version").value = editing.version + "-edit";
+      syncJson(); renderEditor(); $("editor-save").disabled = false; $("editor-feedback").textContent = "";
+    } catch (error) {$("editor-feedback").textContent = error.message;}
+  }
+  function syncJson() {$("editor-json").value = JSON.stringify(editing, null, 2);}
+  function field(label, input, wide) {const l = el("label", label); if (wide) l.className = "wide"; l.append(input); return l;}
+  function renderEditor() {
+    const blocks = editing.criteria.map((criterion, index) => {
+      const box = el("fieldset", undefined, "criterion");
+      box.append(el("legend", `${criterion.criterion_id} · ${criterion.kind}${criterion.output_source === "atomic" ? " · derived from atomic facts" : ""}`));
+      const title = el("input"); title.value = criterion.title; title.oninput = () => {criterion.title = title.value; syncJson();};
+      const weight = el("input"); weight.type = "number"; weight.min = 0; weight.value = criterion.weight;
+      weight.disabled = criterion.kind === "critical";
+      weight.oninput = () => {criterion.weight = Number(weight.value); syncJson();};
+      const instructions = el("textarea"); instructions.value = criterion.instructions;
+      instructions.oninput = () => {criterion.instructions = instructions.value; syncJson();};
+      const grid = el("div", undefined, "form-grid");
+      grid.append(field("Title", title), field(criterion.kind === "critical" ? "Weight (critical flags are unweighted)" : "Weight", weight),
+        field("Instructions", instructions, true));
+      if (criterion.kind === "discrete") {
+        const levels = el("input"); levels.value = criterion.levels.join(", ");
+        levels.onchange = () => {
+          const parsed = levels.value.split(",").map(v => Number(v.trim())).filter(v => Number.isInteger(v));
+          criterion.levels = [...new Set(parsed)].sort((a, b) => a - b);
+          const anchors = {}; for (const level of criterion.levels) anchors[String(level)] = criterion.anchors[String(level)] ?? "";
+          criterion.anchors = anchors; syncJson(); renderEditor();
+        };
+        grid.append(field("Scale levels (must include 0)", levels, true));
+        for (const level of criterion.levels) {
+          const anchor = el("textarea"); anchor.value = criterion.anchors[String(level)] ?? "";
+          anchor.oninput = () => {criterion.anchors[String(level)] = anchor.value; syncJson();};
+          grid.append(field(`Anchor for ${level}`, anchor, true));
+        }
+      }
+      if (criterion.na_condition !== null) {
+        const na = el("textarea"); na.value = criterion.na_condition;
+        na.oninput = () => {criterion.na_condition = na.value; syncJson();};
+        grid.append(field(`N/A allowed only when (applicability question ${criterion.applicability_rule?.question_id})`, na, true));
+      } else grid.append(el("p", "N/A not permitted for this criterion (add an applicability rule in the JSON to allow it).", "notice"));
+      for (const question of criterion.questions) {
+        const q = el("textarea"); q.value = question.question;
+        q.oninput = () => {question.question = q.value; syncJson();};
+        grid.append(field(`Atomic question ${question.question_id}`, q, true));
+      }
+      box.append(grid); box.dataset.index = index; return box;
+    });
+    $("editor-criteria").replaceChildren(el("p", `${editing.criteria.length} criteria · decision path ${editing.decision_path || "legacy"} · source: ${editing.source}`, "notice"), ...blocks);
+  }
+  $("editor-base").onchange = loadEditor;
+  $("editor-apply").onclick = () => {
+    try {editing = JSON.parse($("editor-json").value); renderEditor(); $("editor-feedback").textContent = "Form reloaded from JSON.";}
+    catch (error) {$("editor-feedback").textContent = `Invalid JSON: ${error.message}`;}
+  };
+  $("editor-save").onclick = async () => {
+    try {
+      const body = JSON.parse($("editor-json").value);
+      body.version = $("editor-version").value.trim();
+      const saved = await post("/api/checklists", body);
+      await loadChecklists(`${saved.checklist_id}\u0000${saved.version}`);
+      $("editor-base").value = saved.sha256;
+      $("editor-feedback").textContent = `Saved ${saved.checklist_id} · ${saved.version} (sha256 ${saved.sha256.slice(0, 12)}…). It is now selected for the next evaluation.`;
+      clearResult(); updateMode();
+    } catch (error) {
+      $("editor-feedback").textContent = `Not saved: ${error.message}${error.details?.fields ? " — fields: " + error.details.fields.join(", ") : ""}`;
+    }
+  };
+
   $("language").onchange = filter; $("conversation").onchange = selectConversation;
+  $("checklist").onchange = () => {clearResult(); updateMode();};
   $("provider").onchange = () => {
     clearResult(); updateMode();
-    if ($("provider").value === "mock") feedback("Mock fixture selected. Click Evaluate to test the pipeline; no semantic assessment occurs.");
+    if ($("provider").value === "replay") feedback("Replay needs conversation p1-ru-001 and checklist 2026-11-07.v5 (the recorded pair).");
   };
   $("model").oninput = () => {clearResult(); updateMode();};
   Promise.all([api("/api/config"), api("/api/conversations")]).then(async ([settings, data]) => {
-    config = settings; records = data; $("model").value = settings.model; filter();
+    config = settings; records = data; $("model").value = settings.model;
+    await loadChecklists(); await loadEditor(); filter();
     const diagnosticId = new URL(window.location.href).searchParams.get("diagnostic");
     if (diagnosticId) {
-      const diagnostic = await api("/api/diagnostics/" + encodeURIComponent(diagnosticId));
-      $("conversation").value = diagnostic.conversation.conversation_id;
-      await selectConversation();
-      $("provider").value = diagnostic.run.provider; updateMode();
-      rejected = diagnostic; renderFailure(diagnostic, $("results"), $("run-summary")); $("download").disabled = false;
-      feedback("Saved genuine response rejected by validation. No total and no new model request.", true);
+      showRejected(await api("/api/diagnostics/" + encodeURIComponent(diagnosticId)));
+      feedback("Saved response rejected by validation. No total and no new model request.", true);
     }
   }).catch(error => feedback(error.message, true));
 })();

@@ -8,24 +8,32 @@
 <script defer src="/app.js"></script>
 <header>
   <h1>CQA · local evaluation</h1>
-  <p>Synthetic DEV conversations · Evidence and deterministic scoring</p>
+  <p>Freedom Broker customer-service quality · RU / KZ / EN chats and voice transcripts · evidence, deterministic scoring, appeals</p>
   <a href="/human-review/" target="_blank" rel="noopener noreferrer">Open independent human review in a separate tab</a>
 </header>
 <div id="mode" class="mode">MOCK mode — fixed test fixtures, not AI quality judgments.</div>
 <div class="toolbar">
   <label>Language<select id="language"><option value="">All languages</option><option>RU</option><option>KZ</option><option>EN</option></select></label>
   <label>Conversation<select id="conversation" disabled></select></label>
-  <label>Provider<select id="provider"><option value="mock">Mock fixture</option><option value="openai">OpenAI LLM</option></select></label>
+  <label>Checklist<select id="checklist"></select></label>
+  <label>Provider<select id="provider"><option value="mock">Mock fixture</option><option value="replay">Replay recorded genuine reply</option><option value="openai">OpenAI LLM</option></select></label>
   <label>Model<input id="model" placeholder="Explicit OpenAI model" disabled autocomplete="off"></label>
   <button id="evaluate" disabled>Evaluate</button>
   <button id="download" disabled>Download evaluation JSON</button>
 </div>
+<details class="toolbar paste" id="paste-panel">
+  <summary>Supply a new conversation (JSON, owner-approved input only)</summary>
+  <p class="notice">Shape: {"dataset_group_id": "...", "record": {"conversation_id", "channel": "agent chat"|"voice call", "language", "audio_url", "transcript": [{"timestamp", "speaker": client|operator|bot|system, "text", "message_id"?}]}}.
+    The server evaluates it only if a matching local approval exists (see TEAM_START_HERE.md). Source order, IDs and timestamps are preserved.</p>
+  <textarea id="paste-json" rows="6" spellcheck="false" aria-label="Conversation JSON"></textarea>
+  <button id="paste-load" type="button">Show pasted transcript</button>
+</details>
 <div class="status" id="feedback" role="status" aria-live="polite">Loading synthetic DEV…</div>
 <main class="workspace">
   <section class="panel" aria-label="Original transcript">
     <div class="panel-heading"><h2 id="conversation-title">Transcript</h2><p id="conversation-meta" class="meta"></p>
       <div class="legend"><span>Client</span><span>Operator</span><span>Bot</span><span>System</span></div>
-      <p class="notice">Original wording and timestamps. Indexes are local evidence locators.</p>
+      <p class="notice">Original wording and timestamps. Index is zero-based; official evidence turn = index + 1.</p>
     </div>
     <div id="transcript" class="scroll"></div>
   </section>
@@ -36,4 +44,53 @@
     <div id="results" class="scroll" aria-busy="false"><p class="empty">No evaluation yet.</p></div>
   </section>
 </main>
+<section class="workspace lower">
+  <section class="panel" aria-label="History and appeals">
+    <div class="panel-heading"><h2>History and appeals</h2>
+      <p class="notice">Saved evaluations are immutable. Appeals and reviewer decisions are stored separately; the revised total is recalculated with the same official arithmetic.</p>
+    </div>
+    <div class="scroll">
+      <h3>Evaluation history <button id="history-refresh" type="button">Refresh</button>
+        <label class="inline"><input id="history-all" type="checkbox"> all conversations</label></h3>
+      <table class="history"><thead><tr><th>Started (UTC)</th><th>Conversation</th><th>Checklist</th><th>Provider · model</th><th>Status</th><th>Total</th><th>Appeals</th><th></th></tr></thead>
+        <tbody id="history"></tbody></table>
+      <h3>Score: original versus revised</h3>
+      <div id="comparison"><p class="empty">Open an accepted evaluation to see appeals.</p></div>
+      <h3>Submit an appeal</h3>
+      <form id="appeal-form" class="form-grid">
+        <label>Criterion<select id="appeal-criterion" disabled></select></label>
+        <label>Requested response<select id="appeal-requested" disabled></select></label>
+        <label>Your name<input id="appeal-name" maxlength="80" autocomplete="off"></label>
+        <label class="wide">Explanation<textarea id="appeal-explanation" maxlength="4000"></textarea></label>
+        <button id="appeal-submit" type="submit" disabled>Submit appeal</button>
+      </form>
+      <h3>Appeals for this evaluation</h3>
+      <div id="appeals"><p class="empty">No appeals.</p></div>
+      <div class="form-grid reviewer">
+        <label>Reviewer name<input id="reviewer-name" maxlength="80" autocomplete="off"></label>
+        <label>Reviewer key<input id="reviewer-key" type="password" autocomplete="off" placeholder="Printed at server start"></label>
+      </div>
+    </div>
+  </section>
+  <section class="panel" aria-label="Checklist editor">
+    <div class="panel-heading"><h2>Checklist editor</h2>
+      <p class="notice">Versions are immutable: edit, give a new version name and save. Saved versions appear in the Checklist selector.
+        Official submission export stays pinned to the organizer criteria (contact … critical) and refuses incompatible checklists.</p>
+    </div>
+    <div class="scroll">
+      <div class="form-grid">
+        <label>Base version<select id="editor-base"></select></label>
+        <label>New version name<input id="editor-version" autocomplete="off"></label>
+        <button id="editor-save" type="button" disabled>Save as new version</button>
+      </div>
+      <p id="editor-feedback" class="notice" role="status"></p>
+      <div id="editor-criteria"></div>
+      <details><summary>Advanced: full checklist JSON (add/remove criteria, atomic questions, N/A rules)</summary>
+        <p class="notice">The form above edits this JSON. Server-side validation is authoritative: discrete scales need 0 and anchors for every level, N/A needs an applicability question, critical flags are unweighted.</p>
+        <textarea id="editor-json" rows="16" spellcheck="false" aria-label="Checklist JSON"></textarea>
+        <button id="editor-apply" type="button">Reload form from JSON</button>
+      </details>
+    </div>
+  </section>
+</section>
 </html>

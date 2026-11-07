@@ -203,7 +203,7 @@ class ControlBackendTests(unittest.TestCase):
         self.assertNotEqual(first["evaluation_id"], second["evaluation_id"])
         self.assertEqual(json.loads((self.app.output_dir / (first["evaluation_id"] + ".json")).read_text()), first)
         reopened = Application(api_key="", output_dir=self.app.output_dir)
-        self.assertEqual(len(reopened.checklists.list()), 4)
+        self.assertEqual(len(reopened.checklists.list()), 6)  # Saved version survives restart beside v2-v6.
         self.assertEqual(reopened.checklists.by_hash(ref["sha256"]).model_dump(mode="json"), changed)
         # ID-based DEV compatibility also supports the explicitly saved version.
         status, result = self.request("/api/evaluations", {"conversation_id": "p1-ru-001", "checklist": body["checklist"]})

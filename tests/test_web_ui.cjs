@@ -72,3 +72,33 @@ assert.equal(walk(container).filter(n=>n.className==='result-card rejected-card'
 assert.match(texts(container),/Fixture applicability contradiction/);
 assert.doesNotMatch(texts(container),/83.33/);
 console.log('PASS: eight results, N/A reasons, backend-only totals, mock/LLM labeling, evidence targets, literal source text and shared transcript renderer.');
+
+// Product additions: dynamic scales, replay labeling, atomic rejections and original-vs-revised comparison.
+{
+  const {permittedResponses, renderComparison, runLabel} = require('../web/app.js');
+  const v6 = require('../src/cqa/checklists/official-v6.json');
+  const byId = id => v6.criteria.find(c => c.criterion_id === id);
+  assert.deepEqual(permittedResponses(byId('04')), [0, 5, 10, 15, 20, 'N/A']);
+  assert.deepEqual(permittedResponses(byId('06')), [0, 4, 7, 10]);
+  assert.deepEqual(permittedResponses(byId('01')), ['yes', 'no']);
+  assert.deepEqual(permittedResponses(byId('07')), ['yes', 'no', 'N/A']);
+  assert.deepEqual(permittedResponses({kind: 'discrete', levels: [0, 1, 2, 3], na_condition: null}), [0, 1, 2, 3]);
+  assert.match(runLabel({provider: 'replay', is_mock: true}), /REPLAY of a recorded genuine model reply/);
+  const responses = Object.fromEntries(v6.criteria.map(c => [c.criterion_id, c.kind === 'discrete' ? Math.max(...c.levels) : c.kind === 'critical' ? 'no' : 'yes']));
+  const view = {original_score: {total_score: '100.00', critical_violation: false}, revised_score: {total_score: '92.31', critical_violation: false},
+    original_responses: responses, revised_responses: {...responses, '07': 'no'}};
+  const box = doc.createElement('div');
+  renderComparison(view, v6, box);
+  assert.match(texts(box), /Original total: 100.00.*Revised total: 92.31/s);
+  assert.equal(walk(box).filter(n => n.className === 'changed').length, 1);
+  assert.equal(walk(box).filter(n => n.tagName === 'tr').length, v6.criteria.length + 1); // Rows follow the checklist, not a fixed eight.
+  renderComparison({...view, revised_score: null, revised_responses: responses}, v6, box);
+  assert.match(texts(box), /original total stands/);
+  renderFailure({run: {is_mock: false, provider: 'openai', model_returned: 'fixture', provider_latency_ms: 1, usage: {}}, checklist: v6,
+    issues: [{criterion_id: '03', message: 'fixture fact invalid'}], criterion_reviews: [{criterion_id: '03', state: 'invalid_facts'}],
+    original_model_output: {schema_version: '1.2', criteria: v6.criteria.map(c => ({criterion_id: c.criterion_id, atomic_checks: [], judgment: null}))}}, box, summary);
+  assert.equal(walk(box).filter(n => n.className === 'result-card rejected-card').length, v6.criteria.length);
+  assert.match(texts(box), /state invalid_facts/);
+  assert.match(texts(box), /status=error/);
+  console.log('PASS: dynamic response scales, replay label, atomic rejection cards and original-vs-revised comparison.');
+}
