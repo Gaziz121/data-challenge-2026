@@ -403,3 +403,9 @@ return 422 with `error` and `fields`.
 `reviewer_key_required`. Batch-runner additions (`cqa_results.batch`): real providers require explicit
 `--checklist` and `--prompt-version`; `--repair-authorization REF` opts into one bounded repair call per
 rejected atomic conversation and is recorded in `run.json` (resume refuses a change).
+
+EXPERIMENTAL `EvaluationConfig.evidence_gate` (`strict` default, omitted from serialization; `review` opt-in,
+batch `--evidence-gate review`): only `validation.REVIEWABLE_EVIDENCE_POLICY` issues become `needs_review`
+decisions with a `review_reason`, and are listed in the additive result field `evidence_policy_exceptions`
+(omitted when empty). `validate_evaluation`/`score_evaluation` accept exceptions only from that allow-list and
+only on decisions flagged for review; the exporter passes the stored list.

@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from .coverage import coverage_proof
 from .decision_rules import assess_decision
 from .schemas import AtomicCriterionOutput, AtomicCheck, CriterionReview, Decision, ModelEvaluation
-from .validation import _validate_decision
+from .validation import REVIEWABLE_EVIDENCE_POLICY, _validate_decision
 
 
 class AtomicReviewRequired(ValueError):
@@ -86,8 +86,14 @@ def _identification_issues(criterion, observations, conversation, messages):
     return issues
 
 
-def process_atomic_output(raw, conversation, checklist):
-    """Return validated projection + review ledger; never guess missing facts."""
+def process_atomic_output(raw, conversation, checklist, evidence_gate="strict", exceptions=None):
+    """Return validated projection + review ledger; never guess missing facts.
+
+    evidence_gate="review" (explicit opt-in) records REVIEWABLE_EVIDENCE_POLICY issues as needs_review
+    exceptions, appended to `exceptions`, instead of blocking. Everything else still blocks.
+    """
+    review_gate = evidence_gate == "review"
+    exceptions = [] if exceptions is None else exceptions
     reviews, issues, accepted = [], [], []
     expected = {c.criterion_id: c for c in checklist.criteria}
     messages = {m.message_id: m for m in conversation.messages}
@@ -145,6 +151,10 @@ def process_atomic_output(raw, conversation, checklist):
                 local.append("Atomic absence/context claim requires full-dialogue source coverage")
         if set(observations) == {q.question_id for q in criterion.questions}:
             local.extend(_identification_issues(criterion, observations, conversation, messages))
+        notes = []
+        if review_gate:
+            notes = [m for m in local if m in REVIEWABLE_EVIDENCE_POLICY]
+            local = [m for m in local if m not in REVIEWABLE_EVIDENCE_POLICY]
         if local:
             reviews.append(CriterionReview(criterion_id=cid, state="invalid_facts", decision_origin=origin,
                                            original_judgment=original_judgment, issues=local))
@@ -194,20 +204,35 @@ def process_atomic_output(raw, conversation, checklist):
                     continue
                 if judgment.review_reason is not None:
                     local.append("Unflagged judgment requires null review_reason")
+                if review_gate and criterion.kind != "critical" and categories:
+                    notes.append("Critical categories belong only to critical criteria")
+                    categories = []
         if local or response is None:
             reviews.append(CriterionReview(criterion_id=cid, state="invalid_facts", decision_origin=origin,
                                            original_judgment=original_judgment, issues=local or ["Configured rule cannot derive a decision"]))
             continue
+        def build(review_notes):
+            reason = ("Evidence-policy exception (opt-in review gate): " + "; ".join(dict.fromkeys(review_notes))
+                      if review_notes else None)
+            return Decision(criterion_id=cid, atomic_checks=atomics, response=response, rationale=rationale,
+                            na_reason=criterion.na_condition if response == "N/A" else None, evidence=evidence,
+                            violation_categories=categories, needs_review=bool(review_notes), review_reason=reason)
         try:
-            decision = Decision(criterion_id=cid, atomic_checks=atomics, response=response, rationale=rationale,
-                                na_reason=criterion.na_condition if response == "N/A" else None,
-                                evidence=evidence, violation_categories=categories, needs_review=False, review_reason=None)
-            _validate_decision(decision, criterion, conversation, messages)
+            decision = build(notes)
+            try:
+                _validate_decision(decision, criterion, conversation, messages)
+            except ValueError as error:
+                found = [i["message"] for i in error.issues] if hasattr(error, "issues") else None
+                if not (review_gate and found and all(m in REVIEWABLE_EVIDENCE_POLICY for m in found)):
+                    raise
+                notes.extend(found)
+                decision = build(notes)
         except ValueError as error:
             reviews.append(CriterionReview(criterion_id=cid, state="invalid_facts", decision_origin=origin,
                                            original_judgment=original_judgment, response=response,
                                            issues=[i["message"] for i in error.issues] if hasattr(error, "issues") else ["Decision/evidence failed validation"]))
             continue
+        exceptions.extend({"criterion_id": cid, "message": m} for m in dict.fromkeys(notes))
         accepted.append(decision)
         reviews.append(CriterionReview(criterion_id=cid, state="accepted_derived" if origin == "derived" else "accepted_model",
                                        decision_origin=origin, original_judgment=original_judgment, response=response,

@@ -141,13 +141,15 @@ def evaluate(conversation, checklist, provider, config=None, checks=(), repair=N
     raw = reply.evaluation
     rule_checks, coverage_proofs = [], []
     criterion_reviews = []
+    policy_exceptions = []
     projection = None
     try:
         raw = parse_json(reply.evaluation) if isinstance(reply.evaluation, (str, bytes)) else reply.evaluation
         record("primary_atomic_evaluation", config.prompt_version, raw)
         if atomic_path:
             try:
-                projection, criterion_reviews = process_atomic_output(raw, conversation, checklist)
+                projection, criterion_reviews = process_atomic_output(raw, conversation, checklist,
+                                                                      config.evidence_gate, policy_exceptions)
             except AtomicReviewRequired as first:
                 if repair is None:
                     raise
@@ -158,7 +160,9 @@ def evaluate(conversation, checklist, provider, config=None, checks=(), repair=N
                 record("bounded_criterion_repair", REPAIR_PROMPT_VERSION, attempt.model_dump(mode="json"), "review")
                 if merged is None:
                     raise
-                projection, criterion_reviews = process_atomic_output(merged, conversation, checklist)
+                policy_exceptions.clear()
+                projection, criterion_reviews = process_atomic_output(merged, conversation, checklist,
+                                                                      config.evidence_gate, policy_exceptions)
             record("validated_facts_to_official_decisions", "atomic-v1",
                    [r.model_dump(mode="json") for r in criterion_reviews])
         if atomic_path:
@@ -173,7 +177,7 @@ def evaluate(conversation, checklist, provider, config=None, checks=(), repair=N
         original = projection or ModelEvaluation.model_validate(raw)
         model_evaluation, repairs = (normalize_evidence(original, conversation)
                                      if config.quote_policy == "normalize_formatting" else (original, []))
-        model_evaluation = validate_evaluation(model_evaluation, conversation, checklist)
+        model_evaluation = validate_evaluation(model_evaluation, conversation, checklist, policy_exceptions)
     except ValueError as error:
         if isinstance(error, AtomicReviewRequired):
             criterion_reviews = error.reviews
@@ -202,7 +206,7 @@ def evaluate(conversation, checklist, provider, config=None, checks=(), repair=N
         record("evidence_formatting_resolution", "formatting-v1", [r.model_dump(mode="json") for r in repairs])
     record("schema_evidence_consistency_validation", "gates-v2", model_evaluation.model_dump(mode="json"))
     run_checks("post_validation", model_evaluation)
-    score = score_evaluation(model_evaluation, conversation, checklist)
+    score = score_evaluation(model_evaluation, conversation, checklist, policy_exceptions)
     record("official_deterministic_scoring", "rational-v1", score.model_dump(mode="json"))
     status = "mock_only" if provider.is_mock else (
         "needs_review" if any(d.needs_review for d in model_evaluation.decisions) or repair_attempts
@@ -215,5 +219,6 @@ def evaluate(conversation, checklist, provider, config=None, checks=(), repair=N
         decision_path=checklist.decision_path,
         original_provider_output=raw if atomic_path else None,
         criterion_reviews=criterion_reviews, repair_attempts=repair_attempts,
+        evidence_policy_exceptions=policy_exceptions,
         facts=facts, check_outcomes=outcomes, audit=audit,
         run=run_metadata())

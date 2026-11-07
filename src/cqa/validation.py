@@ -10,6 +10,26 @@ _FIELD_ADAPTERS = {name: TypeAdapter(field.rebuild_annotation()) for name, field
 _EVIDENCE_ADAPTER = TypeAdapter(Evidence)
 
 
+# The ONLY issues the opt-in review gate may turn into recorded needs_review exceptions. They concern
+# which source role a cited quote comes from, or annotations on criteria that never use them; every
+# cited quote must still exist in its source message, and no decision, fact or score is changed.
+REVIEWABLE_EVIDENCE_POLICY = frozenset({
+    "Positive operator performance needs evidence from a configured allowed role",
+    "Positive atomic fact requires a quote from an eligible source role",
+    "Event evidence is not configured for this criterion",
+    "Critical categories belong only to critical criteria",
+})
+
+
+def allowed_exceptions(exceptions):
+    pairs = set()
+    for item in exceptions or ():
+        if item.get("message") not in REVIEWABLE_EVIDENCE_POLICY:
+            raise ValueError("Evidence-policy exception outside the reviewable allow-list")
+        pairs.add((item.get("criterion_id"), item["message"]))
+    return pairs
+
+
 class EvaluationValidationError(ValueError):
     """Per-criterion diagnostics without coercing any invalid decision into a score."""
     def __init__(self, issues):
@@ -64,7 +84,7 @@ def diagnose_decision(raw, criterion, conversation, messages):
     return issues
 
 
-def validate_evaluation(evaluation, conversation, checklist):
+def validate_evaluation(evaluation, conversation, checklist, exceptions=()):
     # Revalidate even typed inputs: callers may have used model_copy/model_construct.
     evaluation = ModelEvaluation.model_validate(evaluation.model_dump())
     expected = {c.criterion_id: c for c in checklist.criteria}
@@ -72,14 +92,17 @@ def validate_evaluation(evaluation, conversation, checklist):
     if len(set(ids)) != len(ids) or set(ids) != set(expected):
         raise ValueError("Model must return every checklist criterion exactly once")
     messages = {m.message_id: m for m in conversation.messages}
+    excepted = allowed_exceptions(exceptions)
     issues = []
     for decision in evaluation.decisions:
         criterion = expected[decision.criterion_id]
         try:
             _validate_decision(decision, criterion, conversation, messages)
         except ValueError as error:
-            issues.extend(error.issues if isinstance(error, EvaluationValidationError) else
-                          [{"criterion_id": decision.criterion_id, "message": str(error)}])
+            found = (error.issues if isinstance(error, EvaluationValidationError) else
+                     [{"criterion_id": decision.criterion_id, "message": str(error)}])
+            issues.extend(i for i in found if not (decision.needs_review and
+                                                   (decision.criterion_id, i["message"]) in excepted))
     if issues:
         raise EvaluationValidationError(issues)
     return evaluation

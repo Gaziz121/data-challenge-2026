@@ -193,6 +193,10 @@ def main(argv=None):
     parser.add_argument("--max-output-tokens", type=int, default=8000)
     parser.add_argument("--timeout-seconds", type=int, default=90)
     parser.add_argument("--quote-policy", choices=["exact", "normalize_formatting"], default="normalize_formatting")
+    parser.add_argument("--evidence-gate", choices=["strict", "review"], default="strict",
+                        help="EXPERIMENTAL opt-in. review: quote-role/unused-annotation policy issues become recorded "
+                             "needs_review exceptions; nonexistent quotes, unresolved facts, coverage and conflicts still "
+                             "block. Default strict. Recorded in run.json")
     parser.add_argument("--repair-authorization",
                         help="Opt in to ONE bounded criterion repair call per rejected conversation (atomic only); "
                              "the value is a short nonsecret owner authorization reference recorded in every result")
@@ -203,7 +207,7 @@ def main(argv=None):
     try:
         config = EvaluationConfig(external_synthetic_allowed=args.allow_external_synthetic,
                                   max_output_tokens=args.max_output_tokens, timeout_seconds=args.timeout_seconds,
-                                  quote_policy=args.quote_policy,
+                                  quote_policy=args.quote_policy, evidence_gate=args.evidence_gate,
                                   **({"prompt_version": args.prompt_version} if args.prompt_version else {}))
         if args.provider == "mock":
             provider = MockProvider()

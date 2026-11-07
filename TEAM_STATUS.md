@@ -26,7 +26,10 @@ Updated November 7, 2026, Asia/Almaty. Start with
   Repair rescued 1/35. Accepted results are skewed (all consultation 20, dialogue 10, no critical): the
   strict evidence gates reject most conversations with problems. Validated export (65 records, 25 ok)
   kept in ignored outputs/ until the team name is known. Evaluator acceptance is the main open risk.
-- Not done: no PROD-10 results; no committed results/dev; acceptance rate needs an owner decision;
+- Opt-in `evidence_gate=review` (not default) built and measured offline on the 59 stored replies: 42/59 scored
+  vs 25/59 strict; recovered cases include critical and low C04/C05/C06 outcomes; totals independently verified.
+  Systematic C01 false negatives (~17/20 "no" are wrong) found in both gates; needs a wording fix + live check.
+- Not done: no PROD-10 results; no committed results/dev; gate adoption and C01 fix need owner decisions;
   semantic accuracy unmeasured; team name and submission URL/branch unconfirmed; control API unknown.
 
 ## Earlier collaboration checkpoint

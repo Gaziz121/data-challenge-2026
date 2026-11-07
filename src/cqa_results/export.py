@@ -100,7 +100,7 @@ def ok_record(result, record, group, file_hash, allow_mock):
     validated = result.validated_evaluation
     if validated is None:
         raise ExportError("Accepted result lacks a validated evaluation")
-    rescored = score_evaluation(validated, result.conversation, result.checklist)
+    rescored = score_evaluation(validated, result.conversation, result.checklist, result.evidence_policy_exceptions)
     if (rescored.total_score, rescored.critical_violation) != (result.score.total_score, result.score.critical_violation):
         raise ExportError("Stored score differs from the engine's deterministic rescoring")
     if rescored.total_score is None:

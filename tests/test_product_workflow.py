@@ -309,3 +309,84 @@ class BatchRepairTests(unittest.TestCase):
             with self.assertRaises(ValueError):  # Resume cannot silently add or drop repair.
                 run_batch(data, Path(folder) / "plain", plain, checklist=v5(), config=V4CONFIG, resume=True,
                           log=lambda *_: None, repair=policy)
+
+
+class EvidenceGateTests(unittest.TestCase):
+    """Opt-in review gate: only allow-listed evidence-policy issues become recorded review exceptions."""
+
+    def setUp(self):
+        from tests.test_atomic_path import raw_fixture, scope
+        from tests.test_schema_reliability import full_scope_normalized
+        self.conv = load_conversation(SHARED, "p1-ru-001")
+        self.checklist = load_checklist(CHECKLISTS / "official-v6.json")
+        raw = raw_fixture(self.conv, self.checklist)
+        for entry in raw["criteria"]:
+            criterion = next(c for c in self.checklist.criteria if c.criterion_id == entry["criterion_id"])
+            for a in entry["atomic_checks"]:
+                if a["question_id"] == "06.q4":
+                    a.update(answer="no", evidence=[scope(self.conv)])
+            entry.update(full_scope_normalized(entry, criterion))
+        self.base = raw
+        self.customer = next(m for m in self.conv.messages if m.role == "customer")
+
+    def run_gate(self, raw, gate):
+        from tests.test_atomic_path import Scripted
+        return evaluate(self.conv, self.checklist, Scripted(raw),
+                        EvaluationConfig(prompt_version="atomic-v5", evidence_gate=gate))
+
+    def entry(self, raw, cid):
+        return next(c for c in raw["criteria"] if c["criterion_id"] == cid)
+
+    def test_strict_default_is_unchanged_and_serialization_stable(self):
+        self.assertNotIn("evidence_gate", EvaluationConfig().model_dump())
+        result = self.run_gate(self.base, "strict")
+        self.assertNotIn("evidence_policy_exceptions", result.model_dump())
+        self.assertEqual(self.run_gate(self.base, "review").score, result.score)
+
+    def test_reviewable_issues_become_recorded_exceptions_and_export(self):
+        from cqa.engine import EvaluationRejected
+        raw = deepcopy(self.base)
+        c06 = self.entry(raw, "06")
+        c06["judgment"]["evidence"] = [{"kind": "quote", "message_id": self.customer.message_id,
+                                        "quote": self.customer.text, "start_message_id": None,
+                                        "end_message_id": None, "explanation": "Customer context only."}]
+        c06["judgment"]["violation_categories"] = ["insult"]
+        c06["atomic_checks"][0]["events"] = [{"kind": "verification", "message_id": self.customer.message_id,
+                                               "quote": self.customer.text}]
+        with self.assertRaises(EvaluationRejected):
+            self.run_gate(raw, "strict")
+        result = self.run_gate(raw, "review")
+        self.assertEqual(result.status, "mock_only")
+        messages = {e["message"] for e in result.evidence_policy_exceptions}
+        self.assertEqual(messages, {"Positive operator performance needs evidence from a configured allowed role",
+                                    "Critical categories belong only to critical criteria",
+                                    "Event evidence is not configured for this criterion"})
+        decision = next(d for d in result.validated_evaluation.decisions if d.criterion_id == "06")
+        self.assertTrue(decision.needs_review)
+        self.assertEqual((decision.response, decision.violation_categories), (10, []))
+        self.assertIn("opt-in review gate", decision.review_reason)
+        self.assertEqual(score_evaluation(result.validated_evaluation, self.conv, self.checklist,
+                                          result.evidence_policy_exceptions), result.score)
+        with self.assertRaises(ValueError):  # Without the recorded exceptions, the strict re-check refuses.
+            score_evaluation(result.validated_evaluation, self.conv, self.checklist)
+        with self.assertRaises(ValueError):  # A tampered exception outside the allow-list is refused.
+            score_evaluation(result.validated_evaluation, self.conv, self.checklist,
+                             [{"criterion_id": "06", "message": "Atomic quote must match meaningful text in its exact source message"}])
+        from cqa_results.export import ok_record
+        record = next(r for r in json.loads(Path(SHARED).read_text())["data"]["records"] if r["conversation_id"] == "p1-ru-001")
+        exported = ok_record(result, record, result.conversation.dataset_group_id, result.conversation.dataset_sha256, True)
+        self.assertEqual(exported["status"], "ok")
+
+    def test_never_relaxed_quotes_unknowns_and_coverage(self):
+        from cqa.engine import EvaluationRejected
+        bad_quote = deepcopy(self.base)
+        self.entry(bad_quote, "06")["judgment"]["evidence"][0]["quote"] = "This sentence is not in the transcript."
+        unknown = deepcopy(self.base)
+        self.entry(unknown, "04")["atomic_checks"][0]["answer"] = "unknown"
+        coverage = deepcopy(self.base)
+        for a in self.entry(coverage, "08")["atomic_checks"]:
+            a["evidence"] = [{"kind": "quote", "message_id": self.customer.message_id, "quote": self.customer.text,
+                              "start_message_id": None, "end_message_id": None, "explanation": "Partial."}]
+        for raw in (bad_quote, unknown, coverage):
+            with self.assertRaises(EvaluationRejected):
+                self.run_gate(raw, "review")

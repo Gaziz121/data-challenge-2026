@@ -20,9 +20,9 @@ def _round_total(value):
     return f"{rounded // 100}.{rounded % 100:02d}"
 
 
-def score_evaluation(evaluation, conversation, checklist):
+def score_evaluation(evaluation, conversation, checklist, exceptions=()):
     from .validation import validate_evaluation
-    evaluation = validate_evaluation(evaluation, conversation, checklist)
+    evaluation = validate_evaluation(evaluation, conversation, checklist, exceptions)
     decisions = {d.criterion_id: d for d in evaluation.decisions}
     critical_ids = {c.criterion_id for c in checklist.criteria if c.kind == "critical"}
     categories = sorted({v for d in evaluation.decisions if d.criterion_id in critical_ids

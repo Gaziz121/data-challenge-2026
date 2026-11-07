@@ -393,6 +393,16 @@ class EvaluationConfig(Contract):
     timeout_seconds: int = Field(default=90, ge=1, le=300)
     external_synthetic_allowed: bool = False
     quote_policy: Literal["exact", "normalize_formatting"] = "exact"
+    # "review" is an explicit, opt-in experiment: only REVIEWABLE_EVIDENCE_POLICY issues become
+    # needs_review exceptions; nonexistent quotes, unresolved facts, coverage, conflicts and scoring stay blocking.
+    evidence_gate: Literal["strict", "review"] = "strict"
+
+    @model_serializer(mode="wrap")
+    def omit_default_gate(self, handler):
+        value = handler(self)
+        if self.evidence_gate == "strict":
+            value.pop("evidence_gate", None)
+        return value
 
 
 class EvidenceRepair(Contract):
@@ -532,3 +542,11 @@ class EvaluationResult(Contract):
     original_provider_output: Optional[dict] = None
     criterion_reviews: list[CriterionReview] = Field(default_factory=list)
     repair_attempts: list[RepairAttempt] = Field(default_factory=list)
+    evidence_policy_exceptions: list[dict] = Field(default_factory=list)
+
+    @model_serializer(mode="wrap")
+    def omit_empty_exceptions(self, handler):
+        value = handler(self)
+        if not self.evidence_policy_exceptions:
+            value.pop("evidence_policy_exceptions", None)
+        return value

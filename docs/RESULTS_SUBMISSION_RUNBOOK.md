@@ -110,7 +110,33 @@ DEV/PROD batches is recommended but has not yet been exercised live.
 refused locally (no export grant). ~USD 1.2. Main rejection causes per conversation: quote-role policy
 (16, mostly C06 = 10 backed only by scope), unused events/categories on criteria that never use them (12),
 quotes not found in the source (7), unresolved facts (5). Accepted results are skewed toward clean
-conversations. Expect a similar error share on PROD unless the evaluator policy changes. Never change the pair between DEV and PROD runs without
+conversations. Expect a similar error share on PROD unless the evaluator policy changes.
+
+**Opt-in evidence gate experiment (offline re-validation of the same 59 stored genuine replies, no calls):**
+
+| Gate | Scored | Rejected |
+| --- | --- | --- |
+| `strict` (default) | 25 / 59 | 34 |
+| `--evidence-gate review` | 42 / 59 | 17 (29%) |
+
+`review` turns ONLY four allow-listed issues into recorded `needs_review` exceptions (operator-role quote
+missing for a positive fact/score; events or violation categories on criteria that never use them). Every
+cited quote must still exist; unknown facts, coverage proofs, contradictions, model review requests and
+scoring stay blocking. Exceptions are stored in `evidence_policy_exceptions` and re-checked by the exporter.
+Recovered 17 = 8 quote-role, 8 unused-annotation, 1 both. They include negatives (C08 yes ×2, C04 0 and 15,
+C05 no ×2, C06 0); all 42 totals match an independent Decimal recomputation. 12 recovered rely on an excepted
+criterion without any operator quote (mostly C06 = 10 backed by full-dialogue scope). Still rejected: quotes
+not in source (8), model review requests/other rules (7), unknown facts (5) — overlapping.
+
+**Systematic semantic error found (both gates):** C01 = no in 20 scored results, but in ~17 the first operator
+reply plainly greets and introduces themself in the client's language ("Hi, I'm Noah…", "Сәлеметсіз бе, мен Әсел…").
+The model misreads "in the client language". No gate can catch this; it needs a C01 wording fix plus a live check.
+
+**Go / no-go (2026-11-07):** strict gate = NO-GO for maximizing agreement (58% errors, survivors all near-perfect).
+Review gate = GO only as an explicit owner decision (flag, not default). Direct-rubric fallback = NO-GO now:
+3/3 earlier genuine replies rejected, it passes through the same evidence validators, and it is unmeasured at
+scale. Before final DEV and PROD: fix C01 wording, verify with a small paid check, then run with
+`--evidence-gate review --repair-authorization ...`. Never change the pair between DEV and PROD runs without
 recording why; resume refuses a changed pair. Accepted structure is not semantic accuracy.
 
 Optional `--repair-authorization '<owner reference>'` adds at most ONE bounded criterion-repair call per
