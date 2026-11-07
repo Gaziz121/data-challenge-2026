@@ -1,5 +1,82 @@
 # Safe Git collaboration and recovery
 
+## Four-person daily workflow
+
+Use the [onboarding ownership table](TEAM_START_HERE.md#8-four-workstreams-and-file-ownership):
+A owns evaluation semantics, B frontend, C backend/integration, D independent
+QA/labels/submission. C coordinates shared contracts; D maintains shared docs.
+These are team conventions, not GitHub access restrictions.
+
+1. **Claim scope and a base commit.** Agree owned paths and expected output before
+   editing. Read status/inventory, inspect your own dirty/untracked work, and fetch.
+   Use a new branch and your own clone/worktree; never operate another person's
+   checkout. For example, from a confirmed repository:
+
+   ```sh
+   git fetch origin
+   git worktree add -b codex/frontend-topic ../cqa-frontend-topic origin/codex/local-mvp-integration
+   ```
+
+   Choose unique names/paths. AI sessions follow the same rule: one owner per
+   branch/worktree, explicit files, base SHA and handoff. Another agent's local
+   commit is not shared code until that owner publishes it.
+2. **Keep one deliverable per PR.** Commit only named reviewed files; inspect
+   `git diff --cached` and every outgoing commit. Exclude credentials, original
+   PDFs/full DEV, real calls, control input, human exports and generated outputs.
+   Push only your feature branch to the approved destination after content review.
+3. **Test before requesting review.** Follow [exact onboarding commands](TEAM_START_HERE.md#4-tests-and-reproducibility).
+   A/C run the application suite; B runs both Node suites plus affected backend
+   tests; D runs independent QA against an explicit engine snapshot. Record base
+   and head SHAs, commands, passed/failed/skipped counts and limitations. For
+   docs-only changes check links, current source references, whitespace and
+   confidentiality; no paid evaluation is a routine PR check.
+4. **Ask one teammate to review.** App/docs PRs target `codex/local-mvp-integration`,
+   not default `main`. QA-only PRs may target `feature/cqa-independent-qa` until C
+   agrees integration. Include behavior, owned paths, contract changes, evidence
+   and missing checks. A reviews semantics, C integration/contracts, D independent
+   validation; author approval alone is not peer review. Wait for one peer approval
+   and successful manual checks before C deliberately merges. No automatic merge.
+5. **Resolve overlap with both owners.** Fetch and compare branch histories and
+   changed paths first. Pause edits to colliding files; agree which behavior and
+   evidence survive. Preserve dirty/untracked/ignored work before any recovery.
+   Reconcile in the PR author's isolated worktree, review the final diff and rerun
+   affected checks. Never use blanket ours/theirs, reset/clean/stash someone else's
+   work, force-push, or rewrite shared history. C separately approves any merge or
+   rebase plan; the recovery table below is not automatic authorization.
+
+## Safeguards actually observed — November 7, 2026
+
+Authenticated GitHub API reads and a successful fetch found the following.
+Recheck before publication: visibility, branch tips and access can change.
+
+| Safeguard | Observed enforcement |
+| --- | --- |
+| Repository confidentiality | **PUBLIC by explicit owner decision**; reviewed public-safe documentation publication is authorized. This audit changes no visibility, permissions or settings. |
+| `main` / `codex/local-mvp-integration` protection | Both `protected=false`; classic protection endpoints say “Branch not protected.” Repository/inherited ruleset list and applicable branch rules are empty. |
+| PR review, required tests, force-push prevention | No branch rules enforce them. The workflow above is documentation-only policy; write access can bypass it. |
+| Automated PR CI | Actions service enabled, but zero registered workflows, zero recorded PR workflow runs and no workflow files on the audited main/integration/docs trees. No statuses/check runs on remote integration `6481390`. Existing Python/Node/QA commands are manual tests. |
+| Four-person access | Owner plus one accepted collaborator have write capability; two write invitations are pending. Invitees must accept and verify their own clone/feature-branch/PR access. No permissions changed. |
+
+The docs branch started at `f4599f0`. Latest fetched integration `6481390`
+includes the engine owner's `5d256ac` and `6481390` (0.6.1 / opt-in atomic path).
+README/status are reconciled with those published docs inside this isolated
+branch, without merging/rebasing branches or copying engine code. Refresh the
+comparison again before accepting the PR; C owns integration. No merge or settings
+change is authorized by this guide itself. Adding CI/protection is a separate
+owner decision; this audit only records their absence.
+
+### Public-content audit boundary
+
+The initial history scan covered 19 reachable commits / 223 unique blobs: no
+obvious credentials, signed access URLs, real-call passages, raw DEV or reviewer
+export files were found. The only dataset envelope is the approved synthetic 60;
+three team-safe PDFs have no detected annotations/actions. Documentation commits
+are scanned separately before upload. This is an obvious-exposure check, not a
+complete security audit or proof of organizer public-redistribution permission.
+The already-tracked synthetic data/PDF derivatives and public Git author metadata
+are separate existing exposures; the owner decides redistribution/visibility.
+Never add confidential inputs, actual reviewer outputs, keys or generated runs.
+
 ## Five different states
 
 1. **Working directory:** current on-disk content, including uncommitted changes.
@@ -97,7 +174,7 @@ AI use must be permitted; no orchestration platform is needed.
 ## Remote creation and upload gate
 
 Before any creation or initial upload, confirm authenticated owner, exact repo
-name/URL, private visibility, repository existence/access, and the exact proposed
+name/URL, approved visibility, repository existence/access, and the exact proposed
 files and complete commit history. A 404 can mean missing **or inaccessible**.
 Inspect `git ls-files`, `git ls-files -ci --exclude-standard`, staged diff, and
 all commits being uploaded for secrets, restricted material, or notebook outputs.
@@ -110,10 +187,11 @@ For CLI authentication use `gh auth login --hostname github.com --web` interacti
 on the user's machine; never ask for secrets in chat or expose stored credentials.
 Connector authentication and CLI/Git authentication are separate capabilities.
 
-After approval and working authentication: create or confirm the private remote,
+After approval and working authentication: confirm the exact remote/approved visibility,
 configure the reviewed URL, push reviewed history, then verify with an actual
-`git ls-remote origin refs/heads/main`, successful fetch, and a comparison against
-local `main`. Confirm upstream and clean status; API metadata alone does not prove
+`git ls-remote origin refs/heads/codex/team-handoff-docs-20261107` for this
+documentation publication, successful fetch and comparison against that exact
+branch. Confirm upstream and clean status; API metadata alone does not prove
 Git transport works. Record what actually succeeded in `STATUS.md`.
 
 ## Data and handoff policy
@@ -132,6 +210,7 @@ Use `STATUS.md` locally as the detailed integration/evidence record. Shared
 must not contain real-call evidence or signed URLs. Keep `PROJECT_FILE_MAP.md`
 current when file availability/sharing changes. Review exact staged paths/content,
 including decoded PDF objects and dataset membership, before an authorized push.
-The user authorized these reviewed safe materials in the existing private repo;
-do not request the same authorization again. New sensitive scope/publication needs
-a separate decision. Do not copy private history into the future public submission.
+Earlier reviewed material sharing was private-team scoped. The owner now
+explicitly authorizes this public-safe documentation branch in the existing public
+repository. That does not grant organizer redistribution rights or authorize new
+sensitive data. Do not change settings or rewrite history in this workflow.

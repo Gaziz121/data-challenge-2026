@@ -1,4 +1,46 @@
-# Team status - sanitized shared snapshot
+# Team status — current handoff and milestone history
+
+Updated November 7, 2026, Asia/Almaty. Start with
+[TEAM_START_HERE.md](TEAM_START_HERE.md); exact HTTP behavior is in the
+[backend contract](docs/BACKEND_CONTRACT.md). See [architecture decisions](docs/ARCHITECTURE_DECISIONS.md),
+[experiment/scenario backlog](docs/EXPERIMENT_BACKLOG.md) and
+[Git workflow/audit](GIT_WORKFLOW.md#four-person-daily-workflow).
+
+## Current collaboration checkpoint
+
+- Latest fetched remote integration: `6481390` (engine 0.6.1), including `5d256ac`.
+  Atomic v4 / atomic-v2 / wire 1.2 is opt-in; compatibility default v3 remains.
+  QA/Accuracy Lab remains on `feature/cqa-independent-qa` at `3ff9c76`.
+  Main is still `207b23f`. This documentation branch adds no engine/QA code.
+- Fresh isolated offline verification of `6481390`: 127 application tests run,
+  125 pass, two expected local raw-DEV skips; both Node suites pass. Independent
+  QA: 81 pass/no skips; Lab demo runs in compatibility mode, not semantic accuracy.
+  Atomic wire 1.2 needs explicit independent Lab compatibility review before
+  treating its projected decisions as original model answers. No paid calls here.
+- Repository is intentionally PUBLIC by owner decision. Reviewed public-safe
+  documentation publication is authorized; no settings changes are authorized.
+  Main/integration are unprotected; applicable rulesets empty; Actions enabled but
+  zero workflows/PR CI runs. Peer approval and manual tests are policies only.
+- Owner plus one accepted collaborator have write access; two write invitations
+  are pending. Anyone can clone the public source; invitees must accept before
+  pushing branches in this repository. Named workstream ownership still needs agreement.
+- Shared synthetic chats, team-safe PDFs and viewer source are already tracked;
+  full 65-record DEV, five real calls, original PDFs, keys, approvals, local evidence,
+  human exports and generated outputs stay outside Git. The obvious-exposure
+  history scan found no secrets/real-call passages; organizer public-redistribution
+  permission for existing derivatives remains unverified, not granted by that scan.
+- Complete-workflow blockers remain semantic calibration/reviewed policy evidence,
+  human labels and frozen DEV benchmark, organizer control adapter/access,
+  checklist/appeal/reviewer completion, deployment and confirmed timing/backup.
+  No accepted genuine quality total is recorded in the latest engine status.
+
+The prior 0.5.0 audit evidence remains a historical checkpoint. The preserved
+milestone record below includes the engine owner's newer atomic-path changes;
+older limitations/counts do not override the current contract or source.
+
+<details>
+<summary>Preserved implementation milestones and source evidence</summary>
+
 
 Updated: 2026-11-07. Read `PROJECT_FILE_MAP.md` and inspect actual local files.
 This is a team-readable snapshot of local `STATUS.md`, not another evidence ledger.
@@ -252,7 +294,9 @@ future work.
 
 Use live Git preflight/fetch and history comparison, not this snapshot, to verify
 current synchronization. Maintain one authoritative `main` and deliberate review.
-The existing repository stays PRIVATE for development. The required eventual
-public submission is a separately reviewed sanitized repository; do not expose
-this private repository or copy its history publicly. Private sharing approval
-does not authorize restricted materials or public redistribution.
+The owner intentionally made this repository PUBLIC. No visibility, permission
+or ruleset changes are authorized here. Reviewed documentation publication is
+authorized; restricted inputs/keys/reviewer artifacts remain excluded. Any
+additional material or submission redistribution requires its own review.
+
+</details>

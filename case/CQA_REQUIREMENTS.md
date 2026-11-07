@@ -1,5 +1,11 @@
 # CQA requirements and DEV calibration plan
 
+> This document preserves the requirements interpretation and proposed benchmark.
+> Statements below that no application/configuration exists describe its initial
+> planning snapshot. Current implementation and onboarding are tracked in
+> [TEAM_START_HERE.md](../TEAM_START_HERE.md); requirements and official-source
+> authority are unchanged.
+
 Updated: 2026-11-07, Asia/Almaty. Reviewed for PRIVATE team sharing. No application,
 benchmark labels or evaluation runs have been created. See `../PROJECT_FILE_MAP.md`
 for local originals versus shared derivatives; private sharing is not public
