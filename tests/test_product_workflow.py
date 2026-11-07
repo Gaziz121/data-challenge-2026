@@ -274,3 +274,38 @@ class RehearsalTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BatchRepairTests(unittest.TestCase):
+    """Opt-in bounded repair in the batch runner, replaying the genuine atomic-v4 duplicate reply."""
+
+    def test_repair_is_opt_in_recorded_and_bounded(self):
+        from cqa_results.batch import run_batch
+        from cqa.schemas import RepairPolicy
+        from tests.test_checklist_v5 import FIXTURES, V4CONFIG, decision, v5
+        from tests.test_schema_reliability import CountingRepairProvider
+        raw = json.loads((FIXTURES / "live_atomic_v4_2fcd958.json").read_text())["original_model_output"]
+        fixed = deepcopy(decision(raw, "04"))
+        fixed["atomic_checks"] = fixed["atomic_checks"][:4]
+        value = json.loads(Path(SHARED).read_text())
+        value["data"]["records"] = [r for r in value["data"]["records"] if r["conversation_id"] == "p1-ru-001"]
+        value["data"]["total_records"] = 1
+        with tempfile.TemporaryDirectory(dir=ROOT / "outputs") as folder:
+            data = Path(folder) / "one.json"
+            data.write_text(json.dumps(value, ensure_ascii=False))
+            plain = CountingRepairProvider(raw, {"schema_version": "1.2", "criteria": [fixed]})
+            counts = run_batch(data, Path(folder) / "plain", plain, checklist=v5(), config=V4CONFIG, log=lambda *_: None)
+            self.assertEqual((counts["rejected"], plain.repair_calls), (1, 0))
+            provider = CountingRepairProvider(raw, {"schema_version": "1.2", "criteria": [fixed]})
+            policy = RepairPolicy(authorization="offline unit test; no paid call")
+            counts = run_batch(data, Path(folder) / "repair", provider, checklist=v5(), config=V4CONFIG,
+                               log=lambda *_: None, repair=policy)
+            self.assertEqual((counts["result"], provider.repair_calls), (1, 1))
+            manifest = json.loads((Path(folder) / "repair/run.json").read_text())
+            self.assertEqual(manifest["repair"]["authorization"], "offline unit test; no paid call")
+            saved = json.loads(next((Path(folder) / "repair").glob("*.result.json")).read_text())
+            self.assertEqual(saved["repair_attempts"][0]["status"], "merged")
+            self.assertEqual(saved["status"], "mock_only")
+            with self.assertRaises(ValueError):  # Resume cannot silently add or drop repair.
+                run_batch(data, Path(folder) / "plain", plain, checklist=v5(), config=V4CONFIG, resume=True,
+                          log=lambda *_: None, repair=policy)

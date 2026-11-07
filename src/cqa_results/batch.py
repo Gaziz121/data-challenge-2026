@@ -8,7 +8,9 @@ One outcome file per attempt is written under the ignored outputs/ directory:
   NNN-<idhash>.aKK.result.json      accepted EvaluationResult (engine output)
   NNN-<idhash>.aKK.rejected.json    engine EvaluationRejected diagnostic
   NNN-<idhash>.aKK.error.json       any other genuine failure, with a safe reason
-Nothing is retried automatically. --resume re-attempts only conversations whose
+Nothing is retried automatically except the opt-in --repair-authorization: at most ONE
+bounded criterion-repair call per rejected atomic conversation (so up to 2 calls each;
+--live-call-limit counts conversations). --resume re-attempts only conversations whose
 latest attempt is not an accepted result. Real (non-mock) calls run only when
 --provider openai is passed explicitly together with --model.
 """
@@ -32,7 +34,7 @@ from cqa.engine import CheckBlocked, EvaluationRejected, evaluate
 from cqa.io import digest, load_checklist, parse_json
 from cqa.loader import ROOT, normalize_record, read_dataset
 from cqa.providers import MockProvider, OpenAIProvider, ProviderError
-from cqa.schemas import EvaluationConfig
+from cqa.schemas import EvaluationConfig, RepairPolicy
 
 RUN_SCHEMA = "cqa-results-run/1"
 ATTEMPT = re.compile(r"^(\d{3})-([0-9a-f]{12})\.a(\d{2})\.(result|rejected|error)\.json$")
@@ -81,7 +83,7 @@ def _safe_reason(error):
 
 
 def run_batch(data_path, run_dir, provider, *, checklist=None, config=None, resume=False,
-              only=None, expect_count=None, workers=1, live_call_limit=None, log=print):
+              only=None, expect_count=None, workers=1, live_call_limit=None, log=print, repair=None):
     """Evaluate in source order. Returns {"attempted", "result", "rejected", "error", "skipped"}."""
     run_dir = Path(run_dir)
     if (ROOT / "outputs").resolve() not in run_dir.resolve().parents:
@@ -99,7 +101,8 @@ def run_batch(data_path, run_dir, provider, *, checklist=None, config=None, resu
                 "provider": provider.name, "model_requested": provider.model, "is_mock": provider.is_mock,
                 "checklist_id": checklist.checklist_id, "checklist_version": checklist.version,
                 "checklist_sha256": digest(checklist.model_dump(mode="json")), "engine_version": ENGINE_VERSION,
-                "configuration": config.model_dump(mode="json")}
+                "configuration": config.model_dump(mode="json"),
+                "repair": repair.model_dump(mode="json") if repair is not None else None}
     run_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
     manifest_path = run_dir / "run.json"
     if manifest_path.exists():
@@ -107,6 +110,7 @@ def run_batch(data_path, run_dir, provider, *, checklist=None, config=None, resu
         if not resume:
             raise ValueError("Run directory already used; pass --resume or choose a new directory")
         stable = {k: v for k, v in manifest.items() if k != "started_at"}
+        previous.setdefault("repair", None)  # Run directories written before the repair option existed.
         if {k: previous.get(k) for k in stable} != stable:
             raise ValueError("Resume refused: dataset, provider, model, checklist or configuration changed")
     else:
@@ -145,7 +149,7 @@ def run_batch(data_path, run_dir, provider, *, checklist=None, config=None, resu
             kind, text = "error", _error_doc(cid, "Input normalization failed: %s" % _safe_reason(error), provider)
         else:
             try:
-                result = evaluate(conversation, checklist, provider, config)
+                result = evaluate(conversation, checklist, provider, config, repair=repair)
                 kind, text = "result", result.model_dump_json(indent=2) + "\n"
             except EvaluationRejected as error:
                 kind, text = "rejected", json.dumps(error.diagnostic, ensure_ascii=False, indent=2) + "\n"
@@ -189,6 +193,9 @@ def main(argv=None):
     parser.add_argument("--max-output-tokens", type=int, default=8000)
     parser.add_argument("--timeout-seconds", type=int, default=90)
     parser.add_argument("--quote-policy", choices=["exact", "normalize_formatting"], default="normalize_formatting")
+    parser.add_argument("--repair-authorization",
+                        help="Opt in to ONE bounded criterion repair call per rejected conversation (atomic only); "
+                             "the value is a short nonsecret owner authorization reference recorded in every result")
     parser.add_argument("--prompt-version", choices=["atomic-v2", "atomic-v5"],
                         help="Atomic checklists only. Default: engine default (atomic-v2). "
                              "atomic-v5 = schema-constrained candidate; recorded in run.json")
@@ -219,7 +226,8 @@ def main(argv=None):
         counts = run_batch(args.data, args.run_dir, provider,
                            checklist=load_checklist(args.checklist) if args.checklist else None,
                            config=config, resume=args.resume, only=args.only, expect_count=args.expect_count,
-                           workers=args.workers, live_call_limit=args.live_call_limit)
+                           workers=args.workers, live_call_limit=args.live_call_limit,
+                           repair=RepairPolicy(authorization=args.repair_authorization) if args.repair_authorization else None)
     except (OSError, ValueError) as error:
         print("Batch not run: %s" % error, file=sys.stderr)
         return 1

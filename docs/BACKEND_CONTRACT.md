@@ -1,5 +1,10 @@
 # Implemented backend contract for the frontend teammate
 
+> **Current additions (integration/final-submission) are in the last section,
+> "Final integration: history, appeals, replay, checklist v6".** Earlier sections remain accurate
+> for the routes they describe; where they say "no result-history GET / appeal endpoint", that
+> limitation is now resolved.
+
 Source: `src/cqa/web.py`, `schemas.py`, `loader.py`, `engine.py`, `scoring.py`.
 Engine 0.5.0 / prompt `baseline-v4`. This describes implemented source after
 backend restart, not a promised future API. No frontend code changed in this task.
@@ -360,3 +365,41 @@ are offline-verified only; the original rejected response is never repaired.
   `original_provider_output`; the repair output, merged reply, pins, answer
   changes, usage and latency are in `repair_attempts`. A result that used a
   repair is `needs_review` (non-mock). Usage in `run.usage` is the primary call only.
+
+
+## Final integration: history, appeals, replay, checklist v6
+
+Source: `src/cqa/web.py`, `appeals.py`, `replay.py`, `scoring.py`. All routes are loopback-only; POST
+still requires same-origin `Origin` and `Content-Type: application/json`.
+
+| HTTP route | Behavior |
+| --- | --- |
+| `GET /api/evaluations[?conversation_id=ID]` | Newest-first rows for saved results and rejected diagnostics visible to this server (approved DEV or currently authorized supplied input): `kind` result/rejected, `evaluation_id` (diagnostic ID for rejected), conversation/language/channel, `status`, `total_score`, `critical_violation`, provider, model, `is_mock`, `started_at`, checklist ID/version, `issues`, `appeals_open`, `appeals_revised` |
+| `GET /api/evaluations/{id}` | The stored EvaluationResult, byte-for-byte content as saved (never modified by appeals) |
+| `GET /api/evaluations/{id}/appeals` | Revised view: `original_score`, `revised_score` (null until a reviewer changes something), `original_responses`, `revised_responses`, `applied[]`, `appeals[]` |
+| `POST /api/evaluations/{id}/appeals` | `{criterion_id, explanation, submitted_by, requested_response?}` → 201 `{appeal, view}`. One open appeal per criterion (409); requested value must be on the criterion's scale (422). Rejected diagnostics cannot be appealed (404: no accepted score) |
+| `POST /api/appeals/{appeal_id}/decision` | Header `X-CQA-Reviewer-Key`; body `{reviewer, outcome: "confirm"|"change", reason, new_response?}` → 200 `{appeal, view}`. Wrong/missing key 403; reviewer equal to appellant 422; change must differ from the original and be on scale; decided appeals are final (409) — submit a new appeal to revisit |
+
+Appeal record (`outputs/app/appeals/<appeal_id>.json`, schema `cqa-appeal/1`): evaluation/conversation/checklist
+identity, `criterion_id`, `original_response`, `requested_response`, `explanation`, `submitted_by/at`, `state`
+(open/upheld/revised), `decision {outcome, reviewer, reason, final_response, decided_at}` and an append-only
+`history[]`. Recalculation re-applies the latest revised decision per criterion to the original raw responses and
+calls `scoring.score_responses` — the same function `score_evaluation` uses after validation — so N/A
+redistribution, HALF_UP rounding and the separate critical flag are identical. A revised critical "no" clears
+violation categories. The reviewer key comes from `CQA_REVIEWER_KEY` or is generated and printed at server
+start; it is a local demo control, not an identity system.
+
+`provider: "replay"` re-runs the full engine validation on a RECORDED genuine reply. It is available only when
+conversation, checklist version and prompt bytes match the recording (today: `p1-ru-001`, checklist
+`2026-11-07.v5`, `atomic-v5`, model `gpt-5.4-mini-2026-03-17`); otherwise 422. Replays are `is_mock: true`
+(status `mock_only`), so the official exporter refuses them.
+
+Checklists `2026-11-07.v2`–`v6` are always registered. For `atomic_first` checklists the CLI server uses
+`--atomic-prompt-version` (default `atomic-v5`; the `Application` class default remains the engine's atomic-v2).
+`official-v6.json` = v5 with only the C07 instructions and 07.q2 wording clarified. Checklist save errors
+return 422 with `error` and `fields`.
+
+`GET /api/config` additionally returns `atomic_prompt_version`, `replay_recordings[]` and
+`reviewer_key_required`. Batch-runner additions (`cqa_results.batch`): real providers require explicit
+`--checklist` and `--prompt-version`; `--repair-authorization REF` opts into one bounded repair call per
+rejected atomic conversation and is recorded in `run.json` (resume refuses a change).

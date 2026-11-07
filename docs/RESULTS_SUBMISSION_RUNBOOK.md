@@ -64,17 +64,44 @@ export CQA_MODEL='<exact OpenAI model id>'
 python3 -B src/git_preflight.py
 PYTHONPATH=src python3 -B -m unittest discover -s tests          # all must pass
 PYTHONPATH=src python3 -B -m cqa_results.dryrun --out outputs/submission-dryrun/$(date +%H%M%S)
+PYTHONPATH=src python3 -B -m cqa_results.rehearsal --out outputs/rehearsal/$(date +%H%M%S)   # must print REHEARSAL PASSED
 gh repo view "$SUBMIT_REPO" --json visibility                    # must be PUBLIC
 test -f .env && echo ".env present (do not print it)"
 ```
 
 Decide and record (in `STATUS.md`) before the controls arrive:
 1. Exact team name, submitted repo URL and branch.
-2. Model id, checklist (`official-v3.json` legacy default or `official-v4.json` atomic), and
-   whether organizer rules permit sending control transcripts to OpenAI.
+2. Evaluator pair and model, chosen by the explicit procedure below, and whether organizer rules
+   permit sending control transcripts to OpenAI. Real batch runs REFUSE to start without explicit
+   `--checklist` and `--prompt-version` (no silent fallback to the legacy v3 default).
 3. Whether the 5 real DEV calls may be sent to OpenAI. Without an explicit owner grant the
    engine refuses to transmit them, and they become honest `error` records.
 4. Who presses commit/push on the submission branch (one person).
+
+### Evaluator selection procedure (decide once, then freeze)
+
+| Pair | Evidence | Role |
+| --- | --- | --- |
+| `official-v6.json` + `atomic-v5` | v5 content with only C07 wording clarified (farewell alone is not a summary/offer of help) | Production candidate; NOT yet called live |
+| `official-v5.json` + `atomic-v5` | 1 genuine call on synthetic p1-ru-001: structurally accepted (100.00); C07 judged generously | Fallback |
+| `official-v3.json` + legacy `baseline-v4` (direct rubric) | 3 genuine legacy replies, all rejected by validation | Not used unless a paired comparison changes this |
+
+Gate (needs owner authorization for ~3 paid calls, about USD 0.05): run v6 + atomic-v5 on one RU, one KZ
+and one EN synthetic chat (the KZ/EN IDs are from the comparison plan's hash-selected set):
+```sh
+PYTHONPATH=src python3 -B -m cqa_results.batch --data data/shared/DEV_synthetic_60.json \
+  --run-dir outputs/submission/gate-v6 --provider openai --model "$CQA_MODEL" --env-file .env \
+  --checklist src/cqa/checklists/official-v6.json --prompt-version atomic-v5 --allow-external-synthetic \
+  --only p1-ru-001 p1-kz-013 p1-en-013 --live-call-limit 3
+ls outputs/submission/gate-v6     # *.result.json = accepted, *.rejected.json = validation failure
+```
+Use v6 if at least 2 of 3 are structurally accepted and none shows a new systematic failure; otherwise use v5.
+Record the choice and run directory in `STATUS.md`. Never change the pair between DEV and PROD runs without
+recording why; resume refuses a changed pair. Accepted structure is not semantic accuracy.
+
+Optional `--repair-authorization '<owner reference>'` adds at most ONE bounded criterion-repair call per
+rejected conversation (atomic only; original reply preserved; repaired results are `needs_review` but
+exported as ok). It roughly doubles worst-case calls; `--live-call-limit` counts conversations.
 
 ## 4. Early DEV submission (do now, not in the final hour)
 
@@ -93,6 +120,7 @@ Decide and record (in `STATUS.md`) before the controls arrive:
    ```sh
    PYTHONPATH=src python3 -B -m cqa_results.batch --data data/raw/DEV_conversations.json \
      --run-dir outputs/submission/dev-run1 --provider openai --model "$CQA_MODEL" --env-file .env \
+     --checklist src/cqa/checklists/official-v6.json --prompt-version atomic-v5 \
      --allow-external-synthetic --expect-count 65 --workers 3 --live-call-limit 80
    #   add: --authorization-manifest restricted/dev-approvals.json --allow-external-authorized
    ```
@@ -115,9 +143,19 @@ Decide and record (in `STATUS.md`) before the controls arrive:
 
 1. **Fetch** with the organizer-provided method only. Save the exact response bytes to
    `data/raw/PROD_control.json` (ignored). Keep tokens/signed URLs out of tracked files,
-   commit messages and logs. Never commit the control transcripts.
+   commit messages and logs. Never commit the control transcripts. If it is a plain HTTPS GET:
+   ```sh
+   read -rs CONTROL_URL && export CONTROL_URL          # paste the URL; not echoed, not in history
+   PYTHONPATH=src python3 -B -m cqa_results.envelope fetch --url-env CONTROL_URL --out data/raw/PROD_control.json
+   #   add --header-env CONTROL_AUTH (export CONTROL_AUTH='Authorization: Bearer ...') only if instructed
+   ```
 2. **Check the envelope** (prints structure, never text):
    ```sh
+   PYTHONPATH=src python3 -B -m cqa_results.envelope check data/raw/PROD_control.json --expect-count 10
+   #   if only the OUTER wrapper differs (bare list, {records:[...]}, {data:[...]}):
+   PYTHONPATH=src python3 -B -m cqa_results.envelope wrap data/raw/PROD_control.json \
+     --out data/raw/PROD_control_envelope.json --group-id PROD_CONTROL
+   # equivalent manual inspection:
    PYTHONPATH=src python3 -B -c "
    import json,collections; v=json.load(open('data/raw/PROD_control.json')); d=v.get('data',{}); r=d.get('records',[])
    print(sorted(v), sorted(d), d.get('total_records'), len(r))
@@ -142,6 +180,7 @@ Decide and record (in `STATUS.md`) before the controls arrive:
    ```sh
    PYTHONPATH=src python3 -B -m cqa_results.batch --data data/raw/PROD_control.json \
      --run-dir outputs/submission/prod-run1 --provider openai --model "$CQA_MODEL" --env-file .env \
+     --checklist src/cqa/checklists/official-v6.json --prompt-version atomic-v5 \
      --authorization-manifest restricted/prod-approvals.json --allow-external-authorized \
      --expect-count 10 --workers 5 --live-call-limit 25
    ```

@@ -1,219 +1,91 @@
-# Freedom Broker CQA Hackathon — team development workspace
+# Freedom Broker CQA — evidence-first conversation quality evaluation
 
-**[Start here: four-person team onboarding](TEAM_START_HERE.md).**
-The guide is the single setup/ownership entry point. See
-[Git collaboration and actual safeguards](GIT_WORKFLOW.md#four-person-daily-workflow),
-[architecture decisions](docs/ARCHITECTURE_DECISIONS.md) and
-[experiment/scenario backlog](docs/EXPERIMENT_BACKLOG.md).
+Evaluates broker customer-service conversations (RU / KZ / EN chats and supplied voice
+transcripts) against the organizer's eight-criterion checklist: per-criterion raw level,
+rationale and source-grounded evidence, exact weighted scoring with N/A redistribution,
+a separate critical flag, versioned checklists, appeals with reviewer decisions, and the
+official `results.json` export.
 
-Owner decision, November 7: this repository is intentionally **public**.
-Only reviewed public-safe documentation is authorized in this handoff; raw DEV,
-real calls, keys, approvals and reviewer outputs remain excluded. Organizer
-redistribution rights for already-tracked derivatives are not certified by this audit.
+Authoritative branch: **`integration/final-submission`** (see [TEAM_START_HERE.md](TEAM_START_HERE.md)).
+Requirements: [case/CQA_REQUIREMENTS.md](case/CQA_REQUIREMENTS.md),
+[case/CQA_SCORING_SPEC.md](case/CQA_SCORING_SPEC.md), team-safe PDFs in [case/shared/](case/shared/).
 
-Accuracy, reproducibility and required end-to-end functions take priority over
-cosmetics. This workspace now includes a working modular Python evaluation baseline.
-Three historical single-pass OpenAI responses were rejected by validation.
-The new explicit atomic-first path is described below; live outcomes are retained locally. Read the [requirements](case/CQA_REQUIREMENTS.md)
-and [scoring specification](case/CQA_SCORING_SPEC.md).
+## Quick start (no API key, no paid call)
 
-Validation repairs, the 41/41 independent QA result and the exact single-call
-OpenAI outcome are documented in [the repair report](docs/VALIDATION_REPAIR_REPORT.md).
-
-The current core is engine 0.6.1. Compatibility mode retains baseline-v4/schema1.1.
-Select rubric `2026-11-07.v4` for atomic-v2/schema1.2: the model supplies facts and
-the backend derives unambiguous decisions after validating their evidence.
-C04/C06 remain discretionary; N/A is backend-derived for every criterion. See the
-[readiness audit](docs/CORE_READINESS_AUDIT.md) and
-[implemented backend contract](docs/BACKEND_CONTRACT.md) before frontend work.
-The backend accepts new chat/voice transcripts using owner-provisioned,
-content-bound approvals and explicit provider export permissions. Existing DEV-ID
-requests remain supported. Checklists can be saved as immutable versions and
-selected per evaluation; see the backend contract for exact JSON and safe startup.
-The compatibility default remains `2026-11-07.v3`: conditional C05 checks and full
-source-ID coverage for negative critical findings. Original model decisions are
-never replaced by the checker. Older v2 remains selectable. The readiness audit
-records the earlier `b5702b1` snapshot.
-
-Start the atomic backend explicitly with:
+Python 3.9+ with `pydantic>=2.11,<3` (`python3 -m pip install "pydantic==2.13.5"`), Node 18+ for UI tests.
 
 ```sh
-PYTHONPATH=src python3 -m cqa.web --checklist src/cqa/checklists/official-v4.json --live-call-limit 0
+git clone https://github.com/Gaziz121/data-challenge-2026.git && cd data-challenge-2026
+git checkout integration/final-submission
+CQA_REVIEWER_KEY=demo-reviewer-key PYTHONPATH=src python3 -m cqa.web --port 8765 \
+  --checklist src/cqa/checklists/official-v6.json --live-call-limit 0
 ```
 
-An existing server also registers v4 for explicit per-request checklist selection.
-Atomic mock output requires review and carries no fabricated total. Full raw wire
-output and decision origins are retained separately from the normalized projection.
+Open http://127.0.0.1:8765/ and follow the [five-minute demo](docs/DEMO.md). The fastest
+complete path: conversation `p1-ru-001`, checklist `2026-11-07.v5`, provider **Replay**,
+Evaluate → appeal C07 → reviewer (key `demo-reviewer-key`) changes it → revised total.
 
-## Run the local browser application
-
-From this checkout with the existing Python/Pydantic dependency available:
+Tests (all offline; the same suite runs in GitHub Actions, `.github/workflows/offline-tests.yml`):
 
 ```sh
-PYTHONPATH=src python3 -m cqa.web --port 8765 --live-call-limit 0
+PYTHONPATH=src python3 -B -m unittest discover -t . -s tests   # production
+PYTHONPATH=src python3 -B -m unittest discover -t . -s qa      # independent QA + Accuracy Lab
+node tests/test_web_ui.cjs && node tests/test_dev_review.cjs   # frontend + human viewer
+PYTHONPATH=src python3 -B -m cqa_results.rehearsal --out outputs/rehearsal/$(date +%H%M%S)
 ```
 
-Open [the local application](http://127.0.0.1:8765/), select a synthetic DEV
-conversation and click **Evaluate**. RU/KZ/EN are supported. The application calls
-the existing engine and shows eight results, reasons, N/A conditions, atomic
-checks, clickable evidence, deterministic points/total and audit metadata.
-The default is visibly labeled **MOCK**, a fixed wiring fixture without semantic
-assessment. Result JSON is saved under ignored `outputs/app/` and can be downloaded.
+## What works (verified offline)
 
-**Independent human review** opens in a separate tab with blank manual forms and
-its existing `team_human` JSON/CSV/resume workflow. No AI score is copied into a
-human assessment. Both screens reuse the viewer's read-only transcript renderer.
+| Capability | Where |
+| --- | --- |
+| Evaluate DEV chats, supplied new RU/KZ/EN chats and voice transcripts (owner-approved input only) | `src/cqa/engine.py`, `web.py`, `access.py` |
+| Atomic-first evaluation: the model reports facts with exact quotes/scopes; the backend validates evidence, derives rule-based decisions, computes N/A and exact scores | `atomic.py`, `validation.py`, `scoring.py` |
+| Invalid model output is never scored or silently corrected; optional bounded one-call repair | `repair.py`, batch `--repair-authorization` |
+| Versioned, immutable checklists; edit/save/select in the UI (wording, weights, scales, anchors, N/A text, new criteria via JSON) | `checklists.py`, UI checklist editor |
+| Evaluation history, appeals, reviewer confirm/change, original vs revised total (stored result never modified) | `appeals.py`, `/api/evaluations/...` |
+| Official `results.json` exporter, independent strict validator, public-URL verification | `src/cqa_results/` |
+| PROD intake (fetch exact bytes, envelope check, bounded re-wrap) and full offline final-hour rehearsal | `cqa_results.envelope`, `cqa_results.rehearsal` |
+| Separate human-labelling viewer (`team_human`, never Ground Truth) | `tools/dev_review/`, `/human-review/` |
 
-The integration branch is `codex/local-mvp-integration`, in the separate worktree
-`/Users/User/data-challenge-2026-integration` on the owner's Mac. The original
-checkout and its unfinished viewer files remain preserved; main is unchanged.
-See [local MVP setup, API and verification](docs/LOCAL_MVP.md), including the exact
-steps to enable authorized OpenAI access without changing scoring code.
+API: [docs/BACKEND_CONTRACT.md](docs/BACKEND_CONTRACT.md). Submission: [docs/RESULTS_SUBMISSION_RUNBOOK.md](docs/RESULTS_SUBMISSION_RUNBOOK.md).
+Rationale: [docs/ARCHITECTURE_DECISIONS.md](docs/ARCHITECTURE_DECISIONS.md), reliability evidence:
+[docs/RELIABILITY_REPORT.md](docs/RELIABILITY_REPORT.md), evaluator comparison plan:
+[docs/EVALUATION_COMPARISON_PLAN.md](docs/EVALUATION_COMPARISON_PLAN.md), backlog: [docs/EXPERIMENT_BACKLOG.md](docs/EXPERIMENT_BACKLOG.md).
 
-## Run the evaluation baseline
+## Evaluator, model and cost — what is and is not established
 
-From the project root, use Python 3.9+ with `pydantic>=2.11,<3` (verified with
-Python 3.9.6 and Pydantic 2.13.5). An optional editable install is
-`python3 -m pip install -e .`; otherwise the commands below use `PYTHONPATH=src`.
-
-```sh
-PYTHONPATH=src python3 -m cqa list
-PYTHONPATH=src python3 -m cqa evaluate --id p1-ru-001 --output outputs/example-001.json
-PYTHONPATH=src python3 -m cqa evaluate --id p1-ru-002 --output outputs/example-002.json
-PYTHONPATH=src python3 -B -m unittest discover -s tests -v
-PYTHONPATH=src python3 -m cqa schema result
-```
-
-The default provider is a deterministic **mock fixture**, not a quality evaluator.
-Its fixed lowest scores test wiring only; every decision requires review. Outputs
-include source-grounded locators, atomic checks, facts, validation/scoring stages
-and reproducibility metadata. Existing output files are preserved. CLI evaluation
-files must stay under ignored `outputs/`, since they contain transcript evidence.
-
-Use `--data data/raw/DEV_conversations.json` for the full local dataset or
-`--checklist path/to/versioned-checklist.json` for a changed checklist. New criteria,
-atomic questions, weights, scales, N/A rules and basic consistency implications
-are configuration, not Python branches keyed to the eight initial criterion IDs.
-
-The real OpenAI adapter uses strict structured output through the Responses API.
-It requires an authorized `OPENAI_API_KEY`, an explicit `--model`, and
-`--allow-external-synthetic`. Obtain credentials through secure key setup; never
-paste them into chat or source files. The adapter rechecks complete record content
-against the reviewed synthetic derivative before any network request. All five
-real calls remain blocked by that default CLI policy; audio links are never exported.
-The HTTP backend has a separate explicit, content-bound authorization policy for
-new synthetic/control transcripts; no request can authorize its own data export.
-An authorized existing credential has now been used for one smoke request; its
-response failed validation. Current live attempts are capped at zero; see the
-repair report before authorizing another request.
-
-See [pipeline and contracts](docs/EVALUATION_ENGINE.md) and the
-[implementation report](docs/IMPLEMENTATION_REPORT.md). The layered baseline
-supports future verifiers and audit-preserving revisions; it does not yet implement
-appeal/reviewer execution, a second LLM, or measured scoring accuracy. A browser
-MVP is implemented; the full competition workflow remains incomplete.
-
-## Start every session with filesystem discovery
-
-1. Confirm the actual project root. Read [CLAUDE.md](CLAUDE.md),
-   [PROJECT_FILE_MAP.md](PROJECT_FILE_MAP.md), [TEAM_STATUS.md](TEAM_STATUS.md),
-   and local `STATUS.md` if present. The local status is intentionally not in Git.
-2. Inspect relevant directories **including ignored files**. `git ls-files` and
-   default `rg --files` do not inventory the whole local workspace. Use `ls -la`
-   or Python `Path.iterdir/rglob` on `case/`, `data/`, `src/`, `notebooks/`,
-   `outputs/` and `deliverables/`. List paths/metadata, not sensitive contents.
-3. Locate and read the actual sources needed before reporting them missing.
-   A file absent from GitHub may exist locally. Check the file map, expected
-   paths and applicable Downloads locations before requesting materials again.
-4. Run `python3 -B src/git_preflight.py`; follow [GIT_WORKFLOW.md](GIT_WORKFLOW.md)
-   before synchronization. Check modifications and a successful fetch before
-   claiming which version is latest. Cached refs alone do not prove freshness.
+- Production candidate: checklist `official-v6.json` + prompt `atomic-v5` + OpenAI `gpt-5.4-mini-2026-03-17`
+  (Responses API, strict structured output). v6 differs from v5 only in clarified C07 wording.
+- Live evidence: 7 genuine single calls, all on synthetic `p1-ru-001`. Only the atomic-v5 + v5 reply is a
+  trustworthy structural acceptance (total 100.00); an earlier atomic-v3 acceptance had a grammar-forced
+  C06 and is not trusted. That reply credits a farewell as an offer of help under C07; the official text
+  requires a summary or offer of help **and** a farewell, so a reviewer would likely score C07 = no (92.31).
+  v6 clarifies exactly that. **v6 has not yet been called live.**
+- Measured cost: ~12.6k input / ~2.6–2.9k output tokens, **USD 0.013–0.023 per call** (DEV-65 ≈ USD 1–2;
+  PROD-10 ≈ USD 0.1–0.3 including optional repair calls); latency ≈ 14 s per call.
+- **Semantic accuracy against official Ground Truth is unknown.** No official labels exist for development;
+  mock, replay and fixture outputs prove wiring only, never quality.
 
 ## Shared versus local-only materials
 
 | Path | Availability and purpose |
 | --- | --- |
-| `case/CQA_REQUIREMENTS.md`, `case/CQA_SCORING_SPEC.md` | Tracked requirements, official clarifications, rubric and benchmark proposal |
-| `case/shared/*_TEAM_SAFE.pdf` | Tracked reviewed PDF copies; visible pages retained, embedded links/actions and metadata removed |
-| `data/shared/DEV_synthetic_60.json` | Tracked partial DEV derivative: 60 synthetic chats, RU=30/KZ=15/EN=15 |
-| `PROJECT_FILE_MAP.md`, `TEAM_STATUS.md` | Tracked inventory and sanitized status snapshot |
-| `src/git_preflight.py`, `src/prepare_shared_chats.py` | Git inspection and safe subset preparation; neither is application code |
-| `data/raw/DEV_conversations.json` | LOCAL ONLY authoritative 65-record original: RU=35/KZ=15/EN=15; includes five real RU calls |
-| Original PDFs directly under `case/` | LOCAL ONLY originals; student guide contains a signed API link |
-| `STATUS.md`, other raw/processed data, outputs and deliverables | LOCAL ONLY; may contain restricted evidence and real-call data |
-| `notebooks/`, other `src/` files | Future analysis/code, subject to file-level review |
+| `case/CQA_REQUIREMENTS.md`, `case/CQA_SCORING_SPEC.md`, `case/shared/*_TEAM_SAFE.pdf` | Tracked requirements, clarifications and reviewed PDF copies (embedded links removed) |
+| `data/shared/DEV_synthetic_60.json` | Tracked: 60 synthetic DEV chats (RU 30 / KZ 15 / EN 15); not the full DEV set |
+| `docs/demo/fictional_new_conversations.json` | Tracked: three invented conversations for the supplied-input demo |
+| `data/raw/DEV_conversations.json` | LOCAL ONLY authoritative 65 records incl. five real RU calls; never committed |
+| Original organizer PDFs under `case/`, results appendix | LOCAL ONLY (the student guide contains a signed API link) |
+| `STATUS.md`, `outputs/`, `restricted/`, `.env` | LOCAL ONLY evidence ledger, generated results, owner approvals, credentials |
+| `results/dev/results.json`, `results/prod/results.json` | Official submission files — created only by the exporter from genuine runs |
 
-The 60-chat file is not the full DEV dataset. It preserves chat IDs and record
-content, including empty audio fields, but contains no real call records,
-transcripts, audio links or related sensitive metadata. Its `DEV_SYNTHETIC_ONLY`
-group label is a local derivative label, not an organizer API group ID. No
-conversation-specific official Ground Truth is available for development; future
-team labels must identify themselves as `team_human`.
+## Start every session with filesystem discovery
 
-## New teammate setup
+1. Confirm the project root; read [CLAUDE.md](CLAUDE.md), [PROJECT_FILE_MAP.md](PROJECT_FILE_MAP.md),
+   [TEAM_STATUS.md](TEAM_STATUS.md) and local `STATUS.md` if present.
+2. Inspect ignored directories too (`ls -la case data outputs restricted`); `git ls-files` is not an inventory.
+3. Run `python3 -B src/git_preflight.py` and follow [GIT_WORKFLOW.md](GIT_WORKFLOW.md). No force pushes.
 
-Follow [TEAM_START_HERE.md](TEAM_START_HERE.md), which selects the integration
-branch rather than default main, creates an isolated environment, upgrades old
-pip, and provides exact mock/test/QA commands. Public cloning needs no invitation;
-pushing in-repository branches requires accepted write access. Two write
-invitations remain pending at the collaboration audit.
-
-The detailed runtime notes here include historical baseline milestones. Use the
-[current backend contract](docs/BACKEND_CONTRACT.md) and onboarding version
-checkpoint before assuming an older limitation or live-call count is current.
-
-## Local human conversation review
-
-Build and open the offline, read-only DEV transcript viewer:
-
-```sh
-python3 -B tools/dev_review/build.py
-open outputs/dev_review/index.html
-```
-
-It provides blank eight-criterion human forms and separate `team_human` JSON/CSV
-downloads, with JSON resume. It uses no external dependencies or AI scoring and
-does not modify the dataset or import the production evaluation engine. See
-[reviewer instructions](tools/dev_review/README.md) for independent labeling,
-evidence references, provenance, and save/resume behavior. Save JSON before
-closing: there is no browser autosave. These labels are never official Ground Truth.
-
-## Reproduce the shared chat subset
-
-With the approved full original available locally:
-
-```sh
-python3 -B src/prepare_shared_chats.py --check
-```
-
-This verifies 60 unique unchanged chats, the 30/15/15 language split, no calls or
-audio links, and preservation of the original. Without `--check`, it creates the
-derivative only if absent or verifies an identical existing copy; differing work
-is never overwritten. See the inventory for provenance and local handoff paths.
-
-## Reproducibility, sharing and submission
-
-Preserve originals and timestamps; record input/checklist/model/prompt versions,
-filters, definitions and evidence. Reconcile transformations, independently verify
-consequential numbers, and inspect actual final deliverables. [ANALYSIS.md](ANALYSIS.md)
-has the full procedure. The local `STATUS.md` is the detailed evidence record;
-`TEAM_STATUS.md` is a sanitized snapshot, not a competing ledger.
-
-`.gitignore` allows only named safe files under `case/` and `data/shared/`.
-Other materials/data remain excluded. Ignore rules do not untrack existing files
-or prevent uploads: review the exact staged manifest and content before pushing.
-
-The owner intentionally made this repository **PUBLIC**. Do not change its
-visibility, permissions or rulesets in this workstream. Public access does not
-authorize restricted inputs or new data uploads. Final submission scope and any
-separate repository remain an owner decision; review content and history before
-any further redistribution.
-
-## Adaptable execution gates
-
-Understand requirements and audit inputs first; establish a reproducible baseline
-by about hours 2-5; investigate high-value accuracy/generalization issues through
-about hour 13; integrate and validate by about hour 18; finish actual deliverables
-and QA through hour 22; protect the last two hours for critical corrections,
-submission and confirmation. Adjust to official timing. Build an end-to-end
-candidate early rather than sacrificing a working submission for exploration.
+The repository is intentionally PUBLIC (owner decision). Never commit keys, `.env`, real transcripts,
+audio, organizer originals, signed links, approvals or reviewer exports. `.gitignore` excludes them,
+but review the staged manifest before every push. Human labels from `tools/dev_review/` are
+`team_human`, never official Ground Truth ([viewer README](tools/dev_review/README.md)).

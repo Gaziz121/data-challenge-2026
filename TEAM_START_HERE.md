@@ -1,5 +1,34 @@
 # Start here — Freedom CQA team
 
+## 0. Current authoritative state (final integration, November 7, 2026)
+
+**Use branch `integration/final-submission`.** It contains everything below, merged without rewriting history:
+`integration/submission-pipeline` (engine 0.7.0, atomic-v5, checklist v5, exporter PR #2, reliability work),
+`feature/cqa-independent-qa` (`qa/`, Accuracy Lab), `codex/team-handoff-docs-20261107` (these docs), plus
+result history, appeals/reviewer recalculation, the checklist editor UI, replay, checklist v6, PROD intake
+and rehearsal, batch repair option and offline CI. `main` is older; do not develop on it until the PR merges.
+`feature/course-methods-proposal` (proposal text only) is intentionally not merged.
+
+Setup in a fresh clone (no key, no paid call):
+
+```sh
+git clone https://github.com/Gaziz121/data-challenge-2026.git && cd data-challenge-2026
+git checkout integration/final-submission
+python3 -m venv .venv && . .venv/bin/activate && python -m pip install --upgrade pip "pydantic==2.13.5"
+PYTHONPATH=src python -B -m unittest discover -t . -s tests      # expect OK (2 skips without restricted DEV-65)
+PYTHONPATH=src python -B -m unittest discover -t . -s qa
+node tests/test_web_ui.cjs && node tests/test_dev_review.cjs
+CQA_REVIEWER_KEY=demo-reviewer-key PYTHONPATH=src python -m cqa.web --port 8765 \
+  --checklist src/cqa/checklists/official-v6.json --live-call-limit 0
+```
+
+Then follow [docs/DEMO.md](docs/DEMO.md). Submission: [docs/RESULTS_SUBMISSION_RUNBOOK.md](docs/RESULTS_SUBMISSION_RUNBOOK.md).
+API: [docs/BACKEND_CONTRACT.md](docs/BACKEND_CONTRACT.md) (last section = newest routes).
+
+Ownership while finishing: one integration owner commits to `integration/final-submission`; others open
+small PRs into it. One designated person runs the DEV/PROD batches and pushes `results/`. Sections below
+are the earlier onboarding snapshot; where they name `codex/local-mvp-integration` as current, this section wins.
+
 This is the team's authoritative onboarding and work-ownership guide. Read it
 before choosing a branch. Technical contracts remain in the linked documents;
 original organizer materials remain authoritative for competition requirements.

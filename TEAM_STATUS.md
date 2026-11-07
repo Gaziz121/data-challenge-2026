@@ -6,7 +6,23 @@ Updated November 7, 2026, Asia/Almaty. Start with
 [experiment/scenario backlog](docs/EXPERIMENT_BACKLOG.md) and
 [Git workflow/audit](GIT_WORKFLOW.md#four-person-daily-workflow).
 
-## Current collaboration checkpoint
+## Final integration checkpoint — `integration/final-submission`
+
+- Branch built from `integration/submission-pipeline` 726f441 (PR #3) with `feature/cqa-independent-qa` 3ff9c76
+  and `codex/team-handoff-docs-20261107` 2b964d1 merged (two doc conflicts resolved by keeping both sides).
+  Supersedes PRs #1, #2 and #3 if merged. `main` unchanged at 207b23f until review.
+- Added and verified offline: result history; appeals with reviewer confirm/change and recalculation through the
+  official arithmetic (stored results immutable); checklist editor UI and v2–v6 registry; replay of the recorded
+  genuine p1-ru-001 reply; supplied new-conversation UI; checklist v6 (C07 wording only); explicit
+  checklist/prompt required for real batches; opt-in bounded batch repair; PROD envelope fetch/check/wrap;
+  offline final-hour rehearsal; GitHub Actions offline CI.
+- Tests: production 217 run / 217 pass with local DEV-65 present (clean clone: 2 expected skips); independent
+  QA 81/81; both Node suites pass; DEV-65 real-local mock wiring with v6+atomic-v5 exports 65 IDs (all honest
+  errors, validator exit 0); PROD-10 fictional rehearsal passes. Browser flow checked on localhost.
+- Not done: no genuine DEV-65 or PROD-10 results (paid calls need owner authorization); v6 not live-tested;
+  semantic accuracy unmeasured; team name and submission URL/branch unconfirmed; control API unknown.
+
+## Earlier collaboration checkpoint
 
 - Latest fetched remote integration: `6481390` (engine 0.6.1), including `5d256ac`.
   Atomic v4 / atomic-v2 / wire 1.2 is opt-in; compatibility default v3 remains.
