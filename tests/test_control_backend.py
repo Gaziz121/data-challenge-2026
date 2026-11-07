@@ -191,7 +191,7 @@ class ControlBackendTests(unittest.TestCase):
         self.assertEqual(status, 201)
         self.assertEqual(ref["sha256"], digest(changed))
         self.assertEqual(self.request("/api/checklists/" + ref["sha256"]), (200, changed))
-        self.assertEqual(len(self.request("/api/checklists")[1]), 4)
+        self.assertEqual(len(self.request("/api/checklists")[1]), 6)  # Built-ins v2-v6 plus the saved version.
         body = {"conversation": self.values[2]}
         first_status, first = self.request("/api/evaluations", body)
         body["checklist"] = {"checklist_id": ref["checklist_id"], "version": ref["version"]}

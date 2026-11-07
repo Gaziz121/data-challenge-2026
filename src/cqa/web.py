@@ -5,25 +5,31 @@ No scoring, rubric or provider behavior is reimplemented here.
 """
 
 import argparse
+import hmac
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import importlib.util
 import json
 import os
 from pathlib import Path
 import re
+import secrets
 import threading
-from urllib.parse import unquote, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 
 from pydantic import Field, ValidationError, model_validator
 
+from .appeals import AppealError, AppealStore
 from .engine import CheckBlocked, EvaluationRejected, evaluate
 from .access import AccessDenied, ConversationInput, InputPolicy, ExportPolicy, dev_authorization
 from .checklists import ChecklistConflict, ChecklistRegistry
 from .io import digest, load_checklist, parse_json
 from .loader import ROOT, SHARED, load_conversation, read_dataset, require_approved_synthetic
 from .providers import MockProvider, OpenAIProvider, ProviderError
-from .schemas import AuditEvent, Checklist, Contract, Conversation, EvaluationConfig
-from typing import Literal, Optional
+from .replay import ReplayProvider, ReplayUnavailable, available as replay_recordings
+from .schemas import AuditEvent, Checklist, Contract, Conversation, EvaluationConfig, EvaluationResult
+from typing import Literal, Optional, Union
+
+CHECKLIST_DIR = Path(__file__).parent / "checklists"
 
 
 class ChecklistReference(Contract):
@@ -35,7 +41,7 @@ class EvaluationRequest(Contract):
     conversation_id: Optional[str] = Field(default=None, min_length=1)
     conversation: Optional[ConversationInput] = None
     checklist: Optional[ChecklistReference] = None
-    provider: Literal["mock", "openai"] = "mock"
+    provider: Literal["mock", "openai", "replay"] = "mock"
     model: Optional[str] = None
 
     @model_validator(mode="after")
@@ -43,6 +49,20 @@ class EvaluationRequest(Contract):
         if (self.conversation_id is None) == (self.conversation is None):
             raise ValueError("Supply exactly one conversation_id or conversation")
         return self
+
+
+class AppealRequest(Contract):
+    criterion_id: str = Field(min_length=1, max_length=64)
+    explanation: str = Field(min_length=1, max_length=4000)
+    submitted_by: str = Field(min_length=1, max_length=80)
+    requested_response: Optional[Union[int, str]] = None
+
+
+class AppealDecisionRequest(Contract):
+    reviewer: str = Field(min_length=1, max_length=80)
+    outcome: Literal["confirm", "change"]
+    reason: str = Field(min_length=1, max_length=4000)
+    new_response: Optional[Union[int, str]] = None
 
 
 def load_env_file(path):
@@ -69,7 +89,8 @@ def load_env_file(path):
 class Application:
     def __init__(self, *, checklist=None, model=None, allow_external=False,
                  api_key=None, provider_factory=None, output_dir=None, config=None, live_call_limit=None,
-                 authorization_manifest=None, allow_external_authorized=False):
+                 authorization_manifest=None, allow_external_authorized=False,
+                 atomic_prompt_version=None, reviewer_key=None):
         self.checklist = checklist or load_checklist()
         self.model = model or os.environ.get("CQA_MODEL", "")
         self.api_key = os.environ.get("OPENAI_API_KEY", "") if api_key is None else api_key
@@ -83,9 +104,15 @@ class Application:
             raise ValueError("Application output must remain under ignored outputs/")
         self.input_policy = InputPolicy.from_path(authorization_manifest, allow_external=allow_external_authorized)
         # Keep explicit selection of the previous default working after upgrade.
-        previous = load_checklist(Path(__file__).parent / "checklists/official-v2.json")
-        atomic = load_checklist(Path(__file__).parent / "checklists/official-v4.json")
-        self.checklists = ChecklistRegistry(self.checklist, self.output_dir / "checklists", additional=[previous, atomic])
+        # v5 = only live-accepted atomic pair; v6 = production candidate (C07 wording clarified).
+        additional = [load_checklist(CHECKLIST_DIR / name) for name in
+                      ("official-v2.json", "official-v4.json", "official-v5.json", "official-v6.json")]
+        self.checklists = ChecklistRegistry(self.checklist, self.output_dir / "checklists", additional=additional)
+        # None keeps the engine default (atomic-v2); the CLI selects atomic-v5 explicitly.
+        self.atomic_prompt_version = atomic_prompt_version
+        self.appeals = AppealStore(self.output_dir / "appeals")
+        self.reviewer_key_generated = not (reviewer_key or os.environ.get("CQA_REVIEWER_KEY"))
+        self.reviewer_key = reviewer_key or os.environ.get("CQA_REVIEWER_KEY") or secrets.token_urlsafe(12)
         self.lock = threading.Lock()
         data, _ = read_dataset(SHARED)
         self.records = data["records"]
@@ -94,6 +121,8 @@ class Application:
         self.ids = {r["conversation_id"] for r in self.records}
 
     def _provider(self, name, model):
+        if name == "replay":
+            return ReplayProvider()
         return MockProvider() if name == "mock" else OpenAIProvider(
             model, api_key=self.api_key, input_policy=ExportPolicy(self.input_policy, self.allow_external))
 
@@ -103,7 +132,85 @@ class Application:
                 "external_synthetic_allowed": self.allow_external,
                 "external_authorized_allowed": self.input_policy.allow_external,
                 "live_calls_remaining": None if self.live_call_limit is None else max(0, self.live_call_limit - self.live_calls),
+                "atomic_prompt_version": self.atomic_prompt_version or "engine default (atomic-v2)",
+                "replay_recordings": replay_recordings(),
+                "reviewer_key_required": True,
                 "checklist": self.checklist.model_dump(mode="json")}
+
+    def visible(self, conversation):
+        """Results/diagnostics are served only for approved DEV or currently authorized input."""
+        try:
+            dev_authorization(conversation)
+            return True
+        except ValueError:
+            try:
+                self.input_policy.authorize(conversation)
+                return True
+            except AccessDenied:
+                return False
+
+    def _saved(self):
+        if not self.output_dir.is_dir():
+            return []
+        return sorted((p for p in self.output_dir.glob("*.json")), key=lambda p: p.stat().st_mtime, reverse=True)[:500]
+
+    def load_result(self, evaluation_id):
+        if not re.fullmatch(r"[0-9a-f-]{36}", evaluation_id or ""):
+            raise LookupError("Evaluation not found")
+        target = self.output_dir / (evaluation_id + ".json")
+        if not target.is_file():
+            raise LookupError("Evaluation not found")
+        result = EvaluationResult.model_validate(parse_json(target.read_bytes()))
+        if result.evaluation_id != evaluation_id or not self.visible(result.conversation):
+            raise LookupError("Evaluation not found")
+        return result
+
+    def list_evaluations(self, conversation_id=None):
+        rows = []
+        for path in self._saved():
+            try:
+                value = parse_json(path.read_bytes())
+                rejected = path.name.startswith("rejected-")
+                conversation = Conversation.model_validate(value["conversation"])
+                if conversation_id is not None and conversation.conversation_id != conversation_id:
+                    continue
+                if not self.visible(conversation):
+                    continue
+                run = value["run"]
+                row = {"kind": "rejected" if rejected else "result",
+                       "evaluation_id": value.get("diagnostic_id") if rejected else value["evaluation_id"],
+                       "conversation_id": conversation.conversation_id, "language": conversation.language,
+                       "channel": conversation.channel, "status": "rejected" if rejected else value["status"],
+                       "total_score": None if rejected else value["score"]["total_score"],
+                       "critical_violation": None if rejected else value["score"]["critical_violation"],
+                       "provider": run.get("provider"), "model": run.get("model_returned"),
+                       "is_mock": run.get("is_mock"), "started_at": run.get("started_at"),
+                       "checklist_id": value["checklist"]["checklist_id"],
+                       "checklist_version": value["checklist"]["version"],
+                       "issues": len(value.get("issues", [])) if rejected else 0}
+                if not rejected:
+                    appeals = self.appeals.list(row["evaluation_id"])
+                    row["appeals_open"] = sum(a["state"] == "open" for a in appeals)
+                    row["appeals_revised"] = sum(a["state"] == "revised" for a in appeals)
+                rows.append(row)
+            except (ValueError, KeyError, TypeError, ValidationError):
+                continue  # Unreadable or foreign files are not listed; nothing is modified.
+        return rows
+
+    def submit_appeal(self, evaluation_id, request):
+        result = self.load_result(evaluation_id)
+        appeal = self.appeals.submit(result, request.criterion_id, request.explanation, request.submitted_by,
+                                     request.requested_response)
+        return {"appeal": appeal, "view": self.appeals.revised_view(result)}
+
+    def decide_appeal(self, appeal_id, request, key):
+        if not isinstance(key, str) or not hmac.compare_digest(key.encode("utf-8"), self.reviewer_key.encode("utf-8")):
+            raise PermissionError("Reviewer key required")
+        appeal = self.appeals.get(appeal_id)
+        result = self.load_result(appeal["evaluation_id"])
+        decided = self.appeals.decide(appeal_id, result, request.reviewer, request.outcome, request.reason,
+                                      request.new_response)
+        return {"appeal": decided, "view": self.appeals.revised_view(result)}
 
     def conversation(self, conversation_id):
         if conversation_id not in self.ids:
@@ -117,7 +224,7 @@ class Application:
                 conversation = request.conversation.normalize()
             except (ValueError, KeyError, TypeError):
                 raise ValueError("Supplied conversation failed normalization; no input evaluated") from None
-            authorization = self.input_policy.authorize(conversation, request.provider)
+            authorization = self.input_policy.authorize(conversation, "mock" if request.provider == "replay" else request.provider)
         else:
             conversation = self.conversation(request.conversation_id)
             authorization = dev_authorization(conversation)
@@ -141,8 +248,11 @@ class Application:
                 if self.live_call_limit is not None and self.live_calls >= self.live_call_limit:
                     raise ValueError("Live call limit reached; no request sent.")
                 self.live_calls += 1  # Reserve before transport; failed calls are never automatically retried.
+            update = {"external_synthetic_allowed": self.allow_external}
+            if checklist.decision_path == "atomic_first" and self.atomic_prompt_version:
+                update["prompt_version"] = self.atomic_prompt_version
             result = evaluate(conversation, checklist, self.provider_factory(request.provider, model),
-                              self.evaluation_config.model_copy(update={"external_synthetic_allowed": self.allow_external}))
+                              self.evaluation_config.model_copy(update=update))
             result = result.model_copy(update={"run": result.run.model_copy(update={"input_authorization": authorization}),
                                                "audit": [authorization_event] + result.audit})
             self.output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -228,6 +338,15 @@ def create_server(port=8765, application=None):
                     if not re.fullmatch(r"[0-9a-f]{64}", identifier):
                         return self.reply(404, {"error": "Checklist version not found"})
                     return self.reply(200, app.checklists.by_hash(identifier).model_dump(mode="json"))
+                if path == "/api/evaluations":
+                    query = parse_qs(urlsplit(self.path).query)
+                    return self.reply(200, app.list_evaluations((query.get("conversation_id") or [None])[0]))
+                match = re.fullmatch(r"/api/evaluations/([0-9a-f-]{36})(/appeals)?", path)
+                if match:
+                    result = app.load_result(match.group(1))
+                    if match.group(2):
+                        return self.reply(200, app.appeals.revised_view(result))
+                    return self.reply(200, result.model_dump(mode="json"))
                 if path == "/api/conversations":
                     return self.reply(200, [{k: r[k] for k in ("conversation_id", "channel", "language")}
                                             for r in app.records])
@@ -260,7 +379,9 @@ def create_server(port=8765, application=None):
         def do_POST(self):
             if not self.valid_host() or self.headers.get("Origin") != "http://" + self.headers.get("Host", ""):
                 return self.reply(403, {"error": "Same-origin local request required"})
-            if self.path not in ("/api/evaluations", "/api/checklists"):
+            appeal_submit = re.fullmatch(r"/api/evaluations/([0-9a-f-]{36})/appeals", self.path)
+            appeal_decision = re.fullmatch(r"/api/appeals/([0-9a-f-]{36})/decision", self.path)
+            if self.path not in ("/api/evaluations", "/api/checklists") and not appeal_submit and not appeal_decision:
                 return self.reply(404, {"error": "Not found"})
             if self.headers.get("Content-Type", "").split(";")[0] != "application/json":
                 return self.reply(415, {"error": "JSON required"})
@@ -275,6 +396,12 @@ def create_server(port=8765, application=None):
                 body = parse_json(self.rfile.read(length))
                 if self.path == "/api/checklists":
                     return self.reply(201, app.checklists.save(Checklist.model_validate(body)))
+                if appeal_submit:
+                    return self.reply(201, app.submit_appeal(appeal_submit.group(1), AppealRequest.model_validate(body)))
+                if appeal_decision:
+                    return self.reply(200, app.decide_appeal(appeal_decision.group(1),
+                                                             AppealDecisionRequest.model_validate(body),
+                                                             self.headers.get("X-CQA-Reviewer-Key")))
                 request = EvaluationRequest.model_validate(body)
                 result = app.run(request)
                 return self.reply(200, result.model_dump(mode="json"))
@@ -282,11 +409,19 @@ def create_server(port=8765, application=None):
                 return self.reply(404, {"error": str(error)})
             except AccessDenied as error:
                 return self.reply(403, {"error": str(error)})
+            except PermissionError as error:
+                return self.reply(403, {"error": str(error)})
+            except AppealError as error:
+                return self.reply(409 if "already" in str(error) else 422, {"error": str(error)})
             except ChecklistConflict as error:
                 return self.reply(409, {"error": str(error)})
             except BlockingIOError:
                 return self.reply(409, {"error": "An evaluation is already running"})
-            except ValidationError:
+            except ValidationError as error:
+                if self.path == "/api/checklists" or appeal_submit or appeal_decision:
+                    fields = sorted({".".join(str(x) for x in e["loc"]) or "(root)" for e in error.errors(include_input=False)})
+                    messages = sorted({e["msg"] for e in error.errors(include_input=False)})[:5]
+                    return self.reply(422, {"error": "Invalid request: " + "; ".join(messages), "fields": fields[:20]})
                 return self.reply(422, {"error": "Request or model output failed schema validation; no score returned"})
             except CheckBlocked:
                 return self.reply(422, {"error": "Evaluation blocked by a quality check; no score returned"})
@@ -315,6 +450,8 @@ def main(argv=None):
     parser.add_argument("--max-output-tokens", type=int, default=8000)
     parser.add_argument("--timeout-seconds", type=int, default=90)
     parser.add_argument("--live-call-limit", type=int, help="Optional hard per-process cap, including failed attempts")
+    parser.add_argument("--atomic-prompt-version", default="atomic-v5", choices=["atomic-v2", "atomic-v5"],
+                        help="Prompt for atomic_first checklists (default atomic-v5, the live-accepted candidate)")
     args = parser.parse_args(argv)
     try:
         settings = load_env_file(args.env_file) if args.env_file else {}
@@ -323,13 +460,17 @@ def main(argv=None):
                           authorization_manifest=args.authorization_manifest,
                           allow_external_authorized=args.allow_external_authorized,
                           config=EvaluationConfig(quote_policy="normalize_formatting", max_output_tokens=args.max_output_tokens,
-                                                  timeout_seconds=args.timeout_seconds), live_call_limit=args.live_call_limit)
+                                                  timeout_seconds=args.timeout_seconds), live_call_limit=args.live_call_limit,
+                          atomic_prompt_version=args.atomic_prompt_version)
         server = create_server(args.port, app)
     except (OSError, ValueError):
         print("Cannot start local app: check port, dataset, checklist and local configuration.")
         return 1
     print(f"CQA local app: http://127.0.0.1:{server.server_port}/", flush=True)
     print("Default mode: MOCK fixture. Human labels stay separate at /human-review/.", flush=True)
+    if app.reviewer_key_generated:
+        print("Reviewer key for appeal decisions (this process only; set CQA_REVIEWER_KEY to fix it): "
+              + app.reviewer_key, flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
