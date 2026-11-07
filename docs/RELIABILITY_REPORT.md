@@ -26,62 +26,92 @@ not attention; it is kept because it is cheap once enforced in the grammar.
 
 ## Changes
 
-1. `atomic-v3` schema compiler (`src/cqa/atomic_prompt.py`): per-criterion branches
-   over controlling answers mirror existing validator rules: exact full-dialogue
-   scope for full-scope answers; judgment null under N/A, required when applicable;
+1. Schema compiler (`src/cqa/atomic_prompt.py`). **`atomic-v4` is the recommended
+   opt-in**: same instructions/payload as v2; per-criterion branches over
+   controlling answers mirror existing validator rules: exact full-dialogue scope
+   for full-scope answers; judgment null under N/A, required when applicable;
    need=no -> verified=not_applicable; conditional trigger -> obligation; critical
-   facts yes/no/unknown; consistency-rule response ranges for C04/C06/C07; minimum
-   item counts. Three documented narrowings (`NARROWINGS`) only remove outputs the
-   validator could never accept. Opt-in; v2 default byte-identical.
+   facts yes/no/unknown; applicable all_of facts not not_applicable; minimum item
+   counts. Three documented narrowings (`NARROWINGS`) only remove outputs the
+   validator could never accept. v2 stays the byte-identical default.
+   `atomic-v3` additionally restricted discretionary scores by consistency rules;
+   it is retained only to reproduce its recorded live request (see below).
 2. `src/cqa/strict_schema.py`: offline strict-subset/limit guard (limits verified
    against OpenAI docs 2026-11-07) and a small conformance checker.
 3. `src/cqa/repair.py` + engine/provider hooks: disabled-by-default bounded repair
-   (one call, pinned answers, separate audit/usage, `needs_review`).
+   (one call, pinned answers, separate audit/usage, `needs_review`). Repair schemas
+   never restrict scores by consistency rules.
 4. `tools/reliability_measure.py`: reproducible offline comparison (outputs ignored).
+
+## The one authorized live call (atomic-v3, commit a958142)
+
+Synthetic p1-ru-001, gpt-5.4-mini-2026-03-17, repair disabled, one transport.
+**Structurally accepted** (first accepted genuine total): 8/8 criteria valid,
+C03/C05 absence facts cited the exact full scope, C07 judgment present. Total
+76.92. Provider latency 16.6 s (5d256ac: 9.5 s); input 24,105 / output 2,500
+tokens (5d256ac: 5,980 / 2,668): the large schema counts as input. Approx.
+USD 0.0293 at published rates.
+
+**The total is not trustworthy.** The model answered 06.q3 "no" meaning "no
+explicit waiting", then wrote a C06 rationale of "clear and coherent ... no
+meaningful lapse" yet emitted **0**. v3's grammar, applying the configured rule
+06.q3=no -> {0,4,7}, made 10 unrepresentable. Under v2 the same contradiction is
+rejected (no total); v3 converted a safe rejection into a wrong score that no
+validator can detect. Constraining a *score* from an ambiguous atomic answer is a
+regression; constraining locators/presence/derived couplings is not. Hence
+atomic-v4 drops score ranges. Regression fixture: `tests/fixtures/live_atomic_v3_a958142.json`.
+Under v4 the rationale-consistent 06=10 is representable and the validator rejects
+it (no total) — a correct, visible failure. The underlying defect is the
+ambiguous checklist question 06.q3 ("If there was explicit waiting, did the
+operator warn?"), which conflates "no waiting" with "no warning"; changing it is a
+checklist-version decision for the team, not made here.
 
 ## Offline before/after (reproduce with tools/reliability_measure.py)
 
-| Measure | Baseline 6481390 | Candidate |
-| --- | --- | --- |
-| Genuine saved replies accepted (unchanged validators) | 0/4 | 0/4 (by design; generation-side change) |
-| Genuine 5d256ac criteria representable under the schema it would be sent with | 8/8 (v2) | 5/8 under v3 — exactly 03/05/07, the validator's rejections |
-| Enumerated fixtures with a structural failure class still representable | 967/1048 (v2) | **0/1048** (+1 documented verified=no residual) |
-| Validator-accepted enumerated fixtures representable | 691/691 | 691/691 (asserted in tests) |
-| Controlled fixture: genuine facts + hand-written repair | n/a | accepted, 8/8, one repair call |
-| Schema size p1-ru-001 | 8.7 KB, 8 branches | 108 KB, 43 branches; 975 properties, 412 enum values, 12.8k chars (limits 5000/1000/120k) |
+| Measure | Baseline v2 (6481390) | v3 | **v4** |
+| --- | --- | --- | --- |
+| Genuine saved replies accepted, unchanged validators | 0/4 | 0/4 + 1 live accept (C06 forced) | not live-tested |
+| Genuine 5d256ac criteria representable | 8/8 | 5/8 (03/05/07) | 5/8 (03/05/07) |
+| Structural-failure fixtures representable | 724/805 | 0/805 | **0/805** (+1 verified=no residual) |
+| Score/answer contradictions | representable, rejected | unrepresentable, **forced** | representable, rejected |
+| Validator-accepted fixtures representable | 691/691 | 691/691 | 691/691 |
+| Schema p1-ru-001 | 8.7 KB / 8 branches | 108 KB / 43 | 40 KB / 18 |
 
-Enumeration = 6,672 per-criterion fixtures (all answer combinations × 3 evidence
-modes × judgment options) on p1-ru-001. Fixtures are not model behaviour.
+Enumeration = 6,672 per-criterion fixtures (all answer combinations x 3 evidence
+modes x judgment options) on p1-ru-001. Fixtures are not model behaviour.
+Controlled fixture (genuine 5d256ac facts + hand-written repair) is accepted
+8/8 with one repair call; not model output.
 
-Remaining v3-representable rejections (validator/repair-owned, semantic locators):
-eligible speaker role for a positive fact (65), first operator reply (6),
-identification events missing (12), verified=no scope (1). Event chronology,
-exact quotes and question duplicates are not schema-encodable here.
+Remaining v4-representable rejections, validator/repair-owned: consistency-rule
+contradictions (288), eligible speaker role for a positive fact (65), first
+operator reply (6), identification events (12), verified=no scope (1). Event
+chronology, exact quotes and question duplicates are not schema-encodable.
 
 ## Tests
 
 `CQA_TEST_FULL_DEV=<local full DEV> PYTHONPATH=src python3 -B -m unittest discover -t . -s tests`:
-146 run, 145 pass, 1 expected skip (loader full-DEV path absent in worktree);
+148 run, 147 pass, 1 expected skip (loader full-DEV path absent in worktree);
 original 127 unchanged. Independent QA (`feature/cqa-independent-qa` 3ff9c76,
 unchanged) against candidate: 81/81. QA scenario harness: 27 cases, 0 engine
 errors, 31 not_assessed (correct for mock). Both Node suites pass. Shared dataset
 hash unchanged. No holdout command was run.
 
-New regression module `tests/test_schema_reliability.py` (19 tests): v2 byte
-identity; genuine reply representability; strict limits over all 60 chats, a
-400-turn dialogue and an added criterion; exhaustive soundness/completeness;
-C03 chronology stays validator-owned; provider prompt binding; repair disabled
-by default, pinning, flip rejection, retreat-to-unknown, single call, gates and
-separate usage; C04 incorrect vs incomplete; C05 politeness vs empathy truth
-table; C07 missing/partial/interrupted closing; C08 hidden violation among 40
-irrelevant turns and truncated scopes; RU/KZ/EN and inserted-turn invariance.
+`tests/test_schema_reliability.py` (21 tests): v2 byte identity; genuine reply
+representability; strict limits over all 60 chats, a 400-turn dialogue and an
+added criterion; exhaustive soundness/completeness; C03 chronology stays
+validator-owned; provider prompt binding; live v3 reproduction and C06 regression;
+repair disabled by default, pinning, flip rejection, retreat-to-unknown, single
+call, gates and separate usage; C04 incorrect vs incomplete (rejected, not
+forced); C05 politeness vs empathy; C07 missing/partial/interrupted closing; C08
+hidden violation among 40 irrelevant turns and truncated scopes; RU/KZ/EN and
+inserted-turn invariance.
 
 ## Not established
 
-No semantic accuracy: a model can still miss a hidden C08 violation with a valid
-full scope, misjudge C04 correctness or misclassify complaints. Grammar compile
-latency for a 108 KB per-conversation schema is unmeasured (OpenAI documents extra
-latency on a schema's first request; the v3 schema changes with dialogue length).
-Live acceptance of v3 is unverified until one authorized call. Repair cost estimate:
-~12 KB input (~3–4k tokens) plus output, roughly USD 0.005–0.01 at gpt-5.4-mini
-published rates — an estimate, not a measurement.
+No semantic accuracy (one synthetic conversation; C06 wrong in the only accepted
+run). A model can still miss a hidden C08 violation with a valid full scope,
+misjudge C04 correctness, misclassify complaints, or answer an ambiguous atomic
+question in a way that the validator then rejects. v4 latency/tokens are not
+live-measured; by schema size, input is estimated at roughly 11–12k tokens
+(v3 live: 24.1k; v2-class: 6.0k), i.e. about USD 0.02 per call — an estimate.
+Repair estimate: ~14 KB schema + ~12 KB input, roughly USD 0.01 per repair call.

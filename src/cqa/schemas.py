@@ -388,7 +388,7 @@ class OverallScore(Contract):
 
 class EvaluationConfig(Contract):
     strategy: Literal["single_pass"] = "single_pass"
-    prompt_version: Literal["baseline-v1", "baseline-v2", "baseline-v3", "baseline-v4", "atomic-v1", "atomic-v2", "atomic-v3"] = "baseline-v4"
+    prompt_version: Literal["baseline-v1", "baseline-v2", "baseline-v3", "baseline-v4", "atomic-v1", "atomic-v2", "atomic-v3", "atomic-v4"] = "baseline-v4"
     max_output_tokens: int = Field(default=8000, ge=256, le=32000)
     timeout_seconds: int = Field(default=90, ge=1, le=300)
     external_synthetic_allowed: bool = False

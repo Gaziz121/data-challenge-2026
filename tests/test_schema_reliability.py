@@ -1,4 +1,4 @@
-"""atomic-v3 schema completeness, bounded repair and adversarial regressions.
+"""atomic-v4 schema completeness (atomic-v3 kept for provenance), bounded repair and adversarial regressions.
 
 Every model output here is either the verbatim saved genuine reply or a
 hand-authored/scripted offline fixture. None is a model accuracy measurement,
@@ -25,11 +25,13 @@ from tests.test_atomic_path import Scripted, atomic_checklist, decision, fact, q
 
 FIXTURES = Path(__file__).parent / "fixtures"
 V2_P1_RU_001_SHA = "9f5bcb6512eb35433a5590b15cd6f47ad59661ef0b052f9cc629a4ccd055cdad"
-V3 = EvaluationConfig(prompt_version="atomic-v3")
+V3 = EvaluationConfig(prompt_version="atomic-v4")  # Name kept: the schema-constrained config.
 STRUCTURAL = ("full-dialogue source coverage", "Configured rule cannot derive a decision", "requires its original model judgment",
               "supplied for a backend-derived decision", "must be not_applicable when identification is unnecessary",
               "cannot use not_applicable for verification", "conditional obligation",
-              "contradicts a configured atomic consistency rule", "never not_applicable")
+              "never not_applicable")
+# Score/answer agreement is deliberately validator-owned (rejected, never forced).
+CONSISTENCY = "contradicts a configured atomic consistency rule"
 # The single documented residual: identification verified=no keeps quotes beside its
 # scope (events need them), so its coverage stays validator-enforced (and repairable).
 RESIDUAL = "Missing/late verification requires full-dialogue source coverage"
@@ -107,11 +109,11 @@ class SchemaCompilerTests(unittest.TestCase):
 
     def test_v3_changes_only_schema_and_declared_version(self):
         v2, _ = build_request(self.conv, self.checklist)
-        v3, sha = build_request(self.conv, self.checklist, prompt_version="atomic-v3")
+        v3, sha = build_request(self.conv, self.checklist, prompt_version="atomic-v4")
         self.assertNotEqual(sha, V2_P1_RU_001_SHA)
         self.assertEqual(v2["instructions"], v3["instructions"])
         p2, p3 = json.loads(v2["input"]), json.loads(v3["input"])
-        self.assertEqual((p2.pop("prompt_version"), p3.pop("prompt_version")), ("atomic-v2", "atomic-v3"))
+        self.assertEqual((p2.pop("prompt_version"), p3.pop("prompt_version")), ("atomic-v2", "atomic-v4"))
         self.assertEqual(p2, p3)
         with self.assertRaises(ValueError):
             build_request(self.conv, self.checklist, prompt_version="atomic-v9")
@@ -119,7 +121,7 @@ class SchemaCompilerTests(unittest.TestCase):
     def test_genuine_atomic_reply_was_permitted_by_v2_and_is_unrepresentable_in_v3(self):
         raw = genuine()
         v2 = build_request(self.conv, self.checklist)[0]["schema"]
-        v3 = build_request(self.conv, self.checklist, prompt_version="atomic-v3")[0]["schema"]
+        v3 = build_request(self.conv, self.checklist, prompt_version="atomic-v4")[0]["schema"]
         self.assertTrue(conforms(raw, v2))  # Root cause: every observed failure was legal output.
         self.assertFalse(conforms(raw, v3))
         invalid = {c["criterion_id"] for c in raw["criteria"] if not entry_conforms(c, v3)}
@@ -166,7 +168,7 @@ class SchemaCompilerTests(unittest.TestCase):
                 elif any(any(s in i for s in STRUCTURAL) for i in review.issues):
                     blocked += 1
         self.assertGreater(accepted, 100)
-        self.assertGreater(blocked, 1000)
+        self.assertGreater(blocked, 700)
         self.assertGreater(representable, accepted)
 
     def test_identification_fixtures_remain_representable_and_ordering_stays_validator_owned(self):
@@ -195,7 +197,7 @@ class SchemaCompilerTests(unittest.TestCase):
             return {"id": "offline", "status": "completed", "model": "offline-model",
                     "output": [{"content": [{"type": "output_text", "text": json.dumps(raw)}]}]}
         provider = OpenAIProvider("offline-model", api_key="offline-placeholder", transport=transport)
-        config = EvaluationConfig(prompt_version="atomic-v3", external_synthetic_allowed=True)
+        config = EvaluationConfig(prompt_version="atomic-v4", external_synthetic_allowed=True)
         result = evaluate(self.conv, self.checklist, provider, config)
         self.assertEqual(result.score.total_score, "100.00")
         self.assertEqual(calls[0]["text"]["format"]["schema"], compile_atomic_schema(self.conv, self.checklist))
@@ -203,6 +205,36 @@ class SchemaCompilerTests(unittest.TestCase):
         with self.assertRaises(ProviderError):
             provider.evaluate(self.conv, self.checklist, v2_request, config)
         self.assertEqual(len(calls), 1)
+
+
+class LiveV3RegressionTests(unittest.TestCase):
+    """The one genuine atomic-v3 reply (a958142): structurally accepted, C06 score grammar-forced."""
+
+    def setUp(self):
+        self.conv, self.checklist = load_conversation(SHARED, "p1-ru-001"), atomic_checklist()
+        self.fixture = json.loads((FIXTURES / "live_atomic_v3_a958142.json").read_text())
+        self.raw = self.fixture["original_model_output"]
+
+    def test_recorded_v3_request_reproduces_and_reply_is_still_accepted(self):
+        _, sha = build_request(self.conv, self.checklist, prompt_version="atomic-v3")
+        self.assertEqual(sha, self.fixture["prompt_sha256"])
+        result = evaluate(self.conv, self.checklist, Scripted(self.raw), EvaluationConfig(prompt_version="atomic-v3"))
+        responses = {d.criterion_id: d.response for d in result.validated_evaluation.decisions}
+        self.assertEqual(responses["06"], 0)  # Consistent with 06.q3=no, so no validator can catch it.
+        self.assertEqual(result.score.total_score, "76.92")
+
+    def test_v4_lets_the_rationale_consistent_score_be_expressed_and_rejected(self):
+        intended = deepcopy(self.raw)
+        decision(intended, "06")["judgment"]["response"] = 10  # Its own rationale: "clear ... no lapse".
+        v3 = build_request(self.conv, self.checklist, prompt_version="atomic-v3")[0]["schema"]
+        v4 = build_request(self.conv, self.checklist, prompt_version="atomic-v4")[0]["schema"]
+        self.assertFalse(entry_conforms(decision(intended, "06"), v3))
+        self.assertTrue(entry_conforms(decision(intended, "06"), v4))
+        self.assertTrue(conforms(self.raw, v4))
+        with self.assertRaises(EvaluationRejected) as caught:
+            evaluate(self.conv, self.checklist, Scripted(intended), V3)
+        self.assertEqual({i["criterion_id"] for i in caught.exception.diagnostic["issues"]}, {"06"})
+        self.assertNotIn("score", caught.exception.diagnostic)
 
 
 class CountingRepairProvider(Scripted):
@@ -275,7 +307,7 @@ class BoundedRepairTests(unittest.TestCase):
             process_atomic_output(genuine(), self.conv, self.checklist)
         except AtomicReviewRequired as error:
             reviews = error.reviews
-        request, _, targets, pins, _ = build_repair_request(self.conv, self.checklist, genuine(), reviews, "atomic-v3")
+        request, _, targets, pins, _ = build_repair_request(self.conv, self.checklist, genuine(), reviews, "atomic-v4")
         self.assertEqual(targets, ["03", "05", "07"])
         self.assertEqual(strict_issues(request["schema"]), [])
         payload = json.loads(request["input"])
@@ -342,7 +374,7 @@ class BoundedRepairTests(unittest.TestCase):
                     "usage": {"input_tokens": 100 * len(calls), "output_tokens": 10, "total_tokens": 100 * len(calls) + 10},
                     "output": [{"content": [{"type": "output_text", "text": json.dumps(replies[len(calls) - 1])}]}]}
         provider = OpenAIProvider("offline-model", api_key="offline-placeholder", transport=transport)
-        config = EvaluationConfig(prompt_version="atomic-v3", external_synthetic_allowed=True)
+        config = EvaluationConfig(prompt_version="atomic-v4", external_synthetic_allowed=True)
         result = evaluate(self.conv, self.checklist, provider, config, repair=self.policy)
         self.assertEqual([c["text"]["format"]["name"] for c in calls], ["cqa_atomic_v1_2", "cqa_atomic_repair_v1"])
         self.assertEqual(result.status, "needs_review")
@@ -356,7 +388,7 @@ class BoundedRepairTests(unittest.TestCase):
             process_atomic_output(genuine(), self.conv, self.checklist)
         except AtomicReviewRequired as error:
             reviews, issues = error.reviews, error.issues
-        gated = EvaluationConfig(prompt_version="atomic-v3")  # External export not opted in.
+        gated = EvaluationConfig(prompt_version="atomic-v4")  # External export not opted in.
         attempt, merged = attempt_repair(self.policy, provider, self.conv, self.checklist, gated, genuine(), reviews, issues)
         self.assertEqual((attempt.status, merged), ("provider_error", None))
         self.assertEqual(len(calls), 2)  # The data gate refused before any transport.
@@ -374,21 +406,27 @@ class AdversarialRegressionTests(unittest.TestCase):
     def responses(self, conv, raw):
         return {d.criterion_id: d.response for d in self.run_raw(conv, raw).validated_evaluation.decisions}
 
-    def test_c04_incorrect_versus_incomplete_advice_is_bounded_by_configured_rules(self):
+    def test_c04_incorrect_versus_incomplete_advice_rejected_not_forced(self):
         conv = record([("client", "How do I withdraw USD and what is the fee?"),
                        ("operator", "Hello, I am Sam. Use the Withdraw tab. Goodbye.")])
         schema = compile_atomic_schema(conv, self.checklist)
+        coupled = compile_atomic_schema(conv, self.checklist, score_ranges=True)
         raw = raw_fixture(conv, self.checklist)
-        fact(raw, "04.q3")["answer"] = "no"  # Key advice incorrect: only 0 is permitted.
-        for level, valid in ((0, True), (5, False), (20, False)):
+        fact(raw, "04.q3")["answer"] = "no"  # Key advice incorrect: the configured rule permits only 0.
+        for level in (0, 5, 20):
             decision(raw, "04")["judgment"]["response"] = level
-            self.assertEqual(entry_conforms(decision(raw, "04"), schema), valid, level)
+            self.assertTrue(entry_conforms(decision(raw, "04"), schema), level)  # Model can state its view.
+            self.assertEqual(entry_conforms(decision(raw, "04"), coupled), level == 0)  # v3 forced it.
+            if level:
+                with self.assertRaises(EvaluationRejected) as caught:
+                    self.run_raw(conv, raw)
+                self.assertTrue(any(CONSISTENCY in i["message"] for i in caught.exception.diagnostic["issues"]))
+        decision(raw, "04")["judgment"]["response"] = 0
+        self.assertEqual(self.responses(conv, raw)["04"], 0)
         decision(raw, "04")["judgment"]["response"] = 10
         fact(raw, "04.q3")["answer"] = "yes"; fact(raw, "04.q2")["answer"] = "no"  # Incomplete: 0/5/10.
-        self.assertTrue(entry_conforms(decision(raw, "04"), schema))
         self.assertEqual(self.responses(conv, raw)["04"], 10)
         decision(raw, "04")["judgment"]["response"] = 15
-        self.assertFalse(entry_conforms(decision(raw, "04"), schema))
         with self.assertRaises(EvaluationRejected):
             self.run_raw(conv, raw)
 
@@ -415,9 +453,11 @@ class AdversarialRegressionTests(unittest.TestCase):
                        ("client", "Thanks.")])
         schema = compile_atomic_schema(conv, self.checklist)
         raw = raw_fixture(conv, self.checklist)
-        fact(raw, "07.q3")["answer"] = "no"  # No farewell: only "no" may be judged.
+        fact(raw, "07.q3")["answer"] = "no"  # No farewell: "yes" is rejected by the validator, not forced.
         decision(raw, "07")["judgment"]["response"] = "yes"
-        self.assertFalse(entry_conforms(decision(raw, "07"), schema))
+        self.assertTrue(entry_conforms(decision(raw, "07"), schema))
+        with self.assertRaises(EvaluationRejected):
+            self.run_raw(conv, raw)
         decision(raw, "07")["judgment"]["response"] = "no"
         self.assertEqual(self.responses(conv, raw)["07"], "no")
         decision(raw, "07")["judgment"] = None  # Applicable but omitted: the genuine failure class.
