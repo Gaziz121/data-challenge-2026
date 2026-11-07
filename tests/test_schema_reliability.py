@@ -25,7 +25,7 @@ from tests.test_atomic_path import Scripted, atomic_checklist, decision, fact, q
 
 FIXTURES = Path(__file__).parent / "fixtures"
 V2_P1_RU_001_SHA = "9f5bcb6512eb35433a5590b15cd6f47ad59661ef0b052f9cc629a4ccd055cdad"
-V3 = EvaluationConfig(prompt_version="atomic-v4")  # Name kept: the schema-constrained config.
+V3 = EvaluationConfig(prompt_version="atomic-v5")  # Name kept: the recommended schema-constrained config.
 STRUCTURAL = ("full-dialogue source coverage", "Configured rule cannot derive a decision", "requires its original model judgment",
               "supplied for a backend-derived decision", "must be not_applicable when identification is unnecessary",
               "cannot use not_applicable for verification", "conditional obligation",
@@ -197,7 +197,7 @@ class SchemaCompilerTests(unittest.TestCase):
             return {"id": "offline", "status": "completed", "model": "offline-model",
                     "output": [{"content": [{"type": "output_text", "text": json.dumps(raw)}]}]}
         provider = OpenAIProvider("offline-model", api_key="offline-placeholder", transport=transport)
-        config = EvaluationConfig(prompt_version="atomic-v4", external_synthetic_allowed=True)
+        config = EvaluationConfig(prompt_version="atomic-v5", external_synthetic_allowed=True)
         result = evaluate(self.conv, self.checklist, provider, config)
         self.assertEqual(result.score.total_score, "100.00")
         self.assertEqual(calls[0]["text"]["format"]["schema"], compile_atomic_schema(self.conv, self.checklist))
@@ -374,7 +374,7 @@ class BoundedRepairTests(unittest.TestCase):
                     "usage": {"input_tokens": 100 * len(calls), "output_tokens": 10, "total_tokens": 100 * len(calls) + 10},
                     "output": [{"content": [{"type": "output_text", "text": json.dumps(replies[len(calls) - 1])}]}]}
         provider = OpenAIProvider("offline-model", api_key="offline-placeholder", transport=transport)
-        config = EvaluationConfig(prompt_version="atomic-v4", external_synthetic_allowed=True)
+        config = EvaluationConfig(prompt_version="atomic-v5", external_synthetic_allowed=True)
         result = evaluate(self.conv, self.checklist, provider, config, repair=self.policy)
         self.assertEqual([c["text"]["format"]["name"] for c in calls], ["cqa_atomic_v1_2", "cqa_atomic_repair_v1"])
         self.assertEqual(result.status, "needs_review")

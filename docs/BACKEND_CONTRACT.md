@@ -341,12 +341,14 @@ are offline-verified only; the original rejected response is never repaired.
 ## Engine 0.7.0 additions (backward compatible, opt-in)
 
 - `atomic-v2` stays the default atomic prompt; its request bytes are unchanged
-  (p1-ru-001 sha256 `9f5bcb65…cdad`). `EvaluationConfig(prompt_version="atomic-v4")`
+  (p1-ru-001 sha256 `9f5bcb65…cdad`). `EvaluationConfig(prompt_version="atomic-v5")`
   selects the same instructions/payload with a schema that compiles validator
   structure into the strict output grammar (full-dialogue scope where required,
   judgment present iff applicable, identification/conditional couplings).
   Scores are never range-restricted: `atomic-v3` did that and its live call
   produced a grammar-forced C06=0; v3 remains only to reproduce that record.
+  v5 also fixes exact atomic/criterion item counts; v4 (open upper bound) emitted
+  a duplicate 04.q1 live and remains only to reproduce that record.
   Validators are unchanged and still decide.
 - Every result gains an additive `repair_attempts` key (empty list by default);
   rejection diagnostics gain the same key. Frontend code needs no change.

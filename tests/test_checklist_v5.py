@@ -19,7 +19,7 @@ from cqa.strict_schema import strict_issues
 from tests.test_atomic_path import Scripted, decision, quote, scope
 from tests.test_schema_reliability import FIXTURES, entry_conforms, record
 
-V4CONFIG = EvaluationConfig(prompt_version="atomic-v4")
+V4CONFIG = EvaluationConfig(prompt_version="atomic-v5")
 
 
 def v4():
@@ -112,3 +112,41 @@ class ChecklistV5Tests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LiveV4DuplicateRegressionTests(unittest.TestCase):
+    """The one genuine atomic-v4 + v5 reply (2fcd958): rejected only for a duplicate 04.q1."""
+
+    def setUp(self):
+        from cqa.prompt import build_request
+        self.build = build_request
+        self.conv, self.checklist = load_conversation(SHARED, "p1-ru-001"), v5()
+        self.fixture = json.loads((FIXTURES / "live_atomic_v4_2fcd958.json").read_text())
+        self.raw = self.fixture["original_model_output"]
+
+    def test_duplicate_was_legal_in_v4_and_is_not_in_v5(self):
+        from cqa.strict_schema import conforms
+        v4req, sha = self.build(self.conv, self.checklist, prompt_version="atomic-v4")
+        self.assertEqual(sha, self.fixture["prompt_sha256"])
+        self.assertTrue(conforms(self.raw, v4req["schema"]))  # Root cause: no upper item bound.
+        v5req, _ = self.build(self.conv, self.checklist, prompt_version="atomic-v5")
+        self.assertFalse(entry_conforms(decision(self.raw, "04"), v5req["schema"]))
+        self.assertEqual([c["criterion_id"] for c in self.raw["criteria"] if not entry_conforms(c, v5req["schema"])], ["04"])
+        self.assertEqual(strict_issues(v5req["schema"]), [])
+        with self.assertRaises(EvaluationRejected) as caught:
+            evaluate(self.conv, self.checklist, Scripted(self.raw), V4CONFIG)
+        self.assertEqual({i["criterion_id"] for i in caught.exception.diagnostic["issues"]}, {"04"})
+
+    def test_bounded_repair_pins_agreeing_duplicate_and_fixes_only_c04(self):
+        from cqa.schemas import RepairPolicy
+        from tests.test_schema_reliability import CountingRepairProvider
+        fixed = deepcopy(decision(self.raw, "04"))
+        fixed["atomic_checks"] = fixed["atomic_checks"][:4]  # Hand-authored repair: duplicate dropped.
+        provider = CountingRepairProvider(self.raw, {"schema_version": "1.2", "criteria": [fixed]})
+        result = evaluate(self.conv, self.checklist, provider, V4CONFIG,
+                          repair=RepairPolicy(authorization="offline unit test; no paid call"))
+        attempt = result.repair_attempts[0]
+        self.assertEqual((attempt.status, attempt.criterion_ids, provider.repair_calls), ("merged", ["04"], 1))
+        self.assertEqual(attempt.pinned_answers["04.q1"], "yes")
+        self.assertEqual(result.original_provider_output, self.raw)
+        self.assertEqual(result.score.total_score, "100.00")  # Scripted repair: a fixture, not a measurement.

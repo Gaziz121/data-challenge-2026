@@ -65,7 +65,7 @@ def _pins(criterion, entries):
         if isinstance(a, dict) and a.get("question_id") in configured:
             seen.setdefault(a["question_id"], []).append(a.get("answer"))
     for qid, values in seen.items():
-        if len(values) == 1 and values[0] in ANSWERS:
+        if values and len(set(values)) == 1 and values[0] in ANSWERS:  # Agreeing duplicates pin too.
             answers[qid] = values[0]
     judgment = item.get("judgment")
     response = judgment.get("response") if isinstance(judgment, dict) else None

@@ -141,3 +141,26 @@ pre-handover queue waiting announced by the bot counts as "explicit waiting" for
 the operator — a reviewer calibration question, not encoded.
 
 Tests: 153 run, 152 pass, 1 expected skip; QA 81/81; both Node suites pass.
+
+## Second authorized live call (atomic-v4 + draft checklist v5, commit 2fcd958)
+
+Synthetic p1-ru-001, gpt-5.4-mini-2026-03-17, repair disabled, one transport.
+**Rejected, no total.** 7/8 criteria validated, including C06=10 with 06.q4=no and
+the exact full scope — the v5 wording removed the forced/ambiguous C06 outcome on
+this conversation. C04 failed only because the model emitted 04.q1 twice (same
+answer): v4 bounded item counts from below only, so the duplicate was legal output
+(same root-cause class: a validator rule absent from the grammar). Provider
+14.2 s; input 12,557 / output 2,918 tokens; approx. USD 0.0225 (pre-call estimate
+11–12k input tokens was close). Fixture: `tests/fixtures/live_atomic_v4_2fcd958.json`.
+
+Offline follow-up, no further call: **atomic-v5** = v4 + exact item counts
+(`maxItems`, documented as supported by OpenAI, verified 2026-11-07; first live use
+would be v5). The genuine reply is unrepresentable in v5 only at C04. Repair now
+pins agreeing duplicate answers; a hand-authored repair of C04 is accepted with one
+repair call (fixture, not a measurement). v5 cannot prevent a duplicate that
+replaces a missing question (no uniqueness keyword); the validator still rejects it
+and the opt-in repair can fix it. atomic-v3/v4 remain only to reproduce their
+recorded requests. Tests: 155 run, 154 pass, 1 expected skip; QA 81/81; Node pass.
+
+Live record so far: 6 genuine replies; 1 structurally accepted (v3, C06 forced —
+untrustworthy); 0 trustworthy accepted totals; no semantic accuracy established.

@@ -12,7 +12,8 @@ paid call. `conforms` is a small validator for exactly that subset.
 """
 
 KEYWORDS = {"type", "properties", "required", "additionalProperties", "items", "anyOf", "enum",
-            "const", "$ref", "$defs", "minItems", "minLength", "title", "description"}
+            "const", "$ref", "$defs", "minItems", "maxItems", "minLength", "title", "description"}
+# maxItems is documented as supported (verified 2026-11-07); first live use is atomic-v5.
 LIMITS = {"properties": 5000, "depth": 10, "enum_values": 1000, "string_chars": 120000}
 
 
@@ -107,5 +108,5 @@ def conforms(instance, schema, root=None):
             return False
         return all(conforms(instance[k], v, root) for k, v in props.items())
     if kind == "array":
-        return len(instance) >= schema.get("minItems", 0) and all(conforms(i, schema["items"], root) for i in instance)
+        return schema.get("minItems", 0) <= len(instance) <= schema.get("maxItems", len(instance)) and all(conforms(i, schema["items"], root) for i in instance)
     return True

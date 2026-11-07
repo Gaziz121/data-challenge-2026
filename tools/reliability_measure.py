@@ -81,7 +81,7 @@ def main():
         report["candidate_features"] = "absent in this engine"
         return write(args.label, report)
 
-    schemas = {v: build_request(conv, v4, prompt_version=v) for v in ("atomic-v2", "atomic-v3", "atomic-v4")}
+    schemas = {v: build_request(conv, v4, prompt_version=v) for v in ("atomic-v2", "atomic-v3", "atomic-v4", "atomic-v5")}
     report["schemas"] = {v: {"sha256": sha, "schema_bytes": len(json.dumps(r["schema"])),
                              "input_bytes": len(r["input"]), "instructions_bytes": len(r["instructions"]),
                              "criterion_branches": len(r["schema"]["properties"]["criteria"]["items"]["anyOf"]),
@@ -124,7 +124,7 @@ def main():
     provider = CountingRepairProvider(genuine(), scripted_repair_of_genuine(conv))
     report["controlled_repair_fixture"] = {
         "label": "Genuine 5d256ac facts + HAND-AUTHORED repair (scope added, C07 judgment written by hand). Not model output.",
-        "result": replay(None, v4, EvaluationConfig(prompt_version="atomic-v4"), provider=provider,
+        "result": replay(None, v4, EvaluationConfig(prompt_version="atomic-v5"), provider=provider,
                          repair=RepairPolicy(authorization="offline measurement")),
         "repair_calls": provider.repair_calls}
     from cqa.repair import build_repair_request
