@@ -92,6 +92,8 @@ def run_batch(data_path, run_dir, provider, *, checklist=None, config=None, resu
         raise ValueError("Dataset has %d conversations; expected %d" % (len(records), expect_count))
     checklist = checklist or load_checklist()
     config = config or EvaluationConfig(quote_policy="normalize_formatting")
+    if config.prompt_version.startswith("atomic") and checklist.decision_path != "atomic_first":
+        raise ValueError("Atomic prompt version requires an atomic_first checklist (e.g. official-v5.json)")
     manifest = {"schema": RUN_SCHEMA, "dataset_sha256": file_hash, "dataset_group_id": data["dataset_group_id"],
                 "conversation_ids": [r["conversation_id"] for r in records],
                 "provider": provider.name, "model_requested": provider.model, "is_mock": provider.is_mock,
@@ -187,11 +189,15 @@ def main(argv=None):
     parser.add_argument("--max-output-tokens", type=int, default=8000)
     parser.add_argument("--timeout-seconds", type=int, default=90)
     parser.add_argument("--quote-policy", choices=["exact", "normalize_formatting"], default="normalize_formatting")
+    parser.add_argument("--prompt-version", choices=["atomic-v2", "atomic-v5"],
+                        help="Atomic checklists only. Default: engine default (atomic-v2). "
+                             "atomic-v5 = schema-constrained candidate; recorded in run.json")
     args = parser.parse_args(argv)
     try:
         config = EvaluationConfig(external_synthetic_allowed=args.allow_external_synthetic,
                                   max_output_tokens=args.max_output_tokens, timeout_seconds=args.timeout_seconds,
-                                  quote_policy=args.quote_policy)
+                                  quote_policy=args.quote_policy,
+                                  **({"prompt_version": args.prompt_version} if args.prompt_version else {}))
         if args.provider == "mock":
             provider = MockProvider()
         else:
