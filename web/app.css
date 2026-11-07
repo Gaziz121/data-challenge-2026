@@ -217,7 +217,7 @@ body > .cqa-app {
 }
 .cqa-app button:disabled {
   cursor: not-allowed;
-  color: #6b7886;
+  color: #5d6875;
   background: var(--cqa-surface-muted);
   border-color: var(--cqa-border);
 }
@@ -1429,8 +1429,14 @@ body > .cqa-app {
     margin-bottom: var(--cqa-s4);
   }
   .cqa-app .scroll {
+    min-height: 0;
     max-height: none;
     overflow: visible;
+  }
+  .cqa-app .cqa-appeal-shortcut,
+  .cqa-app .history th:last-child,
+  .cqa-app .history td:last-child {
+    display: none;
   }
   .cqa-app .message,
   .cqa-app .result-card {
