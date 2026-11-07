@@ -337,3 +337,22 @@ templates for mandatory full-dialogue evidence. Legacy checklist hashes remain
 unchanged. The one authorized atomic-v1 live run at5d256ac was rejected for missing
 C03/C05 negative scopes and C07's applicable model judgment. V2's compiler changes
 are offline-verified only; the original rejected response is never repaired.
+
+## Engine 0.7.0 additions (backward compatible, opt-in)
+
+- `atomic-v2` stays the default atomic prompt; its request bytes are unchanged
+  (p1-ru-001 sha256 `9f5bcb65…cdad`). `EvaluationConfig(prompt_version="atomic-v3")`
+  selects the same instructions/payload with a schema that compiles validator
+  structure into the strict output grammar (full-dialogue scope where required,
+  judgment present iff applicable, identification/conditional couplings,
+  consistency-rule response ranges). Validators are unchanged and still decide.
+- Every result gains an additive `repair_attempts` key (empty list by default);
+  rejection diagnostics gain the same key. Frontend code needs no change.
+- `evaluate(..., repair=RepairPolicy(authorization=...))` enables at most ONE
+  bounded repair call. Default is disabled; not exposed over HTTP. Only criteria
+  in invalid_facts/schema_invalid/conflict are resent with their diagnostics;
+  original answers are schema-pinned to themselves or `unknown`, an original
+  discretionary response is pinned. The primary reply stays in
+  `original_provider_output`; the repair output, merged reply, pins, answer
+  changes, usage and latency are in `repair_attempts`. A result that used a
+  repair is `needs_review` (non-mock). Usage in `run.usage` is the primary call only.

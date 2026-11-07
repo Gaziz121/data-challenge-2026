@@ -1,6 +1,6 @@
 """Version 1 contracts. Strict types and unknown-field rejection are intentional."""
 
-from typing import Literal, Optional, Union
+from typing import Any, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
@@ -388,7 +388,7 @@ class OverallScore(Contract):
 
 class EvaluationConfig(Contract):
     strategy: Literal["single_pass"] = "single_pass"
-    prompt_version: Literal["baseline-v1", "baseline-v2", "baseline-v3", "baseline-v4", "atomic-v1", "atomic-v2"] = "baseline-v4"
+    prompt_version: Literal["baseline-v1", "baseline-v2", "baseline-v3", "baseline-v4", "atomic-v1", "atomic-v2", "atomic-v3"] = "baseline-v4"
     max_output_tokens: int = Field(default=8000, ge=256, le=32000)
     timeout_seconds: int = Field(default=90, ge=1, le=300)
     external_synthetic_allowed: bool = False
@@ -479,6 +479,38 @@ class CriterionReview(Contract):
     atomic_answers: dict[str, str] = Field(default_factory=dict)
 
 
+class RepairPolicy(Contract):
+    """Explicit opt-in for ONE bounded criterion repair call. Absent means disabled."""
+    authorization: str = Field(min_length=1)
+    max_additional_calls: Literal[1] = 1
+
+    @model_validator(mode="after")
+    def explicit(self):
+        if not self.authorization.strip():
+            raise ValueError("Repair requires an explicit authorization reference")
+        return self
+
+
+class RepairAttempt(Contract):
+    """Full audit of one repair attempt; the primary reply is never modified."""
+    prompt_version: str
+    base_prompt_version: str
+    authorization: str
+    status: Literal["merged", "rejected_output", "provider_error", "not_attempted"]
+    criterion_ids: list[str]
+    original_issues: list[dict]
+    pinned_answers: dict[str, str] = Field(default_factory=dict)
+    answer_changes: list[dict] = Field(default_factory=list)
+    issues: list[str] = Field(default_factory=list)
+    request_sha256: Optional[str] = None
+    repair_output: Optional[Any] = None
+    merged_output: Optional[dict] = None
+    model_returned: Optional[str] = None
+    response_id: Optional[str] = None
+    usage: dict[str, int] = Field(default_factory=dict)
+    latency_ms: int = Field(default=0, ge=0)
+
+
 class EvaluationResult(Contract):
     schema_version: Literal["1.0"] = CONTRACT_VERSION
     evaluation_id: str
@@ -499,3 +531,4 @@ class EvaluationResult(Contract):
     decision_path: Literal["legacy", "atomic_first"] = "legacy"
     original_provider_output: Optional[dict] = None
     criterion_reviews: list[CriterionReview] = Field(default_factory=list)
+    repair_attempts: list[RepairAttempt] = Field(default_factory=list)

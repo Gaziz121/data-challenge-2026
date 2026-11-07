@@ -118,13 +118,34 @@ class OpenAIProvider:
         # Rebuild from validated inputs: a caller cannot inject a different transcript
         # into the request while presenting an approved conversation to the data gate.
         from .prompt import build_request
-        expected_request, _ = build_request(conversation, checklist)
+        expected_request, _ = build_request(conversation, checklist, prompt_version=(
+            config.prompt_version if checklist.decision_path == "atomic_first" else None))
         if request != expected_request:
             raise ProviderError("Provider request does not match validated inputs")
+        return self._complete(request, config, "cqa_atomic_v1_2" if checklist.decision_path == "atomic_first" else "cqa_evaluation_v1_1")
+
+    def repair(self, conversation, checklist, request, config, original_raw, reviews):
+        """One bounded repair call; same data/export gates and request binding as evaluate."""
+        if self._input_policy is None:
+            require_approved_synthetic(conversation, config.external_synthetic_allowed)
+        else:
+            self._input_policy.authorize(conversation, "openai")
+        if not self._key or not self._key.strip():
+            raise ProviderError("OPENAI_API_KEY is not configured; no request sent")
+        from .repair import build_repair_request
+        try:
+            expected_request = build_repair_request(conversation, checklist, original_raw, reviews, config.prompt_version)[0]
+        except ValueError:
+            expected_request = None
+        if request != expected_request:
+            raise ProviderError("Repair request does not match validated inputs")
+        return self._complete(request, config, "cqa_atomic_repair_v1")
+
+    def _complete(self, request, config, schema_name):
         payload = {"model": self.model, "instructions": request["instructions"],
                    "input": request["input"], "store": False,
                    "max_output_tokens": config.max_output_tokens,
-                   "text": {"format": {"type": "json_schema", "name": "cqa_atomic_v1_2" if checklist.decision_path == "atomic_first" else "cqa_evaluation_v1_1",
+                   "text": {"format": {"type": "json_schema", "name": schema_name,
                                        "strict": True, "schema": request["schema"]}}}
         started = time.perf_counter()
         try:
