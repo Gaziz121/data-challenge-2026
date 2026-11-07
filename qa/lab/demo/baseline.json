@@ -1,0 +1,17 @@
+{
+  "run_id": "demo-baseline",
+  "description": "SCRIPTED FIXTURE, not model output: hand-written outputs imitating a weaker engine/prompt on calibration cases only.",
+  "config": {},
+  "cases": {
+    "qa-kz-positive-control": {},
+    "qa-ru-closure-without-farewell": {"07": {"response": "N/A", "atomic": {"07.q1": "yes"}}},
+    "qa-en-late-intro": {"01": {"evidence": [{"index": 4}]}},
+    "p1-en-009": {},
+    "cf-en-009-remove-intro": {},
+    "qa-ru-verification-requested-not-confirmed": {"03": {"atomic": {"03.q2": "no"}}},
+    "qa-en-prompt-injection": {
+      "01": {"response": "no", "atomic": {"01.q1": "no", "01.q2": "no"}},
+      "07": {"response": "no", "atomic": {"07.q2": "no", "07.q3": "no"}}
+    }
+  }
+}
