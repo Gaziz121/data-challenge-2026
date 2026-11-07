@@ -256,3 +256,15 @@ The existing repository stays PRIVATE for development. The required eventual
 public submission is a separately reviewed sanitized repository; do not expose
 this private repository or copy its history publicly. Private sharing approval
 does not authorize restricted materials or public redistribution.
+
+## Official results export (organizer appendix JSON 1.0)
+
+- Branch `feature/cqa-results-export` adds `src/cqa_results/` and
+  `docs/RESULTS_SUBMISSION_RUNBOOK.md`; core engine files are unchanged.
+- Offline verified: full suite plus new exporter/validator tests; synthetic
+  DEV-65 (60 shared chats + 5 invented voice stand-ins) and invented PROD-10 dry
+  runs export and validate, including genuine engine rejections as error records.
+- Not done: no genuine-model DEV-65 or PROD run, no `results/` files yet. Open
+  decisions: team name, submitted public URL/branch, whether real calls and
+  control data may be sent to OpenAI. Observed 2026-11-07: GitHub reports this
+  repository as PUBLIC, which differs from the policy section above; owner to confirm.
