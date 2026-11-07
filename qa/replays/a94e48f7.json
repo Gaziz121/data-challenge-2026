@@ -1,0 +1,575 @@
+{
+ "replay_id": "a94e48f7",
+ "source_diagnostic_id": "a94e48f7-9886-4a3e-9510-6f7dffb167e9",
+ "superseded_diagnostic_id": "3ea9543c-4017-47b9-a149-7b9d9ec131aa",
+ "note": "Verbatim original_model_output of one genuine OpenAI run on approved synthetic chat p1-ru-001. Replayed offline; never re-sent to a model. Run IDs, usage and credentials omitted.",
+ "conversation_id": "p1-ru-001",
+ "source_record_sha256": "6090935d4084c4d27d5f3829811c8bc86c2111a5c2e3606be33e045cf6f25c31",
+ "checklist_version": "2026-11-07.v2",
+ "checklist_sha256": "224a91cbe824377e1c40e9c526b0a196ed9d6099eceecb167b3e65045335fbb1",
+ "provider": "openai",
+ "model_returned": "gpt-5.4-mini-2026-03-17",
+ "prompt_version": "baseline-v2",
+ "prompt_sha256": "5f199ab63fb662e7ce4c8ad7077ddae28a6b566c4bb86c3adf9ba8818ffedc5c",
+ "quote_policy": "normalize_formatting",
+ "original_issues": [
+  {
+   "criterion_id": "02",
+   "location": [],
+   "message": "Value error, N/A requires a reason; applicable decisions must use null"
+  },
+  {
+   "criterion_id": "04",
+   "location": [],
+   "message": "Value error, N/A requires a reason; applicable decisions must use null"
+  },
+  {
+   "criterion_id": "07",
+   "message": "N/A conflicts with its configured applicability check"
+  }
+ ],
+ "original_model_output": {
+  "schema_version": "1.0",
+  "decisions": [
+   {
+    "criterion_id": "01",
+    "response": "yes",
+    "rationale": "The first human operator reply greets the client in Russian and introduces the operator by name.",
+    "na_reason": null,
+    "evidence": [
+     {
+      "kind": "quote",
+      "message_id": "m0009",
+      "quote": "Здравствуйте! Меня зовут Алина.",
+      "start_message_id": null,
+      "end_message_id": null,
+      "explanation": "First human operator reply; contains both a greeting and self-introduction."
+     }
+    ],
+    "violation_categories": [],
+    "needs_review": false,
+    "review_reason": null,
+    "atomic_checks": [
+     {
+      "question_id": "01.q1",
+      "answer": "yes",
+      "rationale": "The first human operator reply greets the client in the client language: \"Здравствуйте!\"",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0009",
+        "quote": "Здравствуйте! Меня зовут Алина.",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Greeting in Russian in the first agent message."
+       }
+      ]
+     },
+     {
+      "question_id": "01.q2",
+      "answer": "yes",
+      "rationale": "The first human operator reply introduces the operator: \"Меня зовут Алина.\"",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0009",
+        "quote": "Здравствуйте! Меня зовут Алина.",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Operator introduction in the first agent message."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "criterion_id": "02",
+    "response": "yes",
+    "rationale": "The customer already stated the need: they wanted to find their tariff and later said they did not want to download the report and asked for an operator. Enough information was available from the outset to answer the tariff-location question.",
+    "na_reason": "Enough information to answer was available from the outset.",
+    "evidence": [
+     {
+      "kind": "quote",
+      "message_id": "m0000",
+      "quote": "Где посмотреть мой тариф? В приложении не нахожу.",
+      "start_message_id": null,
+      "end_message_id": null,
+      "explanation": "Initial request clearly asks where to view the tariff."
+     },
+     {
+      "kind": "quote",
+      "message_id": "m0009",
+      "quote": "В веб-версии откройте вкладку «Кабинет». Название тарифа будет под вашим ФИО.",
+      "start_message_id": null,
+      "end_message_id": null,
+      "explanation": "Operator answers using already available context."
+     }
+    ],
+    "violation_categories": [],
+    "needs_review": false,
+    "review_reason": null,
+    "atomic_checks": [
+     {
+      "question_id": "02.q1",
+      "answer": "yes",
+      "rationale": "Enough information to answer was available from the outset because the client asked where to view their tariff.",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0000",
+        "quote": "Где посмотреть мой тариф? В приложении не нахожу.",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "The initial question contains the needed information."
+       }
+      ]
+     },
+     {
+      "question_id": "02.q2",
+      "answer": "not_applicable",
+      "rationale": "Because enough information was available from the outset, the clarification-before-answering subquestion is not applicable.",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0000",
+        "quote": "Где посмотреть мой тариф? В приложении не нахожу.",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "No missing information blocked answering the question."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "criterion_id": "03",
+    "response": "N/A",
+    "rationale": "The request did not require identity verification before disclosure or a protected action; it was a general question about where to view the tariff.",
+    "na_reason": "The request did not require identification.",
+    "evidence": [
+     {
+      "kind": "quote",
+      "message_id": "m0000",
+      "quote": "Где посмотреть мой тариф? В приложении не нахожу.",
+      "start_message_id": null,
+      "end_message_id": null,
+      "explanation": "General informational request, not a protected action."
+     }
+    ],
+    "violation_categories": [],
+    "needs_review": false,
+    "review_reason": null,
+    "atomic_checks": [
+     {
+      "question_id": "03.q1",
+      "answer": "no",
+      "rationale": "The request was a general tariff-location question and did not require identity verification.",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0000",
+        "quote": "Где посмотреть мой тариф? В приложении не нахожу.",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "No protected action is requested."
+       }
+      ]
+     },
+     {
+      "question_id": "03.q2",
+      "answer": "not_applicable",
+      "rationale": "Since verification was not required, confirmation before disclosure/action is not applicable.",
+      "evidence": [
+       {
+        "kind": "scope",
+        "message_id": null,
+        "quote": null,
+        "start_message_id": "m0000",
+        "end_message_id": "m0011",
+        "explanation": "Entire conversation scope shows only a general informational request and no protected disclosure/action."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "criterion_id": "04",
+    "response": 15,
+    "rationale": "The client formulated a request, and the operator gave a correct, actionable answer for where to find the tariff. The main question was resolved, though the broader product context was brief.",
+    "na_reason": "The conversation did not end before the client formulated a request.",
+    "evidence": [
+     {
+      "kind": "quote",
+      "message_id": "m0000",
+      "quote": "Где посмотреть мой тариф? В приложении не нахожу.",
+      "start_message_id": null,
+      "end_message_id": null,
+      "explanation": "Client formulated the request at the start."
+     },
+     {
+      "kind": "quote",
+      "message_id": "m0009",
+      "quote": "В веб-версии откройте вкладку «Кабинет». Название тарифа будет под вашим ФИО.",
+      "start_message_id": null,
+      "end_message_id": null,
+      "explanation": "Operator provided the location of the tariff in the web version."
+     }
+    ],
+    "violation_categories": [],
+    "needs_review": false,
+    "review_reason": null,
+    "atomic_checks": [
+     {
+      "question_id": "04.q1",
+      "answer": "yes",
+      "rationale": "The client clearly formulated a request asking where to see the tariff.",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0000",
+        "quote": "Где посмотреть мой тариф? В приложении не нахожу.",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Initial customer request."
+       }
+      ]
+     },
+     {
+      "question_id": "04.q2",
+      "answer": "yes",
+      "rationale": "The operator addressed the material question by telling the client where to open the tariff information.",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0009",
+        "quote": "В веб-версии откройте вкладку «Кабинет».",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Direct answer to where the tariff can be found."
+       }
+      ]
+     },
+     {
+      "question_id": "04.q3",
+      "answer": "yes",
+      "rationale": "On the available evidence, the advice is factually consistent with the transcript context and directly answers the location question.",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0009",
+        "quote": "В веб-версии откройте вкладку «Кабинет». Название тарифа будет под вашим ФИО.",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "The answer is a concrete location instruction rather than an unsupported claim."
+       }
+      ]
+     },
+     {
+      "question_id": "04.q4",
+      "answer": "yes",
+      "rationale": "The next step is clear enough to act on: open the web version, go to the Cabinet tab, and look under the user's name.",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0009",
+        "quote": "В веб-версии откройте вкладку «Кабинет». Название тарифа будет под вашим ФИО.",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Provides the actionable next steps."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "criterion_id": "05",
+    "response": "yes",
+    "rationale": "The operator is polite throughout, using a greeting, a courteous response, and a friendly closing.",
+    "na_reason": null,
+    "evidence": [
+     {
+      "kind": "quote",
+      "message_id": "m0009",
+      "quote": "Здравствуйте! Меня зовут Алина.",
+      "start_message_id": null,
+      "end_message_id": null,
+      "explanation": "Polite opening."
+     },
+     {
+      "kind": "quote",
+      "message_id": "m0011",
+      "quote": "Пожалуйста. Хорошего вечера!",
+      "start_message_id": null,
+      "end_message_id": null,
+      "explanation": "Courteous closing."
+     }
+    ],
+    "violation_categories": [],
+    "needs_review": false,
+    "review_reason": null,
+    "atomic_checks": [
+     {
+      "question_id": "05.q1",
+      "answer": "yes",
+      "rationale": "The operator was polite in both the greeting and closing.",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0009",
+        "quote": "Здравствуйте! Меня зовут Алина.",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Polite greeting."
+       },
+       {
+        "kind": "quote",
+        "message_id": "m0011",
+        "quote": "Пожалуйста. Хорошего вечера!",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Polite closing."
+       }
+      ]
+     },
+     {
+      "question_id": "05.q2",
+      "answer": "not_applicable",
+      "rationale": "The client did not express dissatisfaction or inconvenience, so there was no specific issue to address.",
+      "evidence": [
+       {
+        "kind": "scope",
+        "message_id": null,
+        "quote": null,
+        "start_message_id": "m0000",
+        "end_message_id": "m0011",
+        "explanation": "Across the conversation, the client asks a question, thanks the operator, and does not express dissatisfaction."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "criterion_id": "06",
+    "response": 10,
+    "rationale": "The replies are clear, coherent, and logically sequenced. The operator answered the question, and nothing in the wording forced the client to ask again.",
+    "na_reason": null,
+    "evidence": [
+     {
+      "kind": "quote",
+      "message_id": "m0009",
+      "quote": "В веб-версии откройте вкладку «Кабинет». Название тарифа будет под вашим ФИО.",
+      "start_message_id": null,
+      "end_message_id": null,
+      "explanation": "Clear actionable response."
+     },
+     {
+      "kind": "quote",
+      "message_id": "m0011",
+      "quote": "Пожалуйста. Хорошего вечера!",
+      "start_message_id": null,
+      "end_message_id": null,
+      "explanation": "Clear closing without ambiguity."
+     }
+    ],
+    "violation_categories": [],
+    "needs_review": false,
+    "review_reason": null,
+    "atomic_checks": [
+     {
+      "question_id": "06.q1",
+      "answer": "yes",
+      "rationale": "The operator replies are clear and coherent.",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0009",
+        "quote": "В веб-версии откройте вкладку «Кабинет». Название тарифа будет под вашим ФИО.",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Clear instruction."
+       },
+       {
+        "kind": "quote",
+        "message_id": "m0011",
+        "quote": "Пожалуйста. Хорошего вечера!",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Coherent closure."
+       }
+      ]
+     },
+     {
+      "question_id": "06.q2",
+      "answer": "no",
+      "rationale": "The wording did not force the client to ask again; the client instead thanked the operator.",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0010",
+        "quote": "Нашла, спасибо.",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Shows the client understood the answer."
+       }
+      ]
+     },
+     {
+      "question_id": "06.q3",
+      "answer": "not_applicable",
+      "rationale": "There was no explicit waiting managed by the operator in the human-agent segment.",
+      "evidence": [
+       {
+        "kind": "scope",
+        "message_id": null,
+        "quote": null,
+        "start_message_id": "m0009",
+        "end_message_id": "m0011",
+        "explanation": "No explicit waiting instruction appears in the operator replies."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "criterion_id": "07",
+    "response": "N/A",
+    "rationale": "The conversation did not break off before an opportunity to close it; the operator had a clear closing exchange after the client's thanks.",
+    "na_reason": "The conversation did not break off before there was an opportunity to close it.",
+    "evidence": [
+     {
+      "kind": "quote",
+      "message_id": "m0011",
+      "quote": "Пожалуйста. Хорошего вечера!",
+      "start_message_id": null,
+      "end_message_id": null,
+      "explanation": "Operator closing after the client's thanks."
+     }
+    ],
+    "violation_categories": [],
+    "needs_review": false,
+    "review_reason": null,
+    "atomic_checks": [
+     {
+      "question_id": "07.q1",
+      "answer": "no",
+      "rationale": "The conversation did not break off before closing; there was an opportunity and the operator closed it.",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0010",
+        "quote": "Нашла, спасибо.",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Customer thanks create closing opportunity."
+       },
+       {
+        "kind": "quote",
+        "message_id": "m0011",
+        "quote": "Пожалуйста. Хорошего вечера!",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Operator used that opportunity to close."
+       }
+      ]
+     },
+     {
+      "question_id": "07.q2",
+      "answer": "yes",
+      "rationale": "The operator offered a courteous closing response that functions as a farewell and brief wrap-up.",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0011",
+        "quote": "Пожалуйста. Хорошего вечера!",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Closing/farewell phrase."
+       }
+      ]
+     },
+     {
+      "question_id": "07.q3",
+      "answer": "yes",
+      "rationale": "The operator said farewell: \"Хорошего вечера!\"",
+      "evidence": [
+       {
+        "kind": "quote",
+        "message_id": "m0011",
+        "quote": "Пожалуйста. Хорошего вечера!",
+        "start_message_id": null,
+        "end_message_id": null,
+        "explanation": "Farewell expression."
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "criterion_id": "08",
+    "response": "no",
+    "rationale": "There is no evidence that the operator insulted the client, offered a paid service bypassing the company, or disclosed confidential information. The whole conversation shows only ordinary support and a general tariff-location answer.",
+    "na_reason": null,
+    "evidence": [
+     {
+      "kind": "scope",
+      "message_id": null,
+      "quote": null,
+      "start_message_id": "m0000",
+      "end_message_id": "m0011",
+      "explanation": "Inspected entire conversation scope; no insulting language, no paid bypass offer, and no confidential disclosure by the human operator."
+     }
+    ],
+    "violation_categories": [],
+    "needs_review": false,
+    "review_reason": null,
+    "atomic_checks": [
+     {
+      "question_id": "08.q1",
+      "answer": "no",
+      "rationale": "No insulting language from the operator is present in the conversation scope.",
+      "evidence": [
+       {
+        "kind": "scope",
+        "message_id": null,
+        "quote": null,
+        "start_message_id": "m0000",
+        "end_message_id": "m0011",
+        "explanation": "Entire conversation contains no insults from the agent."
+       }
+      ]
+     },
+     {
+      "question_id": "08.q2",
+      "answer": "no",
+      "rationale": "No paid service bypassing the company is offered by the operator.",
+      "evidence": [
+       {
+        "kind": "scope",
+        "message_id": null,
+        "quote": null,
+        "start_message_id": "m0000",
+        "end_message_id": "m0011",
+        "explanation": "Entire conversation contains no private paid offer."
+       }
+      ]
+     },
+     {
+      "question_id": "08.q3",
+      "answer": "no",
+      "rationale": "No confidential information is disclosed by the operator.",
+      "evidence": [
+       {
+        "kind": "scope",
+        "message_id": null,
+        "quote": null,
+        "start_message_id": "m0000",
+        "end_message_id": "m0011",
+        "explanation": "Entire conversation contains no confidential disclosure by the agent."
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}

@@ -100,6 +100,48 @@ a greeting in the wrong language. **None has been tested on a model.**
 5. Approve an export policy for team-synthetic QA fixtures, then run the harness on
    one real model after human review of the scenario labels.
 
+## Update: RCA of genuine evaluation a94e48f7 (engine `f84d364`)
+
+The integrated engine fixes D01-D05: the original 41 QA tests pass 41/41 against
+`codex/local-mvp-integration@f84d364` (re-run independently). One genuine
+`gpt-5.4-mini-2026-03-17` response on synthetic `p1-ru-001` was rejected for
+criteria 02, 04 and 07. It is the only real sample (n=1); `3ea9543c` is the same output.
+
+| Criterion | Model output | Verdict |
+| --- | --- | --- |
+| 02 | `response=yes`, but `02.q1=yes` (enough info); `na_reason` = N/A condition | Correct rejection. The reported na_reason error masked the real applicability contradiction. N/A is the checklist answer |
+| 04 | `response=15`, `04.q1=yes`; `na_reason` = negated condition text | Rejected only for format; the decision is otherwise valid |
+| 07 | `response=N/A`, but `07.q1=no`, q2=yes, q3=yes; `na_reason` contradicts N/A | Correct rejection |
+
+Causes: (1) the `Decision` schema puts `response` before `atomic_checks`, and
+OpenAI Structured Outputs produce keys in schema order (verified in the current
+guide, "Key ordering"), so the model commits to an answer before reasoning;
+(2) strict mode requires `na_reason` on every decision and it has no description.
+The model filled it for all four N/A-capable criteria and none of the others;
+(3) `engine.diagnose_output` stops at the first schema error, hiding the
+contextual issue.
+
+Fixes, smallest first: reorder `atomic_checks` before `response`; describe
+`na_reason` ("null unless response is N/A") in schema and prompt; report all
+issues in diagnostics; then adopt deterministic decision rules
+(`qa/decision_rules.py` is a reference checker) that flag model/rule
+disagreement for review and never override silently. Not weakened: an
+applicable decision with N/A text stays invalid (R2).
+
+Open human-review questions: 07.q2=yes for "Пожалуйста. Хорошего вечера!" (no
+summary or further-help offer; strict reading gives 07=no) and 04=15 vs 20.
+
+Regression suite `qa/test_rca_a94e48f7.py` (15 tests) replays the saved output
+(`qa/replays/a94e48f7.json`, verbatim model output only, with no run IDs or usage)
+through a test double. Against `f84d364`: 12 pass, 3 fail, namely R1 masked
+diagnostic, R3 schema order and R4 na_reason description. Full QA suite against
+`f84d364`: 56 run, 53 pass, 3 fail. On the `ebcab33` baseline the replay
+classes skip. Run:
+
+```sh
+PYTHONPATH=../data-challenge-2026-integration/src python3 -m unittest discover -t . -s qa -v
+```
+
 ## Files and Git state
 
 Changed files (all new, all under `qa/`): `__init__.py`, `fixtures.py`,
