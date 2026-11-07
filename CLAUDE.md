@@ -1,5 +1,9 @@
 # Operating instructions
 
+Team onboarding and work ownership: [TEAM_START_HERE.md](TEAM_START_HERE.md).
+Use it as the single setup entry point; retain the discovery and safety protocol
+below. Historical reports are evidence for their named snapshots, not live status.
+
 ## Mandatory Workspace Discovery and Source-of-Truth Protocol
 
 - **Local workspace is not GitHub.** Git-tracked files are only a subset of files

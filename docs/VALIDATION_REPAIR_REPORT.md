@@ -1,5 +1,11 @@
 # Validation repair and single OpenAI smoke test
 
+> Chronological repair evidence: version selections, counts and live-call outcomes
+> below belong to their individual milestones. Later sections supersede earlier
+> snapshots; the current checked engine is 0.5.0 / rubric v3 / baseline-v4. For
+> onboarding and remaining work use [TEAM_START_HERE.md](../TEAM_START_HERE.md); exact
+> HTTP behavior is in [BACKEND_CONTRACT.md](BACKEND_CONTRACT.md).
+
 Date: 2026-11-07, Asia/Almaty. Working branch: `codex/local-mvp-integration`;
 base `76016fb`. No merge to main. Original dirty checkout and independent QA
 worktree/commit `cbdec73` were preserved. The final commit is reported in delivery
