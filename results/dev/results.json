@@ -1,0 +1,4665 @@
+{
+  "schema_version": "1.0",
+  "team_name": "Sigmas",
+  "model": {
+    "mode": "external_api",
+    "name": "gpt-5.4-mini-2026-03-17"
+  },
+  "results": [
+    {
+      "conversation_id": "p1-ru-001",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The client's initial message already contains a clear request: \"Где посмотреть мой тариф?\"",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general tariff-location question and did not require identity verification before answering.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the client's question directly, provided a clear and workable next step, and no factual error is evident from the dialogue.",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q1=yes; 05.q3=no; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, the client was not forced to ask again, and there was no unwarned explicit wait.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The operator closed politely with a farewell, and the conversation reached a natural ending.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-002",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (3 issue(s); criteria: empathy, identification): Identification event needs an exact matching atomic source quote; Atomic quote must match meaningful text in its exact source message"
+    },
+    {
+      "conversation_id": "p1-ru-003",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (1 issue(s); criteria: consultation): Unresolved atomic facts prevent an official decision"
+    },
+    {
+      "conversation_id": "p1-ru-004",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer asked how to top up a brokerage account by bank transfer, which is a specific enough request to answer directly.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general how-to question about topping up a brokerage account by bank transfer; it did not require identity verification before answering.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "All material questions were addressed and the response gives a correct next step with clear instructions.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no forced repetition and no unwarned explicit wait.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The conversation is properly closed with a farewell, and the operator does not break off early.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-005",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer already asked a clear question at the outset about who would charge the commission.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general tariff/commission question and did not require identity verification before answering.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 15,
+          "rationale": "The operator answered the customer's questions correctly enough and gave a clear next step, but the consultation is not fully exhaustive because the commission answer remained conditional on the bank's terms.",
+          "evidence_turns": [
+            10,
+            14
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, and there was no unwarned explicit waiting. There is no evidence of wording or sequence problems that would force the client to ask again.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator said farewell but did not explicitly summarize the outcome or offer further help, so the closing criterion is not satisfied under the checklist definition.",
+          "evidence_turns": [
+            16
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 84.62,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-006",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (2 issue(s); criteria: identification): Identification event is attributed to an ineligible source role; Identification event needs an exact matching atomic source quote"
+    },
+    {
+      "conversation_id": "p1-ru-007",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            11
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer already asked where it is in the app and when they can try withdrawal again, so enough information was available from the outset to answer.",
+          "evidence_turns": [
+            5
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request is a general how-to question about where to find the form in the app and when to retry withdrawal; it does not require identity verification before answering.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the client’s question with a clear, specific app path and confirmed the next step, so the consultation is complete on the available evidence.",
+          "evidence_turns": [
+            11,
+            13
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q1=yes; 05.q3=no; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, and there is no unannounced operator-imposed wait.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The operator closes the exchange with both a summary-like statement and a farewell.",
+          "evidence_turns": [
+            13
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-008",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer's request about whether they can already submit a withdrawal is understandable from the outset in the dialogue context.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general process question about whether a withdrawal can now be submitted; it did not require identity verification before a protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The consultation is clear, directly answers the customer's follow-up, and the next step is actionable and consistent with the dialogue.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, and there was no unannounced explicit waiting.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The conversation ends with a normal closing and a farewell.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-009",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (3 issue(s); criteria: consultation, identification): Identification event needs an exact matching atomic source quote; Missing/late verification requires full-dialogue source coverage; Unresolved atomic facts prevent an official decision"
+    },
+    {
+      "conversation_id": "p1-ru-010",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (2 issue(s); criteria: identification): Identification event needs an exact matching atomic source quote"
+    },
+    {
+      "conversation_id": "p1-ru-011",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer's initial request is already specific enough to answer from the outset: they ask for a broker statement for tax purposes.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general instruction on how to obtain a broker report, not a protected-data action requiring identity verification.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the client’s request correctly and completely with clear, actionable next steps.",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, and there was no unannounced wait left by the human operator.",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator did not explicitly summarize the outcome or offer further help; the closing is only a farewell.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 92.31,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-012",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (1 issue(s); criteria: closure): Unresolved atomic facts prevent an official decision"
+    },
+    {
+      "conversation_id": "p1-ru-013",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: Enough information was already available from the outset: the client asked where to view the company's reporting, and the bot answered directly that the financial reporting is on the official website.",
+          "evidence_turns": [
+            1,
+            4
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request did not require identity verification; the client asked where to find company reporting, which is a general informational request.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the client's request clearly and correctly with a concrete navigation path to the company's financial reporting, so the consultation is complete and actionable.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no forced repeat and no unwarned explicit wait.",
+          "evidence_turns": [
+            8,
+            10
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The operator closed with a brief summary/clarification and a farewell.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-014",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=no",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer's initial message already states the need: they cannot find the personal account/login entry on the website.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The conversation concerns how to find login/access on a website, which does not require identity verification before answering.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the main question directly, provided a correct next step, and explained how to proceed.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is coherent and clear, with no unannounced explicit waiting.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator said farewell but did not summarize the outcome or offer further help.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 76.92,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-015",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer already described the issue clearly enough at the outset: the new account registration says the login is busy even though the old account is closed.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general account-registration question about why the login is occupied; it did not require identity verification before answering.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the user's question clearly, provided the correct next step, and the request was fully addressed.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The replies were clear and coherent, and there was no forced re-asking or unexplained waiting.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The operator closed the conversation with a next step and a farewell.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-016",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer's initial message already states the problem, so enough information was available from the outset.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request did not require identity verification; it was a general access problem and no protected disclosure/action depended on verification.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the client's problem with a correct, actionable next step and the dialogue was clear enough to continue.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no unwarned explicit waiting; however, the interaction is not especially polished and contains a minor sequence roughness before the final clarification.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator said farewell but did not explicitly summarize the outcome or offer further help; under the checklist interpretation, this is insufficient for a positive closing.",
+          "evidence_turns": [
+            16
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 92.31,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-017",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            11
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer already stated the need from the outset: buying a bond and not knowing where to click in the app.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general navigation question about where to click in the app, so identity verification was not required.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator was polite, answered the request clearly, and provided a correct actionable next step.",
+          "evidence_turns": [
+            11,
+            13
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q1=yes; 05.q3=no; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, and there was no unexplained wait.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The operator closed the conversation with a farewell and an offer of help.",
+          "evidence_turns": [
+            15
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-018",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (1 issue(s); criteria: consultation): The checklist requires model judgment for criterion 04, but the prompt also says output_source=atomic judgment must be null; this conflict makes the official final score ambiguous."
+    },
+    {
+      "conversation_id": "p1-ru-019",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: Enough information was available from the outset to answer the user's request to find a ticker in the app, since the operator could ask for the ticker and explain where to enter it.",
+          "evidence_turns": [
+            1,
+            4
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request did not require identity verification; the operator only helped the customer find the correct security/ticker in the app.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator was polite, addressed the user's request, gave a correct and actionable next step, and there is no evidence of delay or confusion that forced the client to ask again.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, and there was no unwarned explicit wait.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator did say farewell, but did not summarize the outcome or offer further help, so the closure criterion is not fully satisfied under the configured interpretation.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 92.31,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-020",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer's initial request already asked how to remove the margin-use checkbox.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general product-usage question and did not require identity verification before answering.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The consultation is clear, addresses the user's questions, and the next steps are explained sufficiently; no factual issue is apparent from the dialogue.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no unwarned explicit wait.",
+          "evidence_turns": [
+            8,
+            10
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The closing is a farewell only and does not summarize the outcome or offer further help.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 92.31,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-021",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: Enough information was available from the outset because the customer asked a general comparison question: \"Насдак и Нью-Йоркская биржа — это одно и то же?\".",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general market-comparison question and did not require identity verification before answering.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The customer asked a straightforward informational question, and the operator gave a clear, factually correct, and complete explanation that resolved the request.",
+          "evidence_turns": [
+            5,
+            10
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, and there was no unwarned explicit wait. One can act on the answer without confusion.",
+          "evidence_turns": [
+            8,
+            10
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The conversation closed normally with a helpful closing and farewell.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-022",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer already asked for investment advice about bonds, so enough information was available to answer from the outset.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general request for investment advice, not something that required identity verification before a protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 0,
+          "rationale": "The operator's consultation is not correct or complete: it diverts to a private, off-company paid arrangement instead of answering the customer's investing question.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=no; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 0,
+          "rationale": "The dialogue management is poor: the operator's unexpected private offer makes the exchange confusing and forces the customer to restate the request.",
+          "evidence_turns": [
+            10,
+            11
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator did not close the conversation appropriately: there was no summary, no offer of further help, and no farewell.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=yes; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 15.38,
+        "critical_flag": true
+      }
+    },
+    {
+      "conversation_id": "p1-ru-023",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The client already asked a clear request before the operator reply: \"Можно оператора? Я пока только разбираюсь.\"",
+          "evidence_turns": [
+            5
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general navigation question about finding bonds in the app, which did not require identity verification before the answer.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator clearly answered the client's request with a correct, actionable navigation step and the dialogue remained coherent.",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=yes; 05.q1=yes; 05.q2=yes",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no unannounced waiting or ordering issues that would materially impede the client.",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator closed politely, but did not summarize the outcome or offer further help.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=yes; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 92.31,
+        "critical_flag": true
+      }
+    },
+    {
+      "conversation_id": "p1-ru-024",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 02.q1=no; 02.q2=yes",
+          "evidence_turns": [
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general product/how-to question about which account to use for buying stocks, not a request requiring identity verification before any protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The customer asked which account to use for buying stocks, and the operator clearly answered that the trading account should be used. The explanation is coherent, factually supported by the dialogue, and provides a clear next step.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The conversation is clear and logically structured, and there was no unwarned explicit waiting. The operator's wording allowed the client to continue without confusion.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator said farewell but did not summarize the result or explicitly offer further help, so the closing criterion is not satisfied under the working interpretation.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 93.75,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-025",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (1 issue(s); criteria: consultation): Unresolved atomic facts prevent an official decision"
+    },
+    {
+      "conversation_id": "p1-ru-026",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (2 issue(s); criteria: consultation, dialogue): Unresolved atomic facts prevent an official decision; Official response contradicts a configured atomic consistency rule"
+    },
+    {
+      "conversation_id": "p1-ru-027",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            11
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer immediately asked where to get the broker report and how to see the tariff, so enough information was available from the outset.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general how-to question about obtaining a broker report and viewing a tariff; it did not require identity verification before any protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the customer's requests clearly and correctly, provided the necessary steps, and no additional material question remained open.",
+          "evidence_turns": [
+            11,
+            13,
+            15,
+            20
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, and there was no unannounced explicit wait; the conversation flow is easy to follow.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The conversation closed with a farewell, but the operator did not explicitly summarize the outcome or offer further help in the final message.",
+          "evidence_turns": [
+            24
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-ru-028",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (1 issue(s); criteria: closure): Criterion 07.q2 rationale is internally inconsistent with the quoted evidence; it says an offer of help is unsupported, but the atomic answer is yes."
+    },
+    {
+      "conversation_id": "p1-ru-029",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (1 issue(s); criteria: dialogue): C06 is somewhat subjective; the dialogue is mostly understandable, but the operator's rude wording and the need for the customer to ask again support a low clarity score."
+    },
+    {
+      "conversation_id": "p1-ru-030",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer already specified the task in the opening message: «С телефона скачал отчёт, на первой странице не вижу тариф. Где именно смотреть?»",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request is a general location question about where to find the tariff in a report and did not require identity verification before a protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator’s advice was correct and complete for the customer’s request, and it included a clear next step that resolved the issue.",
+          "evidence_turns": [
+            12,
+            13
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q1=yes; 05.q3=no; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no forced repeat from the client and no unannounced wait.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator closed with a farewell but did not summarize the outcome or offer further help.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 92.31,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-kz-001",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (2 issue(s); criteria: contact): Atomic quote must match meaningful text in its exact source message"
+    },
+    {
+      "conversation_id": "p1-kz-002",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer immediately asked where the bank transfer requisites are: \"Деректемелер қайда?\" so enough information was available from the outset.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general funding/how-to question about where to find bank transfer requisites, not a request requiring identity verification before a protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The consultation is complete and actionable: the operator answered where to find the requisites and explained the next step. The advice is supported by the dialogue, and no issue requiring review is evident from the transcript.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q1=yes; 05.q3=no; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, and there was no explicit unwarned wait by the human operator. The exchange is understandable and properly sequenced.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The operator closes with a farewell, but there is no explicit summary or offer of further help in the final turn. Under the checklist's working interpretation, that is sufficient to mark the closing criterion as present only if a summary/offer exists; here it does not, so the criterion is not met.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-kz-003",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (2 issue(s); criteria: identification): Identification event is attributed to an ineligible source role; Identification event needs an exact matching atomic source quote"
+    },
+    {
+      "conversation_id": "p1-kz-004",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer already stated the issue clearly at the outset: \"Ақша шығарайын десем, анкетаны жаңарту керек дейді.\"",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general help request about where to submit the update task, not a request requiring identity verification before a protected disclosure or protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator addressed the client's request with a clear, correct next step and explained what to do after the update. The conversation did not require identification, and no critical violations are present.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, and there was no explicit unwarned waiting by the human operator. No evidence suggests forced repetition or unclear sequencing.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The conversation did not break off before closure; it ends with a normal farewell, but there is no explicit summary or offer of further help beyond that farewell.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 92.31,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-kz-005",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer already provided enough information to answer where to go for updating data: they asked, \"Деректерді жаңартайын деп едім, қай жерге кірем?\" and later clarified they needed an operator.",
+          "evidence_turns": [
+            1,
+            5
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general navigation/help request about where to update data, not a request that required identity verification before a protected disclosure or protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The client's request was answered with a clear, actionable navigation path, and the guidance is coherent and complete on the available evidence.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, and there was no unwarned explicit wait; the customer could continue the interaction normally.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The conversation closes without an explicit summary/offer of further help or farewell, so the closing criterion is not met.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 92.31,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-kz-006",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (1 issue(s); criteria: contact): Atomic quote must match meaningful text in its exact source message"
+    },
+    {
+      "conversation_id": "p1-kz-007",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer's initial message already provides enough information: the old account is closed and the new one says the login is occupied.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general account/login issue and did not require identity verification before any protected disclosure or protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The client asked a concrete login/account question, and the operator gave a clear, factually consistent answer with an actionable next step.",
+          "evidence_turns": [
+            1,
+            10
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is coherent and clear, and there was no unwarned explicit wait.",
+          "evidence_turns": [
+            8,
+            10
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator said farewell but did not summarize the outcome or offer further help in the closing message.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 92.31,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-kz-008",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=no",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: Enough information was available from the outset to answer the user's issue about where to enter the site / personal account, since the transcript already established the relevant site context before the operator's answer.",
+          "evidence_turns": [
+            1,
+            5
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general navigation question about where to log into the personal account and did not require identity verification before a protected disclosure or protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the client's request clearly and gave an actionable next step; the available evidence supports full completeness on this consultation criterion.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no forced repetition and no unannounced wait.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator did not explicitly summarize or offer further help, and did not say farewell; the dialogue ended without a closing formula.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 76.92,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-kz-009",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            11
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer already provided the ticker-related context needed to proceed, so enough information was available from the outset for the later request context.",
+          "evidence_turns": [
+            1,
+            5
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general question about which paper to use, not a request requiring identity verification before disclosure or a protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator addressed the client's buying question with clear, actionable steps and the guidance is consistent with the available context.",
+          "evidence_turns": [
+            13,
+            18
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no unannounced explicit wait and no wording/order problem that forced the client to ask again.",
+          "evidence_turns": [
+            11,
+            18
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The operator closed the conversation with a farewell after the client's thanks.",
+          "evidence_turns": [
+            20
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-kz-010",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer’s request was already explicit from the outset: \"Сатып алу өтінімінде «Использовать маржу» тұр. Оны алып тастауға бола ма?\"",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request is a general how-to question about removing a setting from an order application, not a request that requires identity verification before a protected disclosure or protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the customer’s request clearly and completely with a concrete next step, and the advice is factually consistent with the dialogue. No ambiguity or missing action remains.",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and well-structured, with no forced repetition and no unwarned explicit wait. Only a standard, coherent customer support exchange is present.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The conversation closes normally with both a substantive next step and a farewell.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-kz-011",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (1 issue(s); criteria: closure): Official response contradicts a configured atomic consistency rule"
+    },
+    {
+      "conversation_id": "p1-kz-012",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (2 issue(s); criteria: consultation, dialogue): Atomic quote must match meaningful text in its exact source message"
+    },
+    {
+      "conversation_id": "p1-kz-013",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (1 issue(s); criteria: closure): The conversation contains a paid-private follow-up offer; closure interpretation is clear, but the case should be reviewed for policy handling of the paid offer."
+    },
+    {
+      "conversation_id": "p1-kz-014",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (1 issue(s); criteria: discovery): Unresolved atomic facts prevent an official decision"
+    },
+    {
+      "conversation_id": "p1-kz-015",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (2 issue(s); criteria: identification): Identification need requires a cited protected request or protected action; Positive verification requires confirmation and a relevant protected action"
+    },
+    {
+      "conversation_id": "p1-en-001",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: Enough information was available from the outset: the client said the login was taken when opening a new account.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general account-login issue and did not require identity verification before the answer; the agent gave a general next step rather than accessing protected data or performing a protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the client's need clearly and fully, giving a correct next step and sufficient detail to act.",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q1=yes; 05.q3=no; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no forced repeat and no unwarned explicit waiting.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The operator closed the conversation with a farewell, and the dialogue did not break off early.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-en-002",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer already asked where the sign-in button was and clarified they were on the Freedom Finance Global website, so enough information was available from the outset.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general website navigation question and did not require identity verification before the answer.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The client’s request was addressed with a correct next step, and the answer was clear and actionable.",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no unwarned explicit waiting and no forced repeat question.",
+          "evidence_turns": [
+            8,
+            10
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The operator closed the conversation with a farewell and a helpful concluding remark.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-en-003",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer already stated the issue clearly enough from the outset by asking, 'Where can I see my current pricing plan? I'm using the website.'",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general location question about viewing the current pricing plan, not a request requiring identity verification before disclosure or a protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator addressed the client's request with a clear, correct next step and enough detail to act, without any evident factual error in the available transcript.",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=yes; 05.q1=yes; 05.q2=yes",
+          "evidence_turns": [
+            5,
+            6,
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The exchange is clear and coherent, and any wait was explicitly warned; there is no indication of dialogue-management problems that would reduce the score.",
+          "evidence_turns": [
+            8,
+            11
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The operator closed the conversation with a farewell, and the exchange reached a natural ending after the client's confirmation.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-en-004",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: Enough information was available from the outset because the customer already specified the needed report context: \"I need my broker statement for last year, not just the current balance.\"",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general how-to question about obtaining a broker statement, not a request that required identity verification before action or disclosure.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the customer's request with clear, correct steps and a correct next action, and the dialogue remained coherent.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no unexplained waiting or wording problems that forced the client to ask again.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator closed with a farewell but did not summarize the outcome or offer further help.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 92.31,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-en-005",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer's first message already states the need: \"I'm going to a bank branch to fund the brokerage account. Where do I get the transfer details?\"",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general information request about transfer details, not one that required identity verification before answering.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the client's request clearly, provided the correct path to the transfer details, and explained the next step for currency selection.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no explicit unwarned waiting. The operator answers the question and adds a useful clarification.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The dialogue ended with a farewell, but the operator did not explicitly summarize the outcome or offer further help.",
+          "evidence_turns": [
+            14
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 92.31,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-en-006",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (1 issue(s); criteria: identification): Identification event is attributed to an ineligible source role"
+    },
+    {
+      "conversation_id": "p1-en-007",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer already states the issue at the outset: \"It won't let me withdraw. The app says I need to update my profile details.\"",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request is a general procedural question about where to submit details and when to retry, not a request that requires identity verification before a protected disclosure or protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 15,
+          "rationale": "The consultation is mostly complete and the guidance is factually consistent: the operator tells the client to submit a profile-change request before retrying and later clarifies where that request is. However, the exact answer to when the withdrawal can be retried is not directly and fully resolved, so the interaction is good but not fully complete.",
+          "evidence_turns": [
+            4,
+            12
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear, coherent, and does not force the client to repeat themselves. There is also no unwarned explicit wait. This fits the top anchor for dialogue management.",
+          "evidence_turns": [
+            10,
+            12
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The conversation does not break off before closure, but the agent's final message is only a thanks-and-farewell; it does not explicitly summarize the outcome or offer further help.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 84.62,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-en-008",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            11
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: Enough information was available from the outset to answer the user's question about finding the exact stock: the user already said they had the ticker and asked how to locate the exact stock.",
+          "evidence_turns": [
+            1,
+            5
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general guidance question about finding the exact stock, not a request requiring identity verification before disclosure or a protected action.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator provided clear, coherent, and actionable guidance that addressed the user's requests and next steps without factual issues apparent in the dialogue.",
+          "evidence_turns": [
+            11,
+            13,
+            16
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q1=yes; 05.q3=no; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, and there was no unwarned explicit wait. Minor issues are not evident from the text, so the top clarity anchor applies.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator did not summarize the outcome or offer further help; the closing is only a polite farewell. Under the checklist interpretation, that is insufficient for a yes.",
+          "evidence_turns": [
+            20
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 92.31,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-en-009",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer’s question is already clear from the outset: how to switch off the Use Margin option.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request is a general how-to question about turning off an order-screen option and does not require identity verification.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the customer’s request directly and clearly, and the guidance given is actionable and consistent with the question.",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and orderly, and any wait was explicitly warned in advance.",
+          "evidence_turns": [
+            8,
+            10
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The conversation broke off before there was a closing opportunity after the final customer thanks and the later connection loss.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-en-010",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer’s initial question already provides enough information to answer whether the D account can be used to buy stock.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general product-use question and did not require identity verification before answering.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The customer asked a clear question, the operator answered it correctly, and the next step was stated clearly.",
+          "evidence_turns": [
+            4,
+            10
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no forced repetition and no unwarned explicit wait by the human operator.",
+          "evidence_turns": [
+            8,
+            10
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": false,
+          "rationale": "The operator said farewell but did not explicitly summarize the outcome or offer further help.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 92.31,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-en-011",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: Enough information was available from the outset because the customer asked directly, 'Does the 1042-S form come in English?'.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request did not require identity verification; it was a general product-language question about the 1042-S form.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator answered the customer's question directly and correctly, and the necessary next step was simply the confirmation itself.",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "The dialogue is clear and coherent, with no evidence of an unwarned explicit wait or confusing ordering.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The operator closed the conversation by offering help and saying goodbye.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-en-012",
+      "status": "ok",
+      "criteria": [
+        {
+          "criterion_id": "contact",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 01.q1=yes; 01.q2=yes",
+          "evidence_turns": [
+            10
+          ]
+        },
+        {
+          "criterion_id": "discovery",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The customer already asked where to find the company's financial statements, so enough information was available from the outset.",
+          "evidence_turns": [
+            1
+          ]
+        },
+        {
+          "criterion_id": "identification",
+          "value": null,
+          "rationale": "Derived N/A from the configured applicability fact: The request was a general location question about where to find financial statements, which did not require identity verification before answering.",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "consultation",
+          "value": 20,
+          "rationale": "The operator’s answer is direct, correct on the available evidence, and gives a clear next step; no policy or conduct issue is present in the dialogue.",
+          "evidence_turns": [
+            4,
+            10
+          ]
+        },
+        {
+          "criterion_id": "empathy",
+          "value": true,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 05.q3=no; 05.q1=yes; 05.q2=not_applicable",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "criterion_id": "dialogue",
+          "value": 10,
+          "rationale": "Replies were clear, coherent, and did not leave the client in an unwarned explicit wait.",
+          "evidence_turns": [
+            8,
+            10
+          ]
+        },
+        {
+          "criterion_id": "closure",
+          "value": true,
+          "rationale": "The operator ended with a brief courteous closing that includes a farewell.",
+          "evidence_turns": [
+            12
+          ]
+        },
+        {
+          "criterion_id": "critical",
+          "value": false,
+          "rationale": "Backend-derived from configured rule over validated atomic observations: 08.q1=no; 08.q2=no; 08.q3=no",
+          "evidence_turns": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "score": {
+        "final_score": 100.0,
+        "critical_flag": false
+      }
+    },
+    {
+      "conversation_id": "p1-en-013",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (1 issue(s); criteria: dialogue): Criterion 04 factual correctness is only partially supported by the dialogue; the later private-offer message also affects coherence."
+    },
+    {
+      "conversation_id": "p1-en-014",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (3 issue(s); criteria: consultation, identification): Identification event needs an exact matching atomic source quote; Identification event is attributed to an ineligible source role; Unresolved atomic facts prevent an official decision"
+    },
+    {
+      "conversation_id": "p1-en-015",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "Evaluation rejected by engine validation gates; no score produced (2 issue(s); criteria: dialogue): Official response contradicts a configured atomic consistency rule; Positive operator performance needs evidence from a configured allowed role"
+    },
+    {
+      "conversation_id": "p4-ru-003",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "AccessDenied: Unapproved/private input: no matching local authorization"
+    },
+    {
+      "conversation_id": "p4-ru-002",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "AccessDenied: Unapproved/private input: no matching local authorization"
+    },
+    {
+      "conversation_id": "p4-ru-001",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "AccessDenied: Unapproved/private input: no matching local authorization"
+    },
+    {
+      "conversation_id": "p4-ru-005",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "AccessDenied: Unapproved/private input: no matching local authorization"
+    },
+    {
+      "conversation_id": "p4-ru-004",
+      "status": "error",
+      "criteria": [],
+      "score": null,
+      "error": "AccessDenied: Unapproved/private input: no matching local authorization"
+    }
+  ]
+}
