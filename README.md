@@ -1,18 +1,31 @@
-# Freedom Broker CQA — evidence-first conversation quality evaluation
+# Freedom Broker CQA — оценка качества диалогов с доказательствами
 
-Evaluates broker customer-service conversations (RU / KZ / EN chats and supplied voice
-transcripts) against the organizer's eight-criterion checklist: per-criterion raw level,
-rationale and source-grounded evidence, exact weighted scoring with N/A redistribution,
-a separate critical flag, versioned checklists, appeals with reviewer decisions, and the
-official `results.json` export.
+Система оценивает диалоги поддержки брокера (чаты RU / KZ / EN и готовые транскрипты звонков) по чек-листу организаторов из восьми критериев. Для каждого критерия даёт:
+- ответ и уровень;
+- обоснование;
+- цитаты из исходного диалога.
 
-Authoritative branch: **`main`** (includes `integration/final-submission` and the frontend; see [TEAM_START_HERE.md](TEAM_START_HERE.md)).
-Requirements: [case/CQA_REQUIREMENTS.md](case/CQA_REQUIREMENTS.md),
-[case/CQA_SCORING_SPEC.md](case/CQA_SCORING_SPEC.md), team-safe PDFs in [case/shared/](case/shared/).
+Кроме того:
+- баллы считаются точно, с перераспределением веса при N/A;
+- грубые ошибки — отдельный флаг;
+- чек-листы версионируются;
+- есть апелляции с решением проверяющего;
+- официальный экспорт — `results.json`.
 
-## Quick start (no API key, no paid call)
+**План защиты и как показать демо — [ПЛАН_ЗАЩИТЫ_КОМАНДЫ.md](ПЛАН_ЗАЩИТЫ_КОМАНДЫ.md):** роли четырёх человек, сценарий на 5 минут, ответы на вопросы и запасной план. На Windows демо запускается двойным кликом `tools\demo\demo-start.cmd`, перед защитой — `tools\demo\demo-reset.cmd`.
 
-Python 3.9+ with `pydantic>=2.11,<3` (`python3 -m pip install "pydantic==2.13.5"`), Node 18+ for UI tests.
+Основная ветка — **`main`**: включает `integration/final-submission` и интерфейс, см. [TEAM_START_HERE.md](TEAM_START_HERE.md).
+
+Требования:
+- [case/CQA_REQUIREMENTS.md](case/CQA_REQUIREMENTS.md);
+- [case/CQA_SCORING_SPEC.md](case/CQA_SCORING_SPEC.md);
+- копии PDF для команды — в [case/shared/](case/shared/).
+
+## Быстрый старт (без ключа API и без платных вызовов)
+
+Нужны:
+- Python 3.9+ с `pydantic>=2.11,<3` (`python3 -m pip install "pydantic==2.13.5"`);
+- Node 18+ — только для тестов интерфейса.
 
 ```sh
 git clone https://github.com/Gaziz121/data-challenge-2026.git && cd data-challenge-2026
@@ -20,14 +33,17 @@ CQA_REVIEWER_KEY=demo-reviewer-key PYTHONPATH=src python3 -m cqa.web --port 8765
   --checklist src/cqa/checklists/official-v7.json --live-call-limit 0
 ```
 
-Open http://127.0.0.1:8765/ and follow the [five-minute demo](docs/DEMO.md). The fastest
-complete path: conversation `p1-ru-001`, checklist `2026-11-07.v5`, provider **Replay**,
-Evaluate → appeal C07 → reviewer (key `demo-reviewer-key`) changes it → revised total.
-The interface is in Russian. Without an OpenAI key it preselects exactly that pair
-(«Повтор записанного ответа ИИ»), so the first click on «Оценить» gives a score; a yellow hint
-explains combinations that cannot score (e.g. the Mock fixture with atomic checklists v4–v7).
-Jury defense materials (Russian script, runbook, backup screenshots) are in [docs/defense/](docs/defense/);
-on Windows double-click `tools\demo\demo-start.cmd` (or `demo-reset.cmd` for a clean demo).
+Откройте http://127.0.0.1:8765/ — интерфейс на русском.
+
+**Без ключа OpenAI** страница сама выбирает рабочую пару: диалог `p1-ru-001`, чек-лист `2026-11-07.v5`, «Повтор записанного ответа ИИ». Поэтому первый клик «Оценить» сразу даёт балл.
+
+**Самый быстрый полный путь:**
+1. «Оценить».
+2. Апелляция по критерию 07.
+3. Проверяющий (ключ `demo-reviewer-key`) меняет оценку.
+4. Пересчитанный итог.
+
+Если выбрано сочетание, которое не может дать оценку (например, тестовая заглушка с атомарными чек-листами v4–v7), жёлтая подсказка объясняет почему.
 
 ### Windows (PowerShell)
 
@@ -40,79 +56,96 @@ $env:PYTHONUTF8 = "1"; $env:PYTHONPATH = "src"; $env:CQA_REVIEWER_KEY = "demo-re
 .\.venv\Scripts\python.exe -m cqa.web --port 8765 --checklist src/cqa/checklists/official-v7.json --live-call-limit 0
 ```
 
-`core.autocrlf=false` matters: with Windows line endings the reviewed dataset hash no longer
-matches and the server refuses to start. Tests also need `$env:PYTHONUTF8 = "1"`; on Windows
-four subtests that assert POSIX file mode `0o600` fail (`test_control_backend.py:102`).
-For a real AI evaluation (paid, about USD 0.02 each) add an ignored file with one line
-`OPENAI_API_KEY=...` and start with
-`--env-file <that file> --model gpt-5.4-mini-2026-03-17 --allow-external-synthetic --live-call-limit 10`,
-then choose «OpenAI — настоящая оценка ИИ».
+Или после установки — двойной клик `tools\demo\demo-start.cmd`.
 
-Tests (all offline; the same suite runs in GitHub Actions, `.github/workflows/offline-tests.yml`):
+- **`core.autocrlf=false` обязателен.** С переводами строк Windows не сходится контрольная сумма проверенного датасета, и сервер не стартует.
+- **Тестам нужен `$env:PYTHONUTF8 = "1"`.** На Windows падают четыре подтеста, которые проверяют права файла POSIX `0o600` (`test_control_backend.py:102`). Это ожидаемо.
+- **Настоящая оценка ИИ** (платно, около 0.02 USD за диалог):
+  1. создайте файл вне Git с одной строкой `OPENAI_API_KEY=...`;
+  2. запустите сервер с `--env-file <этот файл> --model gpt-5.4-mini-2026-03-17 --allow-external-synthetic --live-call-limit 10`;
+  3. выберите «OpenAI — настоящая оценка ИИ».
+
+### Тесты
+
+Все работают без сети. Тот же набор запускается в GitHub Actions: `.github/workflows/offline-tests.yml`.
 
 ```sh
-PYTHONPATH=src python3 -B -m unittest discover -t . -s tests   # production
-PYTHONPATH=src python3 -B -m unittest discover -t . -s qa      # independent QA + Accuracy Lab
-node tests/test_web_ui.cjs && node tests/test_dev_review.cjs   # frontend + human viewer
+PYTHONPATH=src python3 -B -m unittest discover -t . -s tests   # основной код
+PYTHONPATH=src python3 -B -m unittest discover -t . -s qa      # независимый QA + Accuracy Lab
+node tests/test_web_ui.cjs && node tests/test_dev_review.cjs   # интерфейс и просмотрщик ручной разметки
 PYTHONPATH=src python3 -B -m cqa_results.rehearsal --out outputs/rehearsal/$(date +%H%M%S)
 ```
 
-## What works (verified offline)
+## Что работает (проверено без сети)
 
-| Capability | Where |
+| Возможность | Где |
 | --- | --- |
-| Evaluate DEV chats, supplied new RU/KZ/EN chats and voice transcripts (owner-approved input only) | `src/cqa/engine.py`, `web.py`, `access.py` |
-| Atomic-first evaluation: the model reports facts with exact quotes/scopes; the backend validates evidence, derives rule-based decisions, computes N/A and exact scores | `atomic.py`, `validation.py`, `scoring.py` |
-| Invalid model output is never scored or silently corrected; optional bounded one-call repair | `repair.py`, batch `--repair-authorization` |
-| Versioned, immutable checklists; edit/save/select in the UI (wording, weights, scales, anchors, N/A text, new criteria via JSON) | `checklists.py`, UI checklist editor |
-| Evaluation history, appeals, reviewer confirm/change, original vs revised total (stored result never modified) | `appeals.py`, `/api/evaluations/...` |
-| Official `results.json` exporter, independent strict validator, public-URL verification | `src/cqa_results/` |
-| PROD intake (fetch exact bytes, envelope check, bounded re-wrap) and full offline final-hour rehearsal | `cqa_results.envelope`, `cqa_results.rehearsal` |
-| Separate human-labelling viewer (`team_human`, never Ground Truth) | `tools/dev_review/`, `/human-review/` |
+| Оценка DEV-чатов, новых вставленных чатов RU/KZ/EN и транскриптов звонков (только с разрешения владельца данных) | `src/cqa/engine.py`, `web.py`, `access.py` |
+| Атомарная оценка: модель сообщает факты с точными цитатами и границами, бэкенд проверяет доказательства, выводит решения по правилам, считает N/A и точные баллы | `atomic.py`, `validation.py`, `scoring.py` |
+| Некорректный ответ модели никогда не оценивается и не исправляется молча; по желанию — один ограниченный повторный вызов на исправление | `repair.py`, пакетный режим `--repair-authorization` |
+| Неизменяемые версии чек-листов; правка, сохранение и выбор в интерфейсе (формулировки, веса, шкалы, описания уровней, текст N/A, новые критерии через JSON) | `checklists.py`, редактор чек-листов в интерфейсе |
+| История оценок, апелляции, подтверждение или изменение проверяющим, исходный и пересмотренный итог (сохранённый результат не меняется) | `appeals.py`, `/api/evaluations/...` |
+| Экспорт официального `results.json`, независимый строгий валидатор, проверка публичной ссылки | `src/cqa_results/` |
+| Приём PROD (загрузка точных байтов, проверка конверта, ограниченная перепаковка) и полная офлайн-репетиция последнего часа | `cqa_results.envelope`, `cqa_results.rehearsal` |
+| Отдельный просмотрщик для ручной разметки (`team_human`, это не эталон организаторов) | `tools/dev_review/`, `/human-review/` |
 
-API: [docs/BACKEND_CONTRACT.md](docs/BACKEND_CONTRACT.md). Submission: [docs/RESULTS_SUBMISSION_RUNBOOK.md](docs/RESULTS_SUBMISSION_RUNBOOK.md).
-Rationale: [docs/ARCHITECTURE_DECISIONS.md](docs/ARCHITECTURE_DECISIONS.md), reliability evidence:
-[docs/RELIABILITY_REPORT.md](docs/RELIABILITY_REPORT.md), evaluator comparison plan:
-[docs/EVALUATION_COMPARISON_PLAN.md](docs/EVALUATION_COMPARISON_PLAN.md), backlog: [docs/EXPERIMENT_BACKLOG.md](docs/EXPERIMENT_BACKLOG.md).
+Документация:
+- API — [docs/BACKEND_CONTRACT.md](docs/BACKEND_CONTRACT.md);
+- сдача результатов — [docs/RESULTS_SUBMISSION_RUNBOOK.md](docs/RESULTS_SUBMISSION_RUNBOOK.md);
+- обоснование решений — [docs/ARCHITECTURE_DECISIONS.md](docs/ARCHITECTURE_DECISIONS.md);
+- надёжность — [docs/RELIABILITY_REPORT.md](docs/RELIABILITY_REPORT.md);
+- план сравнения оценщиков — [docs/EVALUATION_COMPARISON_PLAN.md](docs/EVALUATION_COMPARISON_PLAN.md);
+- бэклог — [docs/EXPERIMENT_BACKLOG.md](docs/EXPERIMENT_BACKLOG.md).
 
-## Evaluator, model and cost — what is and is not established
+## Оценщик, модель и цена: что установлено, а что нет
 
-- FROZEN provisional production configuration (`tools/production.env`): checklist `official-v7.json` + prompt
-  `atomic-v5` + opt-in review evidence gate + OpenAI `gpt-5.4-mini-2026-03-17` (Responses API, strict structured
-  output). v6 clarified C07 wording; v7 additionally clarifies C01 (see the runbook §0 for the selection record).
-- Live evidence: 7 genuine single calls, all on synthetic `p1-ru-001`. Only the atomic-v5 + v5 reply is a
-  trustworthy structural acceptance (total 100.00); an earlier atomic-v3 acceptance had a grammar-forced
-  C06 and is not trusted. That reply credits a farewell as an offer of help under C07; the official text
-  requires a summary or offer of help **and** a farewell, so a reviewer would likely score C07 = no (92.31).
-  v6 clarifies exactly that wording. **v6 gate (3 owner-authorized calls, RU/KZ/EN synthetic):** 2/3
-  structurally accepted (p1-ru-001 100.00; p1-kz-013 92.31 with a correct critical flag for an off-company paid
-  offer); p1-en-013 rejected on evidence/coverage rules. The clarified wording did NOT change C07 on p1-ru-001
-  (still credits the farewell) — a known open semantic bias, not tuned further on DEV items.
-- Measured cost: ~12.6k input / ~2.6–2.9k output tokens, **USD 0.013–0.023 per call** (DEV-65 ≈ USD 1–2;
-  PROD-10 ≈ USD 0.1–0.3 including optional repair calls); latency ≈ 14 s per call.
-- **Semantic accuracy against official Ground Truth is unknown.** No official labels exist for development;
-  mock, replay and fixture outputs prove wiring only, never quality.
+**Замороженная предварительная рабочая конфигурация** (`tools/production.env`):
+- чек-лист `official-v7.json`;
+- промпт `atomic-v5`;
+- включаемый фильтр проверки доказательств (review gate);
+- OpenAI `gpt-5.4-mini-2026-03-17` (Responses API, строгий структурированный ответ).
 
-## Shared versus local-only materials
+v6 уточнила формулировку C07, v7 дополнительно уточняет C01. Запись о выборе — в рунбуке, §0.
 
-| Path | Availability and purpose |
+**Живые прогоны: 7 настоящих одиночных вызовов, все на синтетическом `p1-ru-001`.**
+- Надёжно структурно принят только ответ atomic-v5 + v5 (итог 100.00).
+- Более ранний ответ atomic-v3 тоже был принят, но C06 в нём вынужден грамматикой — ему не доверяем.
+- **Перекос по C07.** Этот ответ засчитывает прощание как предложение помощи. Официальный текст требует итога или предложения помощи **и** прощания, поэтому проверяющий, скорее всего, поставит C07 = нет (92.31). v6 уточняет ровно эту формулировку.
+
+**Проверка v6 — 3 вызова с разрешения владельца, синтетические RU/KZ/EN:**
+- 2 из 3 структурно приняты:
+  - p1-ru-001 — 100.00;
+  - p1-kz-013 — 92.31, с верным флагом грубой ошибки за платную услугу в обход компании;
+- p1-en-013 отклонён по правилам доказательств и покрытия.
+
+Уточнённая формулировка НЕ изменила C07 на p1-ru-001: прощание по-прежнему засчитывается. Это известный открытый смысловой перекос; дальше на диалогах DEV его не подгоняли.
+
+**Измеренная цена.** Около 12.6 тыс. входных и 2.6–2.9 тыс. выходных токенов, **0.013–0.023 USD за вызов**:
+- DEV-65 — около 1–2 USD;
+- PROD-10 — около 0.1–0.3 USD, с учётом возможных исправляющих вызовов;
+- задержка — около 14 с на вызов.
+
+**Смысловая точность относительно официального эталона неизвестна.** Для разработки официальной разметки нет. Заглушка, повтор и тестовые данные доказывают только проводку, но не качество.
+
+## Общие и только локальные материалы
+
+| Путь | Доступность и назначение |
 | --- | --- |
-| `case/CQA_REQUIREMENTS.md`, `case/CQA_SCORING_SPEC.md`, `case/shared/*_TEAM_SAFE.pdf` | Tracked requirements, clarifications and reviewed PDF copies (embedded links removed) |
-| `data/shared/DEV_synthetic_60.json` | Tracked: 60 synthetic DEV chats (RU 30 / KZ 15 / EN 15); not the full DEV set |
-| `docs/demo/fictional_new_conversations.json` | Tracked: three invented conversations for the supplied-input demo |
-| `data/raw/DEV_conversations.json` | LOCAL ONLY authoritative 65 records incl. five real RU calls; never committed |
-| Original organizer PDFs under `case/`, results appendix | LOCAL ONLY (the student guide contains a signed API link) |
-| `STATUS.md`, `outputs/`, `restricted/`, `.env` | LOCAL ONLY evidence ledger, generated results, owner approvals, credentials |
-| `results/dev/results.json`, `results/prod/results.json` | Official submission files — created only by the exporter from genuine runs |
+| `case/CQA_REQUIREMENTS.md`, `case/CQA_SCORING_SPEC.md`, `case/shared/*_TEAM_SAFE.pdf` | В Git: требования, разъяснения и проверенные копии PDF (встроенные ссылки удалены) |
+| `data/shared/DEV_synthetic_60.json` | В Git: 60 синтетических чатов DEV (RU 30 / KZ 15 / EN 15); это не полный набор DEV |
+| `docs/demo/fictional_new_conversations.json` | В Git: три вымышленных диалога для демо со вставкой нового диалога |
+| `data/raw/DEV_conversations.json` | ТОЛЬКО ЛОКАЛЬНО: эталонные 65 записей, включая пять настоящих звонков на RU; никогда не коммитится |
+| Оригинальные PDF организаторов в `case/`, приложение о результатах | ТОЛЬКО ЛОКАЛЬНО (в руководстве для студентов есть подписанная ссылка на API) |
+| `STATUS.md`, `outputs/`, `restricted/`, `.env` | ТОЛЬКО ЛОКАЛЬНО: журнал доказательств, сгенерированные результаты, разрешения владельца, ключи |
+| `results/dev/results.json`, `results/prod/results.json` | Официальные файлы сдачи — создаются только экспортёром по настоящим прогонам |
 
-## Start every session with filesystem discovery
+## Каждую сессию начинайте с осмотра файлов
 
-1. Confirm the project root; read [CLAUDE.md](CLAUDE.md), [PROJECT_FILE_MAP.md](PROJECT_FILE_MAP.md),
-   [TEAM_STATUS.md](TEAM_STATUS.md) and local `STATUS.md` if present.
-2. Inspect ignored directories too (`ls -la case data outputs restricted`); `git ls-files` is not an inventory.
-3. Run `python3 -B src/git_preflight.py` and follow [GIT_WORKFLOW.md](GIT_WORKFLOW.md). No force pushes.
+1. Проверьте корень проекта; прочитайте [CLAUDE.md](CLAUDE.md), [PROJECT_FILE_MAP.md](PROJECT_FILE_MAP.md), [TEAM_STATUS.md](TEAM_STATUS.md) и локальный `STATUS.md`, если он есть.
+2. Смотрите и игнорируемые папки (`ls -la case data outputs restricted`): `git ls-files` — это не опись всех файлов.
+3. Запустите `python3 -B src/git_preflight.py` и следуйте [GIT_WORKFLOW.md](GIT_WORKFLOW.md). Никаких force push.
 
-The repository is intentionally PUBLIC (owner decision). Never commit keys, `.env`, real transcripts,
-audio, organizer originals, signed links, approvals or reviewer exports. `.gitignore` excludes them,
-but review the staged manifest before every push. Human labels from `tools/dev_review/` are
-`team_human`, never official Ground Truth ([viewer README](tools/dev_review/README.md)).
+Репозиторий намеренно ПУБЛИЧНЫЙ — решение владельца.
+- **Никогда не коммитьте:** ключи, `.env`, настоящие транскрипты, аудио, оригиналы организаторов, подписанные ссылки, разрешения и выгрузки проверяющего.
+- `.gitignore` их исключает, но перед каждым push проверяйте список подготовленных файлов.
+- Ручная разметка из `tools/dev_review/` — это `team_human`, а не официальный эталон ([README просмотрщика](tools/dev_review/README.md)).

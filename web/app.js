@@ -6,6 +6,14 @@
   const STATUSES = {mock_only: "тест / повтор — не для сдачи", needs_review: "требует проверки",
     structurally_valid: "прошла все проверки", rejected: "отклонена проверкой"};
   const EVIDENCE_KINDS = {scope: "участок", omission: "пропуск"};
+  // Russian titles of the eight official criteria (organizer PDF). Shown only when the checklist keeps the official
+  // English title; titles changed in the editor are shown exactly as saved.
+  const RU_TITLES = {"Establishing contact": "Установление контакта", "Identifying the need": "Выявление потребности",
+    "Identification": "Идентификация", "Correct and complete consultation": "Корректная и полная консультация",
+    "Empathy and client orientation": "Эмпатия и клиентоориентированность",
+    "Dialogue management, speed and language quality": "Управление диалогом, скорость и грамотность",
+    "Closing": "Завершение", "Critical errors": "Грубые ошибки"};
+  function titleOf(criterion) {return criterion ? RU_TITLES[criterion.title] ?? criterion.title : "";}
   function answerLabel(value) {return ANSWERS[value] ?? String(value);}
   function statusLabel(value) {return STATUSES[value] ?? String(value);}
   function responseText(decision, criterion) {
@@ -110,7 +118,7 @@
       card.dataset.verdict = verdictOf(decision, criterion); card.dataset.kind = criterion.kind;
       card.dataset.needsReview = String(Boolean(decision.needs_review));
       card.dataset.critical = String(criterion.kind === "critical" && decision.response === "yes");
-      card.append(el("h3", `${criterion.criterion_id} · ${criterion.title}`), el("p", responseText(decision, criterion), "raw"));
+      card.append(el("h3", `${criterion.criterion_id} · ${titleOf(criterion)}`), el("p", responseText(decision, criterion), "raw"));
       card.append(criterion.kind === "critical" ? el("p", "Отдельный флаг — баллы не снимаются", "meta") : weightsRow(score, redistributed, el));
       card.append(el("p", decision.rationale));
       if (decision.violation_categories?.length) card.append(el("p", `Категории нарушений: ${decision.violation_categories.join(", ")}`, "cqa-violations"));
@@ -162,7 +170,7 @@
       card.dataset.criterionId = decision.criterion_id; card.dataset.verdict = "rejected";
       const definition = diagnostic.checklist.criteria.find(c => c.criterion_id === decision.criterion_id);
       const response = legacy.length ? answerLabel(decision.response) : decision.judgment ? answerLabel(decision.judgment.response) : "выводится из атомарных фактов";
-      card.append(el("h3", `${decision.criterion_id} · ${definition?.title || "Исходное решение ИИ"}`),
+      card.append(el("h3", `${decision.criterion_id} · ${titleOf(definition) || "Исходное решение ИИ"}`),
         el("p", `Исходный ответ: ${String(response)} — оценка не принята${states.has(decision.criterion_id) ? " · состояние " + states.get(decision.criterion_id) : ""}`, "raw"),
         el("p", String(decision.rationale || decision.judgment?.rationale || "")));
       if (decision.na_reason) card.append(el("p", `Исходная причина N/A: ${decision.na_reason}`));
@@ -189,7 +197,7 @@
       const row = el("tr");
       const a = view.original_responses[criterion.criterion_id], b = view.revised_responses[criterion.criterion_id];
       if (a !== b) row.dataset.changed = "true";
-      row.append(el("td", `${criterion.criterion_id} · ${criterion.title}`), el("td", answerLabel(a)),
+      row.append(el("td", `${criterion.criterion_id} · ${titleOf(criterion)}`), el("td", answerLabel(a)),
         el("td", answerLabel(b), a === b ? undefined : "changed"), el("td", criterion.kind === "critical" ? "флаг" : String(criterion.weight)));
       table.append(row);
     }
@@ -288,6 +296,16 @@
     $("conversation-meta").textContent = `${conversation.language} · ${conversation.channel} · реплик: ${conversation.messages.length} · исходный порядок`;
     recordingLink(conversation.channel, conversation.audio_url);
     window.CqaTranscript.render($("transcript"), conversation);
+    localizeTranscript(conversation.messages);
+  }
+  // The shared renderer (also used by human review) writes an English meta line; here it is shown in Russian.
+  // Turn numbers are 1-based, as in the evidence buttons and the official evidence_turns.
+  function localizeTranscript(messages) {
+    $("transcript").querySelectorAll(".message").forEach((node, index) => {
+      const m = messages[index] || {}, meta = node.querySelector(".meta");
+      const original = "source_message_id" in m ? m.source_message_id : (m.message_id ?? null);
+      if (meta) meta.textContent = `№${index + 1} · время ${m.timestamp ?? "не указано"}${original === null || original === undefined ? "" : " · ID в источнике: " + original}`;
+    });
   }
   // Call recording: a plain link in the transcript header (no <audio>: the CSP has no media-src). Shown only for a
   // voice conversation with an https audio_url, from the backend response or a pasted voice record. The signed URL
@@ -404,6 +422,7 @@
       $("conversation-meta").textContent = `${value.record.language} · ${value.record.channel} · реплик: ${value.record.transcript.length} · ещё не нормализован`;
       recordingLink(value.record.channel, value.record.audio_url);
       window.CqaTranscript.render($("transcript"), value.record);
+      localizeTranscript(value.record.transcript);
       feedback("Вставленный транскрипт показан. Нажмите «Оценить» — сервер сначала проверит разрешение владельца."); updateMode();
     } catch (error) {feedback(`Некорректный JSON диалога: ${error.message}`, true);}
   };
@@ -451,7 +470,7 @@
       return;
     }
     const keep = $("appeal-criterion").value;
-    $("appeal-criterion").replaceChildren(...result.checklist.criteria.map(c => new Option(`${c.criterion_id} · ${c.title}`, c.criterion_id)));
+    $("appeal-criterion").replaceChildren(...result.checklist.criteria.map(c => new Option(`${c.criterion_id} · ${titleOf(c)}`, c.criterion_id)));
     if (keep && result.checklist.criteria.some(c => c.criterion_id === keep)) $("appeal-criterion").value = keep;
     fillRequested();
     if (!view) return;
