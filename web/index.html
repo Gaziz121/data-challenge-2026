@@ -1,8 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CQA · Conversation Quality Analytics</title>
+<!-- Light-only design: opt out of forced dark modes (Chrome Auto Dark, Dark Reader) that invert the semantic colours. -->
+<meta name="color-scheme" content="only light">
+<meta name="darkreader-lock">
+<title>CQA · Оценка качества диалогов</title>
 <link rel="stylesheet" href="/app.css">
 <script defer src="/transcript.js"></script>
 <script defer src="/app.js"></script>
@@ -15,102 +18,113 @@
       <path d="M6.5 12.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     <div>
-      <h1>CQA · Conversation Quality Analytics</h1>
-      <p>Freedom Broker customer-service quality · RU / KZ / EN chats and voice transcripts</p>
+      <h1>CQA · Оценка качества диалогов</h1>
+      <p>Freedom Broker · работа операторов поддержки · чаты и звонки на RU / KZ / EN</p>
     </div>
   </div>
-  <nav class="cqa-tabs" id="cqa-tabs" role="tablist" aria-label="Workspace">
-    <button type="button" role="tab" id="cqa-tab-evaluation" aria-controls="cqa-panel-evaluation" aria-selected="true">Evaluation</button>
-    <button type="button" role="tab" id="cqa-tab-history-appeals" aria-controls="cqa-panel-history-appeals" aria-selected="false" tabindex="-1">History &amp; appeals</button>
-    <button type="button" role="tab" id="cqa-tab-checklists" aria-controls="cqa-panel-checklists" aria-selected="false" tabindex="-1">Checklists</button>
+  <nav class="cqa-tabs" id="cqa-tabs" role="tablist" aria-label="Разделы">
+    <button type="button" role="tab" id="cqa-tab-evaluation" aria-controls="cqa-panel-evaluation" aria-selected="true">Оценка</button>
+    <button type="button" role="tab" id="cqa-tab-history-appeals" aria-controls="cqa-panel-history-appeals" aria-selected="false" tabindex="-1">История и апелляции</button>
+    <button type="button" role="tab" id="cqa-tab-checklists" aria-controls="cqa-panel-checklists" aria-selected="false" tabindex="-1">Чек-листы</button>
   </nav>
-  <a class="cqa-header-link" href="/human-review/" target="_blank" rel="noopener noreferrer">Independent human review<span class="cqa-visually-hidden"> (opens in a new tab)</span></a>
+  <a class="cqa-header-link" href="/human-review/" target="_blank" rel="noopener noreferrer">Ручная разметка<span class="cqa-visually-hidden"> (откроется в новой вкладке)</span></a>
 </header>
 <div class="cqa-statusbar">
-  <div id="mode" class="mode">MOCK mode — fixed test fixtures, not AI quality judgments.</div>
-  <div class="status" id="feedback" role="status" aria-live="polite">Loading synthetic DEV…</div>
+  <div id="mode" class="mode">MOCK mode — по умолчанию без платных вызовов ИИ</div>
+  <div class="status" id="feedback" role="status" aria-live="polite">Загружаем диалоги…</div>
 </div>
 
 <section class="cqa-tabpanel" id="cqa-panel-evaluation" role="tabpanel" aria-labelledby="cqa-tab-evaluation">
+  <details class="cqa-howto">
+    <summary>Как это работает</summary>
+    <ol>
+      <li><b>Диалог.</b> Выберите язык и диалог — слева появится исходный транскрипт. Реплики бота и системы — только контекст, оценивается оператор.</li>
+      <li><b>Чек-лист и кто оценивает.</b> «OpenAI» — настоящая оценка ИИ (нужен ключ на сервере). «Повтор» — заново проверенный записанный ответ ИИ, только p1-ru-001 + чек-лист v5. «Тестовая заглушка» — проверка интерфейса без ИИ, только чек-листы v2/v3, итог всегда 0.00.</li>
+      <li><b>«Оценить».</b> Справа — итоговый балл, флаг грубой ошибки (08) и карточка по каждому критерию: ответ, вес, баллы, обоснование, цитаты. Кнопка-реплика подсвечивает место в транскрипте; при N/A указана причина.</li>
+      <li><b>Не согласны?</b> «Оспорить» на карточке → вкладка «История и апелляции»: комментарий, затем решение проверяющего и пересчитанный итог.</li>
+      <li><b>«Чек-листы».</b> Меняйте критерии (формулировку, вес, тип ответа, N/A, шкалу) и сохраняйте новую версию — она сразу применяется к следующей оценке.</li>
+    </ol>
+  </details>
   <div class="toolbar">
-    <div class="cqa-toolbar-group" role="group" aria-label="Conversation">
-      <label>Language<select id="language"><option value="">All languages</option><option>RU</option><option>KZ</option><option>EN</option></select></label>
-      <label>Conversation<select id="conversation" disabled></select></label>
+    <div class="cqa-toolbar-group" role="group" aria-label="Диалог">
+      <label>Язык<select id="language"><option value="">Все языки</option><option>RU</option><option>KZ</option><option>EN</option></select></label>
+      <label>Диалог<select id="conversation" disabled></select></label>
     </div>
-    <div class="cqa-toolbar-group" role="group" aria-label="Evaluation settings">
-      <label>Checklist<select id="checklist"></select></label>
-      <label>Provider<select id="provider"><option value="mock">Mock fixture</option><option value="replay">Replay recorded genuine reply</option><option value="openai">OpenAI LLM</option></select></label>
-      <label>Model<input id="model" placeholder="Explicit OpenAI model" disabled autocomplete="off"></label>
+    <div class="cqa-toolbar-group" role="group" aria-label="Настройки оценки">
+      <label>Чек-лист<select id="checklist"></select></label>
+      <label>Кто оценивает<select id="provider"><option value="mock">Тестовая заглушка (без ИИ)</option><option value="replay">Повтор записанного ответа ИИ (p1-ru-001 + v5)</option><option value="openai">OpenAI — настоящая оценка ИИ</option></select></label>
+      <label>Модель<input id="model" placeholder="Модель OpenAI" disabled autocomplete="off"></label>
     </div>
-    <div class="cqa-toolbar-group cqa-toolbar-actions" role="group" aria-label="Run">
-      <button id="evaluate" type="button" disabled>Evaluate</button>
+    <div class="cqa-toolbar-group cqa-toolbar-actions" role="group" aria-label="Запуск">
+      <button id="evaluate" type="button" disabled>Оценить</button>
     </div>
   </div>
+  <div class="cqa-hint" id="cqa-hint" role="status" aria-live="polite" hidden></div>
   <details class="toolbar paste" id="paste-panel">
-    <summary>Supply a new conversation (JSON, owner-approved input only)</summary>
-    <p class="notice">Shape: {"dataset_group_id": "...", "record": {"conversation_id", "channel": "agent chat"|"voice call", "language", "audio_url", "transcript": [{"timestamp", "speaker": client|operator|bot|system, "text", "message_id"?}]}}.
-      The server evaluates it only if a matching local approval exists (see TEAM_START_HERE.md). Source order, IDs and timestamps are preserved.</p>
-    <textarea id="paste-json" rows="6" spellcheck="false" aria-label="Conversation JSON"></textarea>
-    <button id="paste-load" type="button">Show pasted transcript</button>
+    <summary>Вставить новый диалог (JSON, только с разрешением владельца данных)</summary>
+    <p class="notice">Формат: {"dataset_group_id": "...", "record": {"conversation_id", "channel": "agent chat"|"voice call", "language", "audio_url", "transcript": [{"timestamp", "speaker": client|operator|bot|system, "text", "message_id"?}]}}.
+      Сервер оценит диалог, только если для него есть локальное разрешение (см. TEAM_START_HERE.md). Порядок, ID и время реплик сохраняются.</p>
+    <textarea id="paste-json" rows="6" spellcheck="false" aria-label="JSON диалога"></textarea>
+    <button id="paste-load" type="button">Показать вставленный диалог</button>
   </details>
   <main class="workspace">
-    <section class="panel" aria-label="Original transcript">
-      <div class="panel-heading"><h2 id="conversation-title">Transcript</h2><p id="conversation-meta" class="meta"></p>
-        <div class="legend"><span>Client</span><span>Operator</span><span>Bot</span><span>System</span></div>
-        <p class="notice">Original wording and timestamps. Index is zero-based; official evidence turn = index + 1.</p>
+    <section class="panel" aria-label="Исходный транскрипт">
+      <div class="panel-heading"><h2 id="conversation-title">Транскрипт</h2><p id="conversation-meta" class="meta"></p>
+        <div class="legend"><span>Клиент</span><span>Оператор</span><span>Бот</span><span>Система</span></div>
+        <p class="notice">Исходный текст и время реплик. Index считается с 0; номер реплики в официальной сдаче = Index + 1.</p>
       </div>
       <div id="transcript" class="scroll"></div>
     </section>
-    <section class="panel" aria-label="Evaluation results">
-      <div class="panel-heading"><h2>Evaluation results</h2><button id="download" type="button" disabled>Download evaluation JSON</button>
-        <p id="run-summary">Select a conversation, then click Evaluate.</p>
-        <p class="notice">Human labels stay separate. This page never fills or imports team_human assessments.</p>
+    <section class="panel" aria-label="Результаты оценки">
+      <div class="panel-heading"><h2>Результат оценки</h2><button id="download" type="button" disabled>Скачать JSON оценки</button>
+        <p id="run-summary">Выберите диалог и нажмите «Оценить».</p>
+        <p class="notice">Ручная разметка хранится отдельно: эта страница её не заполняет и не импортирует.</p>
       </div>
-      <div id="results" class="scroll" aria-busy="false"><p class="empty">No evaluation yet.</p></div>
+      <div id="results" class="scroll" aria-busy="false"><p class="empty">Оценки пока нет.</p></div>
     </section>
   </main>
 </section>
 
 <section class="cqa-tabpanel" id="cqa-panel-history-appeals" role="tabpanel" aria-labelledby="cqa-tab-history-appeals">
   <div class="workspace cqa-review-grid">
-    <section class="panel" aria-label="Appeals">
-      <div class="panel-heading"><h2>Appeals</h2>
-        <p class="notice">Saved evaluations are immutable. Appeals and reviewer decisions are stored separately; the revised total is recalculated with the same official arithmetic.</p>
+    <section class="panel" aria-label="Апелляции">
+      <div class="panel-heading"><h2>Апелляции</h2>
+        <p class="notice">Сохранённые оценки не меняются. Апелляции и решения проверяющего хранятся отдельно; новый итог пересчитывается той же официальной арифметикой.</p>
       </div>
       <div class="cqa-panel-body">
-        <h3><span class="cqa-step" aria-hidden="true">1</span>Submit an appeal</h3>
+        <h3><span class="cqa-step" aria-hidden="true">1</span>Подать апелляцию</h3>
         <form id="appeal-form" class="form-grid">
-          <label>Criterion<select id="appeal-criterion" disabled></select></label>
-          <label>Requested response<select id="appeal-requested" disabled></select></label>
-          <label>Your name<input id="appeal-name" maxlength="80" autocomplete="off"></label>
-          <label class="wide">Explanation<textarea id="appeal-explanation" maxlength="4000"></textarea></label>
-          <button id="appeal-submit" type="submit" disabled>Submit appeal</button>
+          <label>Критерий<select id="appeal-criterion" disabled></select></label>
+          <label>Какая оценка верна<select id="appeal-requested" disabled></select></label>
+          <label>Ваше имя<input id="appeal-name" maxlength="80" autocomplete="off"></label>
+          <label class="wide">Комментарий<textarea id="appeal-explanation" maxlength="4000"></textarea></label>
+          <button id="appeal-submit" type="submit" disabled>Подать апелляцию</button>
         </form>
-        <h3><span class="cqa-step" aria-hidden="true">2</span>Reviewer decision</h3>
-        <p class="notice">A different person confirms or changes the disputed score, using the reviewer key printed at server start.</p>
+        <h3><span class="cqa-step" aria-hidden="true">2</span>Решение проверяющего</h3>
+        <p class="notice">Другой человек подтверждает или меняет спорную оценку. Нужен ключ проверяющего — он выводится при запуске сервера (в демо: demo-reviewer-key).</p>
         <div class="form-grid reviewer">
-          <label>Reviewer name<input id="reviewer-name" maxlength="80" autocomplete="off"></label>
-          <label>Reviewer key<input id="reviewer-key" type="password" autocomplete="off" placeholder="Printed at server start"></label>
+          <label>Имя проверяющего<input id="reviewer-name" maxlength="80" autocomplete="off"></label>
+          <label>Ключ проверяющего<input id="reviewer-key" type="password" autocomplete="off" placeholder="Выводится при запуске сервера"></label>
         </div>
-        <h3>Appeals for this evaluation</h3>
-        <div id="appeals"><p class="empty">No appeals.</p></div>
+        <h3>Апелляции по этой оценке</h3>
+        <div id="appeals"><p class="empty">Апелляций нет.</p></div>
       </div>
     </section>
-    <section class="panel" aria-label="Score: original versus revised">
-      <div class="panel-heading"><h2>Score: original versus revised</h2></div>
+    <section class="panel" aria-label="Итог: исходный и после пересмотра">
+      <div class="panel-heading"><h2>Итог: исходный и после пересмотра</h2></div>
       <div class="cqa-panel-body">
-        <div id="comparison"><p class="empty">Open an accepted evaluation to see appeals.</p></div>
+        <div id="comparison"><p class="empty">Откройте принятую оценку, чтобы увидеть апелляции.</p></div>
       </div>
     </section>
   </div>
   <div class="cqa-section">
-    <section class="panel" aria-label="Evaluation history">
-      <div class="panel-heading"><h2>Evaluation history</h2>
-        <div class="cqa-heading-actions"><label class="inline"><input id="history-all" type="checkbox"> all conversations</label>
-          <button id="history-refresh" type="button">Refresh</button></div>
+    <section class="panel" aria-label="История оценок">
+      <div class="panel-heading"><h2>История оценок</h2>
+        <div class="cqa-heading-actions"><label class="inline"><input id="history-all" type="checkbox"> все диалоги</label>
+          <button id="history-refresh" type="button">Обновить</button></div>
       </div>
       <div class="cqa-panel-body cqa-table-wrap">
-        <table class="history"><thead><tr><th>Started (UTC)</th><th>Conversation</th><th>Checklist</th><th>Provider · model</th><th>Status</th><th>Total</th><th>Appeals</th><th><span class="cqa-visually-hidden">Open</span></th></tr></thead>
+        <table class="history"><thead><tr><th>Начало (UTC)</th><th>Диалог</th><th>Чек-лист</th><th>Кто оценивал · модель</th><th>Статус</th><th>Итог</th><th>Апелляции</th><th><span class="cqa-visually-hidden">Открыть</span></th></tr></thead>
           <tbody id="history"></tbody></table>
       </div>
     </section>
@@ -119,23 +133,23 @@
 
 <section class="cqa-tabpanel" id="cqa-panel-checklists" role="tabpanel" aria-labelledby="cqa-tab-checklists">
   <div class="cqa-section">
-    <section class="panel" aria-label="Checklist editor">
-      <div class="panel-heading"><h2>Checklist editor</h2>
-        <p class="notice">Versions are immutable: edit, give a new version name and save. The saved version is selected in the Checklist selector on the Evaluation tab.
-          Official submission export stays pinned to the organizer criteria (contact … critical) and refuses incompatible checklists.</p>
+    <section class="panel" aria-label="Редактор чек-листа">
+      <div class="panel-heading"><h2>Редактор чек-листа</h2>
+        <p class="notice">Версии не меняются: отредактируйте, дайте новое имя версии и сохраните. Сохранённая версия сразу выбирается в поле «Чек-лист» на вкладке «Оценка».
+          Официальная сдача (results.json) принимает только чек-лист организаторов (contact … critical) и откажет несовместимому.</p>
       </div>
       <div class="cqa-panel-body">
         <div class="form-grid cqa-editor-bar">
-          <label>Base version<select id="editor-base"></select></label>
-          <label>New version name<input id="editor-version" autocomplete="off"></label>
-          <button id="editor-save" type="button" disabled>Save as new version</button>
+          <label>Исходная версия<select id="editor-base"></select></label>
+          <label>Имя новой версии<input id="editor-version" autocomplete="off"></label>
+          <button id="editor-save" type="button" disabled>Сохранить как новую версию</button>
         </div>
         <p id="editor-feedback" class="notice" role="status"></p>
         <div id="editor-criteria"></div>
-        <details class="cqa-json-editor"><summary>Advanced: full checklist JSON (add/remove criteria, atomic questions, N/A rules)</summary>
-          <p class="notice">The form above edits this JSON. Server-side validation is authoritative: discrete scales need 0 and anchors for every level, N/A needs an applicability question, critical flags are unweighted.</p>
-          <textarea id="editor-json" rows="16" spellcheck="false" aria-label="Checklist JSON"></textarea>
-          <button id="editor-apply" type="button">Reload form from JSON</button>
+        <details class="cqa-json-editor"><summary>Для продвинутых: весь чек-лист в JSON (вопросы, правила N/A и т. д.)</summary>
+          <p class="notice">Форма выше редактирует этот JSON. Окончательно проверяет сервер: у шкалы должен быть уровень 0 и описания всех уровней, для N/A нужен вопрос применимости, у флага грубой ошибки нет веса.</p>
+          <textarea id="editor-json" rows="16" spellcheck="false" aria-label="JSON чек-листа"></textarea>
+          <button id="editor-apply" type="button">Обновить форму из JSON</button>
         </details>
       </div>
     </section>

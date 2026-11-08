@@ -15,6 +15,8 @@
 /* ===================================================================== 1. Tokens */
 .cqa-app {
   container: cqa / inline-size;
+  /* Light-only design; "only" also opts out of forced dark modes that would invert the semantic colours. */
+  color-scheme: only light;
 
   /* Type: system stack (renders Kazakh Cyrillic ә і ң ғ ү ұ қ ө һ), scale 12/13/15/20/32. */
   --cqa-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
@@ -98,6 +100,7 @@
 body {
   margin: 0;
   background: #eef2f6;
+  color-scheme: only light;
 }
 body > .cqa-app {
   min-height: 100vh;
@@ -483,6 +486,49 @@ body > .cqa-app {
   width: 170px;
 }
 
+/* "How it works": collapsed five-step guide above the toolbar. */
+.cqa-app details.cqa-howto {
+  padding: var(--cqa-s2) var(--cqa-s6);
+  font-size: var(--cqa-fs-sm);
+  background: var(--cqa-accent-soft);
+  border-bottom: 1px solid var(--cqa-accent-line);
+}
+.cqa-app details.cqa-howto > summary {
+  cursor: pointer;
+  width: fit-content;
+  font-weight: 700;
+  color: var(--cqa-accent);
+}
+.cqa-app details.cqa-howto ol {
+  margin: var(--cqa-s2) 0 var(--cqa-s1);
+  padding-left: var(--cqa-s5);
+  max-width: 1100px;
+  line-height: 1.55;
+}
+.cqa-app details.cqa-howto li + li {
+  margin-top: var(--cqa-s1);
+}
+
+/* Compatibility hint: shown before Evaluate when the selected combination cannot produce a score. */
+.cqa-app .cqa-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cqa-s1) var(--cqa-s2);
+  padding: var(--cqa-s2) var(--cqa-s6);
+  font-size: var(--cqa-fs-sm);
+  font-weight: 600;
+  color: var(--cqa-review);
+  background: var(--cqa-review-soft);
+  border-bottom: 1px solid #ecd3a0;
+}
+.cqa-app .cqa-hint[hidden] {
+  display: none;
+}
+.cqa-app .cqa-hint .cqa-link-button {
+  color: var(--cqa-accent);
+}
+
 /* Supplied-conversation panel. */
 .cqa-app details.paste {
   display: block;
@@ -670,6 +716,26 @@ body > .cqa-app {
   background: var(--cqa-role);
   border-radius: var(--cqa-radius-pill);
 }
+/* Role pills in Russian. The shared renderer (transcript.js, also used by human review) writes the raw speaker;
+ * the raw word stays in the DOM, only its visual label is replaced for the four known roles. */
+.cqa-app .message.client .speaker,
+.cqa-app .message.operator .speaker,
+.cqa-app .message.bot .speaker,
+.cqa-app .message.system .speaker {
+  font-size: 0;
+  letter-spacing: 0;
+}
+.cqa-app .message.client .speaker::before,
+.cqa-app .message.operator .speaker::before,
+.cqa-app .message.bot .speaker::before,
+.cqa-app .message.system .speaker::before {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+.cqa-app .message.client .speaker::before { content: "Клиент"; }
+.cqa-app .message.operator .speaker::before { content: "Оператор"; }
+.cqa-app .message.bot .speaker::before { content: "Бот"; }
+.cqa-app .message.system .speaker::before { content: "Система"; }
 .cqa-app .message .meta {
   display: inline;
   font-family: var(--cqa-mono);
@@ -706,7 +772,7 @@ body > .cqa-app {
 }
 .cqa-app #results:empty::before,
 .cqa-app #transcript:empty::before {
-  content: "No evaluation for this selection yet. Choose a checklist and provider, then click Evaluate.";
+  content: "Оценки для этого выбора пока нет. Выберите чек-лист и кто оценивает, затем нажмите «Оценить».";
   display: block;
   padding: var(--cqa-s6) var(--cqa-s4);
   font-size: var(--cqa-fs-sm);
@@ -716,10 +782,10 @@ body > .cqa-app {
   border-radius: var(--cqa-radius);
 }
 .cqa-app #transcript:empty::before {
-  content: "Select a conversation to load its transcript.";
+  content: "Выберите диалог, чтобы загрузить транскрипт.";
 }
 .cqa-app #results[aria-busy="true"]:empty::before {
-  content: "Evaluation running…";
+  content: "Идёт оценка…";
 }
 .cqa-app .empty {
   margin: 0;
@@ -1189,6 +1255,11 @@ body > .cqa-app {
 .cqa-app table.comparison td:nth-child(4) {
   font-family: var(--cqa-mono);
 }
+.cqa-app table.comparison th:not(:first-child),
+.cqa-app table.comparison td:not(:first-child) {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
 .cqa-app td.changed {
   font-weight: 700;
   color: var(--cqa-review);
@@ -1452,7 +1523,9 @@ body > .cqa-app {
   .cqa-app .cqa-header,
   .cqa-app .cqa-statusbar,
   .cqa-app div.toolbar,
-  .cqa-app details.paste {
+  .cqa-app details.paste,
+  .cqa-app details.cqa-howto,
+  .cqa-app .cqa-hint {
     padding-left: var(--cqa-s3);
     padding-right: var(--cqa-s3);
   }
@@ -1535,6 +1608,8 @@ body > .cqa-app {
   .cqa-app .cqa-statusbar,
   .cqa-app div.toolbar,
   .cqa-app details.paste,
+  .cqa-app details.cqa-howto,
+  .cqa-app .cqa-hint,
   .cqa-app #cqa-panel-checklists,
   .cqa-app #download,
   .cqa-app .cqa-heading-actions,

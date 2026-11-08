@@ -25,10 +25,10 @@ const result = {run: {is_mock:true,provider:'mock',model_returned:'fixture',late
 let reference;
 renderResult(result,container,summary,r=>reference=r);
 assert.equal(walk(container).filter(n=>n.className==='result-card').length,8);
-assert.match(summary.textContent,/MOCK FIXTURE/);
+assert.match(summary.textContent,/ТЕСТОВАЯ ЗАГЛУШКА/);
 assert.match(summary.textContent,/83.33/); // Display the backend total, never derive a total from points.
-assert.match(texts(container),/N\/A — not applicable/);
-assert.match(texts(container),/N\/A reason: fixture allowed condition/);
+assert.match(texts(container),/N\/A — неприменимо/);
+assert.match(texts(container),/Причина N\/A: fixture allowed condition/);
 assert.match(texts(container),/sent-from-backend/);
 assert.match(texts(container),/<script>literal source<\/script>/); // Literal text, no innerHTML parsing.
 result.validated_evaluation=JSON.parse(JSON.stringify(result.model_evaluation));
@@ -36,7 +36,7 @@ result.validated_evaluation.decisions[0].evidence[0].quote='Exact «source» spa
 result.evidence_repairs=[{criterion_id:'01',original_quote:'original fixture',source_quote:'Exact «source» span'}];
 renderResult(result,container,summary,()=>{});
 assert.equal(walk(container).find(n=>n.tagName==='blockquote').textContent,'Exact «source» span');
-assert.match(texts(container),/1 citation formatting repairs/);
+assert.match(texts(container),/Исправлений форматирования цитат: 1/);
 delete result.validated_evaluation; delete result.evidence_repairs;
 renderResult(result,container,summary,r=>reference=r);
 const evidenceButton = walk(container).find(n=>n.tagName==='button'); evidenceButton.onclick();
@@ -44,10 +44,10 @@ assert.equal(reference.message_id,'m0001');
 assert.equal(evidenceButton.dataset.startMessageId,'m0001');
 result.run.is_mock=false;result.status='needs_review';
 renderResult(result,container,summary,()=>{});
-assert.match(summary.textContent,/LLM evaluation — semantic accuracy not independently verified/);
-assert.doesNotMatch(summary.textContent,/MOCK FIXTURE/);
+assert.match(summary.textContent,/Оценка LLM — смысловая точность независимо не проверена/);
+assert.doesNotMatch(summary.textContent,/ТЕСТОВАЯ ЗАГЛУШКА/);
 result.score.total_score=null; renderResult(result,container,summary,()=>{});
-assert.match(summary.textContent,/not calculated/);
+assert.match(summary.textContent,/не рассчитан/);
 assert.equal(responseText({response:7},{kind:'discrete',levels:[0,4,7,10]}),'7 / 10');
 
 const raw={transcript:[{speaker:'client',timestamp:'00:00',text:'  Ә\n<literal>',message_id:null},
@@ -66,8 +66,8 @@ assert.doesNotMatch(texts(container),/Original message ID: m0001/);
 renderFailure({run:{is_mock:false,provider:'openai',model_returned:'offline-fixture',provider_latency_ms:10,usage:{}},
   checklist,issues:[{criterion_id:'02',message:'Fixture applicability contradiction'}],
   original_model_output:result.model_evaluation},container,summary);
-assert.match(summary.textContent,/REAL OPENAI RESPONSE — VALIDATION FAILED/);
-assert.match(summary.textContent,/No accepted score or total/);
+assert.match(summary.textContent,/НАСТОЯЩИЙ ОТВЕТ OPENAI — ПРОВЕРКА НЕ ПРОЙДЕНА/);
+assert.match(summary.textContent,/Принятой оценки и итога нет/);
 assert.equal(walk(container).filter(n=>n.className==='result-card rejected-card').length,8);
 assert.match(texts(container),/Fixture applicability contradiction/);
 assert.doesNotMatch(texts(container),/83.33/);
@@ -83,22 +83,22 @@ console.log('PASS: eight results, N/A reasons, backend-only totals, mock/LLM lab
   assert.deepEqual(permittedResponses(byId('01')), ['yes', 'no']);
   assert.deepEqual(permittedResponses(byId('07')), ['yes', 'no', 'N/A']);
   assert.deepEqual(permittedResponses({kind: 'discrete', levels: [0, 1, 2, 3], na_condition: null}), [0, 1, 2, 3]);
-  assert.match(runLabel({provider: 'replay', is_mock: true}), /REPLAY of a recorded genuine model reply/);
+  assert.match(runLabel({provider: 'replay', is_mock: true}), /ПОВТОР записанного ответа модели/);
   const responses = Object.fromEntries(v6.criteria.map(c => [c.criterion_id, c.kind === 'discrete' ? Math.max(...c.levels) : c.kind === 'critical' ? 'no' : 'yes']));
   const view = {original_score: {total_score: '100.00', critical_violation: false}, revised_score: {total_score: '92.31', critical_violation: false},
     original_responses: responses, revised_responses: {...responses, '07': 'no'}};
   const box = doc.createElement('div');
   renderComparison(view, v6, box);
-  assert.match(texts(box), /Original total: 100.00.*Revised total: 92.31/s);
+  assert.match(texts(box), /Исходный итог: 100.00.*Пересмотренный итог: 92.31/s);
   assert.equal(walk(box).filter(n => n.className === 'changed').length, 1);
   assert.equal(walk(box).filter(n => n.tagName === 'tr').length, v6.criteria.length + 1); // Rows follow the checklist, not a fixed eight.
   renderComparison({...view, revised_score: null, revised_responses: responses}, v6, box);
-  assert.match(texts(box), /original total stands/);
+  assert.match(texts(box), /действует исходный итог/);
   renderFailure({run: {is_mock: false, provider: 'openai', model_returned: 'fixture', provider_latency_ms: 1, usage: {}}, checklist: v6,
     issues: [{criterion_id: '03', message: 'fixture fact invalid'}], criterion_reviews: [{criterion_id: '03', state: 'invalid_facts'}],
     original_model_output: {schema_version: '1.2', criteria: v6.criteria.map(c => ({criterion_id: c.criterion_id, atomic_checks: [], judgment: null}))}}, box, summary);
   assert.equal(walk(box).filter(n => n.className === 'result-card rejected-card').length, v6.criteria.length);
-  assert.match(texts(box), /state invalid_facts/);
+  assert.match(texts(box), /состояние invalid_facts/);
   assert.match(texts(box), /status=error/);
   console.log('PASS: dynamic response scales, replay label, atomic rejection cards and original-vs-revised comparison.');
 }
