@@ -486,6 +486,29 @@ body > .cqa-app {
   width: 170px;
 }
 
+/* "How it works": collapsed five-step guide above the toolbar. */
+.cqa-app details.cqa-howto {
+  padding: var(--cqa-s2) var(--cqa-s6);
+  font-size: var(--cqa-fs-sm);
+  background: var(--cqa-accent-soft);
+  border-bottom: 1px solid var(--cqa-accent-line);
+}
+.cqa-app details.cqa-howto > summary {
+  cursor: pointer;
+  width: fit-content;
+  font-weight: 700;
+  color: var(--cqa-accent);
+}
+.cqa-app details.cqa-howto ol {
+  margin: var(--cqa-s2) 0 var(--cqa-s1);
+  padding-left: var(--cqa-s5);
+  max-width: 1100px;
+  line-height: 1.55;
+}
+.cqa-app details.cqa-howto li + li {
+  margin-top: var(--cqa-s1);
+}
+
 /* Compatibility hint: shown before Evaluate when the selected combination cannot produce a score. */
 .cqa-app .cqa-hint {
   display: flex;
@@ -1492,6 +1515,7 @@ body > .cqa-app {
   .cqa-app .cqa-statusbar,
   .cqa-app div.toolbar,
   .cqa-app details.paste,
+  .cqa-app details.cqa-howto,
   .cqa-app .cqa-hint {
     padding-left: var(--cqa-s3);
     padding-right: var(--cqa-s3);
@@ -1575,6 +1599,8 @@ body > .cqa-app {
   .cqa-app .cqa-statusbar,
   .cqa-app div.toolbar,
   .cqa-app details.paste,
+  .cqa-app details.cqa-howto,
+  .cqa-app .cqa-hint,
   .cqa-app #cqa-panel-checklists,
   .cqa-app #download,
   .cqa-app .cqa-heading-actions,
