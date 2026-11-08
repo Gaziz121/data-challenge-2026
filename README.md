@@ -6,7 +6,7 @@ rationale and source-grounded evidence, exact weighted scoring with N/A redistri
 a separate critical flag, versioned checklists, appeals with reviewer decisions, and the
 official `results.json` export.
 
-Authoritative branch: **`integration/final-submission`** (see [TEAM_START_HERE.md](TEAM_START_HERE.md)).
+Authoritative branch: **`main`** (includes `integration/final-submission` and the frontend; see [TEAM_START_HERE.md](TEAM_START_HERE.md)).
 Requirements: [case/CQA_REQUIREMENTS.md](case/CQA_REQUIREMENTS.md),
 [case/CQA_SCORING_SPEC.md](case/CQA_SCORING_SPEC.md), team-safe PDFs in [case/shared/](case/shared/).
 
@@ -16,7 +16,6 @@ Python 3.9+ with `pydantic>=2.11,<3` (`python3 -m pip install "pydantic==2.13.5"
 
 ```sh
 git clone https://github.com/Gaziz121/data-challenge-2026.git && cd data-challenge-2026
-git checkout integration/final-submission
 CQA_REVIEWER_KEY=demo-reviewer-key PYTHONPATH=src python3 -m cqa.web --port 8765 \
   --checklist src/cqa/checklists/official-v7.json --live-call-limit 0
 ```
@@ -24,6 +23,28 @@ CQA_REVIEWER_KEY=demo-reviewer-key PYTHONPATH=src python3 -m cqa.web --port 8765
 Open http://127.0.0.1:8765/ and follow the [five-minute demo](docs/DEMO.md). The fastest
 complete path: conversation `p1-ru-001`, checklist `2026-11-07.v5`, provider **Replay**,
 Evaluate → appeal C07 → reviewer (key `demo-reviewer-key`) changes it → revised total.
+The interface is in Russian. Without an OpenAI key it preselects exactly that pair
+(«Повтор записанного ответа ИИ»), so the first click on «Оценить» gives a score; a yellow hint
+explains combinations that cannot score (e.g. the Mock fixture with atomic checklists v4–v7).
+
+### Windows (PowerShell)
+
+```powershell
+git clone -c core.autocrlf=false https://github.com/Gaziz121/data-challenge-2026.git
+cd data-challenge-2026
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip "pydantic==2.13.5"
+$env:PYTHONUTF8 = "1"; $env:PYTHONPATH = "src"; $env:CQA_REVIEWER_KEY = "demo-reviewer-key"
+.\.venv\Scripts\python.exe -m cqa.web --port 8765 --checklist src/cqa/checklists/official-v7.json --live-call-limit 0
+```
+
+`core.autocrlf=false` matters: with Windows line endings the reviewed dataset hash no longer
+matches and the server refuses to start. Tests also need `$env:PYTHONUTF8 = "1"`; on Windows
+four subtests that assert POSIX file mode `0o600` fail (`test_control_backend.py:102`).
+For a real AI evaluation (paid, about USD 0.02 each) add an ignored file with one line
+`OPENAI_API_KEY=...` and start with
+`--env-file <that file> --model gpt-5.4-mini-2026-03-17 --allow-external-synthetic --live-call-limit 10`,
+then choose «OpenAI — настоящая оценка ИИ».
 
 Tests (all offline; the same suite runs in GitHub Actions, `.github/workflows/offline-tests.yml`):
 

@@ -3,7 +3,7 @@
 ## Setup (once, before the defense; no API key or network needed)
 
 ```sh
-git checkout integration/final-submission
+git checkout main   # main includes integration/final-submission and the Russian frontend
 # Optional, for minute 4b (supplied new conversation): approve the three FICTIONAL demo records locally.
 PYTHONPATH=src python3 -B -m cqa_results.grants --data docs/demo/fictional_new_conversations.json \
   --data-class synthetic_test --reference demo-fictional-conversations \
