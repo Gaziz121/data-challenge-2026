@@ -6,6 +6,8 @@
   Включает .venv, задаёт PYTHONUTF8=1, PYTHONPATH=src и CQA_REVIEWER_KEY=demo-reviewer-key, запускает
   `python -m cqa.web` с --live-call-limit 0 (никаких платных вызовов OpenAI) и открывает браузер.
   Остановить сервер: Ctrl+C в этом окне.
+  Первый запуск на новом компьютере сам создаёт .venv и ставит pydantic 2.13.5 (нужен интернет один раз).
+  Если Python не установлен — подсказывает, где взять Python 3.11.
 
 .PARAMETER Checklist
   Чек-лист сервера по умолчанию (файл в src\cqa\checklists). По умолчанию official-v7.json, как в README.
@@ -86,7 +88,46 @@ if ($Reset) {
   }
 }
 
-if (-not (Test-Path -LiteralPath $Python)) { throw "Нет .venv. Выполните: python -m venv .venv; .\.venv\Scripts\python.exe -m pip install --upgrade pip `"pydantic==2.13.5`"" }
+function Find-BasePython {
+  # Сначала лаунчер py (ставится установщиком с python.org), потом python: голый python может быть заглушкой Microsoft Store.
+  foreach ($candidate in @(@("py", "-3"), @("python"))) {
+    $exe = $candidate[0]; $pre = @($candidate | Select-Object -Skip 1)
+    if (-not (Get-Command $exe -ErrorAction SilentlyContinue)) { continue }
+    try { $version = & $exe @pre -c "import sys; print('%d.%d' % sys.version_info[:2])" 2>$null } catch { continue }
+    if ($LASTEXITCODE -eq 0 -and "$version" -match '^3\.(\d+)$' -and [int]$Matches[1] -ge 9) {
+      return [pscustomobject]@{ Exe = $exe; Pre = $pre; Version = "$version" }
+    }
+  }
+  return $null
+}
+
+function Test-Pydantic {
+  if (-not (Test-Path -LiteralPath $Python)) { return $false }
+  try { & $Python -c "import pydantic" 2>$null; return ($LASTEXITCODE -eq 0) } catch { return $false }
+}
+
+if (-not (Test-Pydantic)) {
+  # Первый запуск на новом компьютере: создать .venv и поставить pydantic (нужен интернет один раз).
+  if (-not (Test-Path -LiteralPath $Python)) {
+    $base = Find-BasePython
+    if (-not $base) {
+      Write-Host ""
+      Write-Host "Python не найден. Установите Python 3.11 (откроется страница загрузки):" -ForegroundColor Yellow
+      Write-Host "  https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe"
+      Write-Host "  В первом окне установщика отметьте «Add python.exe to PATH» и нажмите «Install Now»."
+      Write-Host "  Потом снова дважды щёлкните demo-start.cmd."
+      Start-Process "https://www.python.org/downloads/release/python-3119/"
+      throw "Сначала установите Python."
+    }
+    Write-Host "Первый запуск: создаю окружение Python (Python $($base.Version)) в папке .venv..."
+    & $base.Exe @($base.Pre + @("-m", "venv", (Join-Path $Root ".venv")))
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $Python)) { throw "Не удалось создать .venv." }
+  }
+  Write-Host "Ставлю pydantic 2.13.5 (нужен интернет, обычно меньше минуты)..."
+  & $Python -m pip install --disable-pip-version-check --quiet "pydantic==2.13.5"
+  if ($LASTEXITCODE -ne 0 -or -not (Test-Pydantic)) { throw "Не удалось установить pydantic. Проверьте интернет и снова дважды щёлкните demo-start.cmd." }
+  Write-Host "Готово: окружение установлено, дальше демо работает без интернета."
+}
 $ChecklistPath = Join-Path "src\cqa\checklists" $Checklist
 if (-not (Test-Path -LiteralPath (Join-Path $Root $ChecklistPath))) { throw "Не найден чек-лист $ChecklistPath." }
 
