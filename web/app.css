@@ -684,6 +684,26 @@ body > .cqa-app {
   background: var(--cqa-role);
   border-radius: var(--cqa-radius-pill);
 }
+/* Role pills in Russian. The shared renderer (transcript.js, also used by human review) writes the raw speaker;
+ * the raw word stays in the DOM, only its visual label is replaced for the four known roles. */
+.cqa-app .message.client .speaker,
+.cqa-app .message.operator .speaker,
+.cqa-app .message.bot .speaker,
+.cqa-app .message.system .speaker {
+  font-size: 0;
+  letter-spacing: 0;
+}
+.cqa-app .message.client .speaker::before,
+.cqa-app .message.operator .speaker::before,
+.cqa-app .message.bot .speaker::before,
+.cqa-app .message.system .speaker::before {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+.cqa-app .message.client .speaker::before { content: "Клиент"; }
+.cqa-app .message.operator .speaker::before { content: "Оператор"; }
+.cqa-app .message.bot .speaker::before { content: "Бот"; }
+.cqa-app .message.system .speaker::before { content: "Система"; }
 .cqa-app .message .meta {
   display: inline;
   font-family: var(--cqa-mono);
@@ -720,7 +740,7 @@ body > .cqa-app {
 }
 .cqa-app #results:empty::before,
 .cqa-app #transcript:empty::before {
-  content: "No evaluation for this selection yet. Choose a checklist and provider, then click Evaluate.";
+  content: "Оценки для этого выбора пока нет. Выберите чек-лист и кто оценивает, затем нажмите «Оценить».";
   display: block;
   padding: var(--cqa-s6) var(--cqa-s4);
   font-size: var(--cqa-fs-sm);
@@ -730,10 +750,10 @@ body > .cqa-app {
   border-radius: var(--cqa-radius);
 }
 .cqa-app #transcript:empty::before {
-  content: "Select a conversation to load its transcript.";
+  content: "Выберите диалог, чтобы загрузить транскрипт.";
 }
 .cqa-app #results[aria-busy="true"]:empty::before {
-  content: "Evaluation running…";
+  content: "Идёт оценка…";
 }
 .cqa-app .empty {
   margin: 0;
@@ -1202,6 +1222,11 @@ body > .cqa-app {
 .cqa-app table.comparison td:nth-child(3),
 .cqa-app table.comparison td:nth-child(4) {
   font-family: var(--cqa-mono);
+}
+.cqa-app table.comparison th:not(:first-child),
+.cqa-app table.comparison td:not(:first-child) {
+  white-space: nowrap;
+  overflow-wrap: normal;
 }
 .cqa-app td.changed {
   font-weight: 700;
