@@ -26,6 +26,8 @@ Evaluate → appeal C07 → reviewer (key `demo-reviewer-key`) changes it → re
 The interface is in Russian. Without an OpenAI key it preselects exactly that pair
 («Повтор записанного ответа ИИ»), so the first click on «Оценить» gives a score; a yellow hint
 explains combinations that cannot score (e.g. the Mock fixture with atomic checklists v4–v7).
+Jury defense materials (Russian script, runbook, backup screenshots) are in [docs/defense/](docs/defense/);
+on Windows double-click `tools\demo\demo-start.cmd` (or `demo-reset.cmd` for a clean demo).
 
 ### Windows (PowerShell)
 
