@@ -225,6 +225,46 @@
     $("evaluate").disabled = busy || !(current || pasted) || !ready;
     if (!mock && !ready) feedback(config?.live_calls_remaining === 0 ? "Live request budget is exhausted. No additional paid request can be sent." :
       "OpenAI requires authorized server credentials, an external-export opt-in and an explicit model. No request has been sent.");
+    renderHint();
+  }
+  // Which provider × checklist × conversation combinations can produce a score — explained before Evaluate is clicked.
+  const decisionPaths = new Map(); // "checklist_id\0version" → "legacy" | "atomic_first"
+  function liveReady() {
+    return Boolean(config?.openai_key_present && (config?.external_synthetic_allowed || config?.external_authorized_allowed) && config?.live_calls_remaining !== 0);
+  }
+  function checklistValue(version) {return `${config.checklist.checklist_id}\u0000${version}`;}
+  function useRecording(recording) {
+    $("provider").value = "replay"; $("language").value = "";
+    $("checklist").value = checklistValue(recording.checklist_version);
+    filter(recording.conversation_id);
+  }
+  function compatibility() {
+    const provider = $("provider").value, path = decisionPaths.get($("checklist").value);
+    const recordings = config?.replay_recordings || [];
+    if (provider === "mock" && path === "atomic_first") {
+      const legacyList = checklists.filter(c => decisionPaths.get(`${c.checklist_id}\u0000${c.version}`) === "legacy");
+      const legacy = legacyList.find(c => /\.v3$/.test(c.version)) || legacyList[0];
+      return {text: "Тестовая заглушка не умеет отвечать на атомарные факты чек-листов v4–v7, поэтому оценка будет отклонена (так задумано). " +
+        "Для проверки интерфейса возьмите чек-лист v2/v3, для настоящей оценки — OpenAI.",
+        fix: legacy && `Взять ${legacy.version}`, apply: legacy && (() => {$("checklist").value = `${legacy.checklist_id}\u0000${legacy.version}`; clearResult(); updateMode();})};
+    }
+    if (provider === "replay" && !recordings.some(r => !pasted && r.conversation_id === $("conversation").value && $("checklist").value === checklistValue(r.checklist_version))) {
+      const first = recordings[0];
+      return {text: "Повтор есть только для записанной пары диалог + чек-лист" + (first ? ` (${first.conversation_id} + ${first.checklist_version}). ` : ". ") +
+        "Для других диалогов нужен OpenAI.", fix: first && !pasted && `Перейти на ${first.conversation_id} + ${first.checklist_version}`, apply: first && !pasted && (() => useRecording(first))};
+    }
+    if (provider === "openai" && !liveReady()) {
+      return {text: "OpenAI на этом сервере не настроен (нет ключа, разрешения или лимит живых вызовов 0). Настоящая оценка невозможна, пока сервер не запущен в живом режиме.",
+        fix: recordings[0] && "Показать повтор записанного ответа", apply: recordings[0] && (() => useRecording(recordings[0]))};
+    }
+    return null;
+  }
+  function renderHint() {
+    const box = $("cqa-hint"), hint = config ? compatibility() : null;
+    box.hidden = !hint;
+    if (!hint) return box.replaceChildren();
+    box.replaceChildren(el("span", hint.text));
+    if (hint.apply) {const fix = el("button", hint.fix, "cqa-link-button"); fix.type = "button"; fix.onclick = hint.apply; box.append(" ", fix);}
   }
   function clearResult() {
     result = null; rejected = null; $("download").disabled = true;
@@ -249,10 +289,11 @@
       feedback("Transcript loaded. Evaluation has not run."); updateMode(); loadHistory();
     } catch (error) {if (requestSequence === sequence) feedback(error.message, true);}
   }
-  function filter() {
+  function filter(selectId) {
     const filtered = records.filter(r => !$("language").value || r.language === $("language").value);
     $("conversation").replaceChildren(...filtered.map(r => new Option(`${r.conversation_id} · ${r.language}`, r.conversation_id)));
     $("conversation").disabled = !filtered.length;
+    if (typeof selectId === "string" && filtered.some(r => r.conversation_id === selectId)) $("conversation").value = selectId;
     selectConversation();
   }
   function jump(reference) {
@@ -510,6 +551,8 @@
     const base = $("editor-base").value;
     $("editor-base").replaceChildren(...checklists.map(c => new Option(`${c.checklist_id} · ${c.version}`, c.sha256)));
     if (base) $("editor-base").value = base;
+    await Promise.all(checklists.filter(c => !decisionPaths.has(`${c.checklist_id}\u0000${c.version}`)).map(c =>
+      api("/api/checklists/" + c.sha256).then(full => decisionPaths.set(`${c.checklist_id}\u0000${c.version}`, full.decision_path || "legacy"))));
   }
   function versionExists(version) {return checklists.some(c => c.checklist_id === editing?.checklist_id && c.version === version);}
   async function loadEditor() {
@@ -685,7 +728,13 @@
   $("model").oninput = () => {clearResult(); updateMode();};
   Promise.all([api("/api/config"), api("/api/conversations")]).then(async ([settings, data]) => {
     config = settings; records = data; $("model").value = settings.model;
-    await loadChecklists(); await loadEditor(); filter();
+    await loadChecklists(); await loadEditor();
+    // First click should produce a score: real OpenAI when this server is configured for it, otherwise the
+    // recorded genuine reply (Replay). Mock with the production (atomic) checklist is always refused by design.
+    const recording = (config.replay_recordings || [])[0];
+    if (liveReady()) {$("provider").value = "openai"; filter();}
+    else if (recording && records.some(r => r.conversation_id === recording.conversation_id)) useRecording(recording);
+    else filter();
     const diagnosticId = new URL(window.location.href).searchParams.get("diagnostic");
     if (diagnosticId) {
       showRejected(await api("/api/diagnostics/" + encodeURIComponent(diagnosticId)));

@@ -15,6 +15,8 @@
 /* ===================================================================== 1. Tokens */
 .cqa-app {
   container: cqa / inline-size;
+  /* Light-only design; "only" also opts out of forced dark modes that would invert the semantic colours. */
+  color-scheme: only light;
 
   /* Type: system stack (renders Kazakh Cyrillic ә і ң ғ ү ұ қ ө һ), scale 12/13/15/20/32. */
   --cqa-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
@@ -98,6 +100,7 @@
 body {
   margin: 0;
   background: #eef2f6;
+  color-scheme: only light;
 }
 body > .cqa-app {
   min-height: 100vh;
@@ -481,6 +484,26 @@ body > .cqa-app {
 }
 .cqa-app #model {
   width: 170px;
+}
+
+/* Compatibility hint: shown before Evaluate when the selected combination cannot produce a score. */
+.cqa-app .cqa-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cqa-s1) var(--cqa-s2);
+  padding: var(--cqa-s2) var(--cqa-s6);
+  font-size: var(--cqa-fs-sm);
+  font-weight: 600;
+  color: var(--cqa-review);
+  background: var(--cqa-review-soft);
+  border-bottom: 1px solid #ecd3a0;
+}
+.cqa-app .cqa-hint[hidden] {
+  display: none;
+}
+.cqa-app .cqa-hint .cqa-link-button {
+  color: var(--cqa-accent);
 }
 
 /* Supplied-conversation panel. */
@@ -1443,7 +1466,8 @@ body > .cqa-app {
   .cqa-app .cqa-header,
   .cqa-app .cqa-statusbar,
   .cqa-app div.toolbar,
-  .cqa-app details.paste {
+  .cqa-app details.paste,
+  .cqa-app .cqa-hint {
     padding-left: var(--cqa-s3);
     padding-right: var(--cqa-s3);
   }

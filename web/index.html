@@ -1,7 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Light-only design: opt out of forced dark modes (Chrome Auto Dark, Dark Reader) that invert the semantic colours. -->
+<meta name="color-scheme" content="only light">
+<meta name="darkreader-lock">
 <title>CQA · Conversation Quality Analytics</title>
 <link rel="stylesheet" href="/app.css">
 <script defer src="/transcript.js"></script>
@@ -39,13 +42,14 @@
     </div>
     <div class="cqa-toolbar-group" role="group" aria-label="Evaluation settings">
       <label>Checklist<select id="checklist"></select></label>
-      <label>Provider<select id="provider"><option value="mock">Mock fixture</option><option value="replay">Replay recorded genuine reply</option><option value="openai">OpenAI LLM</option></select></label>
+      <label>Provider<select id="provider"><option value="mock">Тестовая заглушка (без ИИ)</option><option value="replay">Повтор записанного ответа ИИ (p1-ru-001 + v5)</option><option value="openai">OpenAI — настоящая оценка ИИ</option></select></label>
       <label>Model<input id="model" placeholder="Explicit OpenAI model" disabled autocomplete="off"></label>
     </div>
     <div class="cqa-toolbar-group cqa-toolbar-actions" role="group" aria-label="Run">
       <button id="evaluate" type="button" disabled>Evaluate</button>
     </div>
   </div>
+  <div class="cqa-hint" id="cqa-hint" role="status" aria-live="polite" hidden></div>
   <details class="toolbar paste" id="paste-panel">
     <summary>Supply a new conversation (JSON, owner-approved input only)</summary>
     <p class="notice">Shape: {"dataset_group_id": "...", "record": {"conversation_id", "channel": "agent chat"|"voice call", "language", "audio_url", "transcript": [{"timestamp", "speaker": client|operator|bot|system, "text", "message_id"?}]}}.
